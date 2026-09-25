@@ -4,6 +4,7 @@ import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
 import ModelSettings from './components/ModelSettings.vue';
+import ReviewControls from './components/ReviewControls.vue';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
 import type { Project, Version, Finding, Anchor, Comparison, ModelConfig } from './types';
@@ -16,6 +17,19 @@ const version = computed(() =>
 const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
+const evidenceQuote = ref('');
+const recommendationLabel = (value: string | null) =>
+  ({ reject: '拒稿', major_revision: '大修', minor_revision: '小修', accept: '录用' })[
+    value || ''
+  ] || '暂无法判定';
+const assessmentLabel = (value: string) =>
+  ({
+    supported: '有证据支持',
+    issue: '发现问题',
+    unable_to_assess: '待补充或核验',
+    available: '已提取',
+    not_checked: '未检查',
+  })[value] || value;
 const tab = ref('annotations'),
   timelineTab = ref('chat'),
   detailTab = ref('details');
@@ -225,6 +239,7 @@ function restoreView() {
   inspector.value = true;
   selectedReportId.value = '';
   searchInput.value = '';
+  evidenceQuote.value = '';
 }
 async function initialize() {
   initialLoading.value = true;
@@ -371,20 +386,51 @@ function onDrop(event: DragEvent) {
   if (file) requestUpload(file);
 }
 async function poll() {
-  if (!project.value?.versions.some((v) => v.status === 'parsing')) return;
+  if (
+    !project.value?.versions.some(
+      (v) => v.status === 'parsing' || v.runs?.some((r) => r.status === 'running'),
+    )
+  )
+    return;
   const id = project.value.id;
   try {
     const data = await api<Project>(`/projects/${id}`);
     if (project.value?.id === id) {
       project.value = data;
-      if (!data.versions.some((v) => v.status === 'parsing')) {
+      if (
+        !data.versions.some(
+          (v) => v.status === 'parsing' || v.runs.some((r) => r.status === 'running'),
+        )
+      ) {
         await refreshList();
-        notify('解析状态已更新');
+        notify('任务状态已更新，可查看报告');
       }
     }
   } catch {
     /* Preserve current data; a later poll retries. */
   }
+}
+async function startReview(retryId?: string) {
+  if (!project.value || !version.value) return;
+  const id = project.value.id,
+    versionId = version.value.id;
+  busy.value = true;
+  await safe(async () => {
+    const data = await api<Project>(`/projects/${id}/review`, json('POST', { versionId, retryId }));
+    if (project.value?.id === id) project.value = data;
+    notify('评审已开始，可查看检查明细');
+  });
+  busy.value = false;
+}
+async function cancelReview(runId: string) {
+  if (!project.value || !version.value) return;
+  await safe(async () => {
+    await api(
+      `/projects/${project.value!.id}/review/cancel`,
+      json('POST', { versionId: version.value!.id, runId }),
+    );
+    notify('正在取消评审');
+  });
 }
 async function retry() {
   if (!project.value || !version.value) return;
@@ -427,6 +473,7 @@ function askCopilot() {
   nextTick(() => textarea.value?.focus());
 }
 async function locate(anchor: Anchor, findingId?: string) {
+  evidenceQuote.value = anchor.quote;
   tab.value = 'annotations';
   page.value = anchor.page || 1;
   dialog.value = '';
@@ -434,7 +481,7 @@ async function locate(anchor: Anchor, findingId?: string) {
   if (findingId) {
     const index = findings.value.findIndex((f) => f.id === findingId);
     if (index >= 0) selected.value = index;
-    inspector.value = true;
+    inspector.value = index >= 0;
   }
   await nextTick();
   const target = document.getElementById(anchor.elementId);
@@ -484,7 +531,7 @@ async function generateReport() {
 function downloadReport() {
   if (!report.value) return;
   const r = report.value;
-  const text = `# ${project.value?.title}\n\n${r.demo ? '演示评审报告，不用于实际投稿决策。' : '解析报告：专业评审尚未执行，暂无法判定。'}\n\n版本：v${version.value?.number}\n方案：${r.scheme}\n模板：${r.template}\n任务：${r.runId}\n生成时间：${r.createdAt}\n\n## 覆盖范围\n${r.coverage}\n\n${r.findings.map((f, i) => `## ${i + 1}. ${f.title}\n${f.explanation}\n\n原文：${f.anchor.quote}\n位置：${f.anchor.section}\n建议：${f.suggestion}`).join('\n\n')}\n${r.results?.map((result) => `- ${result.checkId}：${result.observation}`).join('\n') || ''}\n${r.warnings?.join('\n') || ''}`;
+  const text = `# ${project.value?.title}\n\n${r.demo ? '演示评审报告，不用于实际投稿决策。' : r.trial ? `试运行评审 · 系统暂定建议：${recommendationLabel(r.recommendation)}\n${r.conclusion}` : '解析报告：专业评审尚未执行，暂无法判定。'}\n\n版本：v${version.value?.number}\n方案：${r.scheme}\n模板：${r.template}\n任务：${r.runId}\n模型：${r.model?.model || '无'}\n规则指纹：${r.packHash || '无'}\n生成时间：${r.createdAt}\n\n## 覆盖范围\n${r.coverage}\n${r.score ? `\n已评项得分：${r.score.earned.toFixed(1)}/${r.score.assessedMaximum}；加权覆盖率：${(r.score.coverage * 100).toFixed(1)}%；完整总分：${r.score.total ?? '未形成'}\n` : ''}\n${r.findings.map((f, i) => `## ${i + 1}. ${f.title}\n${f.explanation}\n\n原文：${f.anchor.quote}\n位置：${f.anchor.section}\n建议：${f.suggestion}`).join('\n\n')}\n${r.results?.map((result) => `\n### ${result.checkId} ${result.name || ''}\n状态：${assessmentLabel(result.assessment)}；等级：${result.level ?? '未评分'}\n${result.observation}\n${result.suggestion || ''}\n${result.evidence?.map((e) => `原文 [${e.elementId}]：${e.quote}`).join('\n') || ''}\n复核：${result.verification?.reason || '未完成论证核验'}`).join('\n') || ''}\n${r.warnings?.join('\n') || ''}`;
   const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
   const link = document.createElement('a');
   link.href = url;
@@ -803,9 +850,20 @@ onUnmounted(() => {
         @dragleave.prevent="dragging = false"
         @drop.prevent="onDrop"
       >
+        <ReviewControls
+          v-if="project && !project.demo"
+          :version="version"
+          :busy="busy"
+          @start="startReview"
+          @cancel="cancelReview"
+          @report="
+            tab = 'report';
+            selectedReportId = '';
+          "
+        />
         <div v-if="!project?.demo && project" class="review-context">
           <button @click="openDialog('templates')">
-            《生态学报》预审标准 <span>草案</span><Icon name="down" :size="12" />
+            生态学实证预审 <span>试运行</span><Icon name="down" :size="12" />
           </button>
           <div>
             <select
@@ -820,7 +878,14 @@ onUnmounted(() => {
               <option value="empirical">实证研究</option>
               <option value="review">综述（待适配）</option>
               <option value="theory">理论研究（待适配）</option></select
-            ><span>文字意见</span>
+            ><select
+              v-model="project.settings.outputMode"
+              aria-label="评审输出方式"
+              @change="saveSettings"
+            >
+              <option value="narrative">文字意见</option>
+              <option value="scored">文字 + 试运行评分</option>
+            </select>
           </div>
         </div>
         <div v-if="contextFinding" class="context-chip">
@@ -1096,7 +1161,7 @@ onUnmounted(() => {
               :url="uploadUrl"
               :page="page"
               :zoom="zoom"
-              :query="searchInput"
+              :query="evidenceQuote || searchInput"
               @pages="pageCount = $event"
             />
             <article
@@ -1113,7 +1178,13 @@ onUnmounted(() => {
               >
                 <small>{{ section.title === section.text ? '' : section.title }}</small>
                 <p :class="{ 'docx-heading': section.title === section.text }">
-                  {{ section.text }}
+                  <template v-if="evidenceQuote && section.text.includes(evidenceQuote)"
+                    >{{ section.text.slice(0, section.text.indexOf(evidenceQuote))
+                    }}<mark>{{ evidenceQuote }}</mark
+                    >{{
+                      section.text.slice(section.text.indexOf(evidenceQuote) + evidenceQuote.length)
+                    }}</template
+                  ><template v-else>{{ section.text }}</template>
                 </p>
               </div>
             </article></template
@@ -1221,9 +1292,10 @@ onUnmounted(() => {
                   <h3>问题位置</h3>
                   <button class="location-button" @click="locate(finding.anchor, finding.id)">
                     <Icon name="pin" :size="18" /><span
-                      >第 {{ finding.anchor.page }} 页 · {{ finding.anchor.section
+                      >{{ finding.anchor.page ? `第 ${finding.anchor.page} 页` : '文本段落' }} ·
+                      {{ finding.anchor.section
                       }}<small>{{
-                        selected === 0 ? '第 2 段 · 第 2 句' : '相关原文片段'
+                        project?.demo && selected === 0 ? '第 2 段 · 第 2 句' : '相关原文片段'
                       }}</small></span
                     >
                   </button>
@@ -1234,7 +1306,7 @@ onUnmounted(() => {
                 </section>
                 <section class="evidence-check">
                   <h3>证据核验</h3>
-                  <ul>
+                  <ul v-if="project?.demo">
                     <li>
                       <span class="check-circle"><Icon name="check" :size="13" /></span
                       >在原文中找到对应内容
@@ -1254,6 +1326,25 @@ onUnmounted(() => {
                       >
                     </li>
                   </ul>
+                  <div v-else>
+                    <p>
+                      原文引用：{{
+                        finding.verification.citation === 'passed' ? '精确匹配' : '待核验'
+                      }}
+                    </p>
+                    <p>
+                      规则适用：{{
+                        finding.verification.applicability === 'passed' ? '模型复核通过' : '待核验'
+                      }}
+                    </p>
+                    <p>
+                      论证复核：{{
+                        finding.verification.reasoning === 'passed' ? '模型复核通过' : '待核验'
+                      }}
+                    </p>
+                    <p>{{ finding.verification.reason }}</p>
+                    <small>模型复核不是专家确认。</small>
+                  </div>
                 </section>
                 <section class="finding-section">
                   <h3>相关原文片段</h3>
@@ -1264,7 +1355,8 @@ onUnmounted(() => {
                 ><section class="finding-section">
                   <h3>原文证据</h3>
                   <p class="muted">
-                    {{ finding.anchor.section }} · 第 {{ finding.anchor.page }} 页
+                    {{ finding.anchor.section
+                    }}{{ finding.anchor.page ? ` · 第 ${finding.anchor.page} 页` : '' }}
                   </p>
                   <blockquote>{{ finding.anchor.quote }}</blockquote>
                   <button class="text-button" @click="locate(finding.anchor, finding.id)">
@@ -1272,7 +1364,7 @@ onUnmounted(() => {
                   </button>
                 </section>
                 <div class="notice">
-                  引用匹配不等于专业判断已验证。此演示意见未经过真实同行评审。
+                  引用匹配不等于专业判断已验证。意见仍需领域专家核验。
                 </div></template
               >
               <template v-else
@@ -1309,7 +1401,9 @@ onUnmounted(() => {
               <div class="circle-illustration"><Icon name="chat" :size="28" /></div>
               <h3>让每条意见都有出处</h3>
               <p>这里将显示论文批注、原文证据与修改建议。</p>
-              <div class="notice">正式评判方案尚未发布。暂无批注不代表论文没有问题。</div>
+              <div class="notice">
+                可从左侧开始试运行评审。暂无批注不代表论文没有问题，请同时查看报告中的待核验项。
+              </div>
               <button
                 class="secondary-button full"
                 :disabled="version.status !== 'ready' || busy"
@@ -1404,7 +1498,7 @@ onUnmounted(() => {
               <div>
                 <h3>语义分析与专业评审</h3>
                 <p>
-                  研究类型、贡献主张与方法有效性需要独立评判。当前仅完成结构提取；《生态学报》预审方案仍为草案。
+                  结构提取不等于科学评审。确认实证研究类型并配置模型后，可从左侧启动试运行评审。
                 </p>
               </div>
             </div>
@@ -1425,7 +1519,7 @@ onUnmounted(() => {
           </div>
           <div class="artifact-title">
             <div>
-              <h2>{{ project?.demo ? '论文预审报告' : '论文解析报告' }}</h2>
+              <h2>{{ project?.demo || report?.trial ? '论文预审报告' : '论文解析报告' }}</h2>
               <p>基于已保存结果，让修改有迹可循。</p>
             </div>
             <button v-if="report" class="secondary-button" @click="downloadReport">
@@ -1464,13 +1558,21 @@ onUnmounted(() => {
                 ><Icon :name="report.demo ? 'edit' : 'clock'" :size="25"
               /></span>
               <div>
-                <small>{{ report.demo ? '演示系统建议 · 非正式评审' : '专业评审状态' }}</small>
-                <h3>{{ report.demo ? '大修 · 暂定意见' : '暂无法判定' }}</h3>
+                <small>{{
+                  report.demo
+                    ? '演示系统建议 · 非正式评审'
+                    : report.trial
+                      ? '系统暂定建议 · 试运行'
+                      : '专业评审状态'
+                }}</small>
+                <h3>
+                  {{ report.demo ? '大修 · 暂定意见' : recommendationLabel(report.recommendation) }}
+                </h3>
                 <p>
                   {{
                     report.demo
                       ? '研究具备进一步完善的空间。优先澄清样本边界、分析方法与推断范围。'
-                      : '正式方案尚未发布，当前报告不提供科学性结论、分数或录用概率。'
+                      : report.conclusion || '当前为结构解析报告，尚未执行专业评审。'
                   }}
                 </p>
               </div>
@@ -1478,6 +1580,15 @@ onUnmounted(() => {
             <div class="report-section">
               <h3>01 <span>评审覆盖与能力边界</span></h3>
               <p>{{ report.coverage }}</p>
+              <div v-if="report.score" class="notice">
+                已评项得分 {{ report.score.earned.toFixed(1) }} /
+                {{ report.score.assessedMaximum }} · 加权覆盖率
+                {{ (report.score.coverage * 100).toFixed(1) }}%<br />完整总分：{{
+                  report.score.total === null
+                    ? '未形成（不能把缺失项记为零分或满分）'
+                    : report.score.total.toFixed(1)
+                }}
+              </div>
               <div v-if="report.demo" class="notice">
                 本报告为内置演示数据，不代表对真实论文的评审；示例研究主题未完成《生态学报》期刊适配判断。
               </div>
@@ -1512,11 +1623,24 @@ onUnmounted(() => {
                     result.checkId === 'document-text' ? '文档文本' : result.checkId
                   }}</strong>
                   <p>{{ result.observation }}</p>
+                  <p v-if="result.suggestion">建议：{{ result.suggestion }}</p>
+                  <small v-if="report.trial"
+                    >{{ result.name }} · 等级 {{ result.level ?? '未评分' }} ·
+                    {{ result.verification?.reason || '尚无通过的论证复核' }}</small
+                  >
+                  <button
+                    v-for="e in result.evidence"
+                    :key="e.elementId + e.quote"
+                    class="text-button"
+                    @click="locate(e)"
+                  >
+                    查看原文：{{ e.quote.slice(0, 60) }}
+                  </button>
                 </div>
                 <span
                   class="status-pill"
                   :class="{ warning: result.executionStatus !== 'completed' }"
-                  >{{ result.executionStatus === 'completed' ? '已提取' : '未检查' }}</span
+                  >{{ assessmentLabel(result.assessment) }}</span
                 >
               </div>
             </div>
@@ -1531,6 +1655,12 @@ onUnmounted(() => {
                 <dd>{{ report.runId }}</dd>
                 <dt>论文版本</dt>
                 <dd>{{ report.versionId }}</dd>
+                <template v-if="report.model"
+                  ><dt>评审模型</dt>
+                  <dd>{{ report.model.model }}</dd>
+                  <dt>规则指纹</dt>
+                  <dd style="overflow-wrap: anywhere">{{ report.packHash }}</dd></template
+                >
               </dl>
             </div>
             <p class="report-disclaimer">
@@ -1706,7 +1836,7 @@ onUnmounted(() => {
         ><div class="template-card">
           <div>
             <span class="icon-tile"><Icon name="book" :size="23" /></span
-            ><span class="status-pill warning">草案 · 尚未发布</span>
+            ><span class="status-pill warning">试运行 · 可执行</span>
           </div>
           <h3>《生态学报》预审标准</h3>
           <p>
@@ -1714,11 +1844,11 @@ onUnmounted(() => {
           </p>
           <dl class="provenance">
             <dt>版本</dt>
-            <dd>stxb-precheck@0.1.0-draft</dd>
+            <dd>stxb-precheck@0.1.0-trial</dd>
             <dt>初始适配</dt>
             <dd>实证研究；其他稿件类型待适配</dd>
             <dt>输出方式</dt>
-            <dd>文字意见；评分暂不可用</dd>
+            <dd>文字意见及可选分项评分；缺失项不计分</dd>
           </dl>
         </div>
         <h3>报告模板</h3>
@@ -1734,9 +1864,9 @@ onUnmounted(() => {
           <Icon name="file" />
           <div>
             <strong>专业预审报告</strong>
-            <p>总体建议、逐项证据、修改优先级；当前仅有演示预览。</p>
+            <p>模型分项评判、原文校验、论证复核、暂定建议和版本快照。</p>
           </div>
-          <span class="status-pill warning">演示</span>
+          <span class="status-pill warning">试运行</span>
         </div></template
       >
       <template v-else-if="dialog === 'settings'"
@@ -1756,7 +1886,7 @@ onUnmounted(() => {
           <h3>当前项目评审设置</h3>
           <label class="field-label"
             >评判标准<select disabled>
-              <option>《生态学报》预审标准 · 草案</option>
+              <option>生态学实证研究预审 · 试运行</option>
             </select></label
           ><label class="field-label"
             >稿件类型<select
@@ -1769,9 +1899,9 @@ onUnmounted(() => {
               <option value="theory">理论研究 · 尚未适配</option>
             </select></label
           ><label class="field-label"
-            >输出方式<select>
-              <option>文字意见</option>
-              <option disabled>文字意见 + 评分（方案尚未发布）</option>
+            >输出方式<select v-model="project.settings.outputMode">
+              <option value="narrative">文字意见</option>
+              <option value="scored">文字意见 + 试运行评分</option>
             </select></label
           ><button class="primary-button" @click="saveSettings">保存设置</button>
         </section>

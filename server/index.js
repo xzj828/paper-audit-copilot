@@ -9,11 +9,14 @@ import { createStore } from './store.js';
 import { makeDemo, makeEmpty } from './demo.js';
 import { registry, makeStructureReport, answerLocally } from './engine.js';
 import { createModelService } from './models.js';
+import { createReviewService } from './review.js';
+import { reviewPack } from './review-pack.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const directory = path.resolve(process.env.DATA_DIR || path.join(root, 'data'));
 const store = createStore(directory);
 const models = createModelService(store.db, directory);
+const reviews = createReviewService(store, models);
 const pendingMessages = new Set();
 const app = express();
 const workers = new Map();
@@ -146,7 +149,7 @@ for (const row of store.db.prepare('SELECT workspace_id,data FROM projects').all
   store.save(row.workspace_id, p);
 }
 
-app.get('/api/registry', (_req, res) => res.json(registry));
+app.get('/api/registry', (_req, res) => res.json([...registry, reviewPack]));
 app.get('/api/projects', (req, res) =>
   res.json(
     store.list(req.workspace).map(({ versions, ...p }) => ({
@@ -185,10 +188,12 @@ app.patch('/api/projects/:id', (req, res) => {
     p.activeVersionId = req.body.activeVersionId;
   if (req.body.settings) {
     const s = req.body.settings;
-    if (s.scheme && s.scheme !== 'stxb-precheck@0.1.0-draft')
+    if (s.scheme && !['stxb-precheck@0.1.0-draft', reviewPack.id].includes(s.scheme))
       return res.status(400).json({ error: '不支持的评判标准' });
-    if (s.outputMode && s.outputMode !== 'narrative')
-      return res.status(400).json({ error: '评分方案尚未发布' });
+    if (s.outputMode && !['narrative', 'scored'].includes(s.outputMode))
+      return res.status(400).json({ error: '不支持的输出模式' });
+    if (s.confirmed !== undefined && typeof s.confirmed !== 'boolean')
+      return res.status(400).json({ error: '稿件确认状态必须为布尔值' });
     if (
       s.articleType !== undefined &&
       !['', 'empirical', 'review', 'theory'].includes(s.articleType)
@@ -209,6 +214,7 @@ app.patch('/api/projects/:id', (req, res) => {
 app.delete('/api/projects/:id', async (req, res) => {
   const p = project(req, res);
   if (!p) return;
+  reviews.remove(p);
   store.delete(req.workspace, p.id);
   for (const v of p.versions) {
     if (workers.has(v.id)) await workers.get(v.id).terminate();
@@ -292,10 +298,13 @@ app.get('/api/projects/:id/versions/:versionId/file', (req, res) => {
 app.post('/api/projects/:id/review', (req, res) => {
   const p = project(req, res);
   if (!p) return;
-  res.status(409).json({
-    error: '《生态学报》预审标准尚为草案，专业评审暂不可用。可先生成解析报告。',
-    scheme: p.settings.scheme,
-  });
+  res.status(202).json(reviews.start(req.workspace, p.id, req.body.versionId, req.body.retryId));
+});
+app.post('/api/projects/:id/review/cancel', (req, res) => {
+  const p = project(req, res);
+  if (!p) return;
+  reviews.cancel(req.workspace, p.id, req.body.versionId, req.body.runId);
+  res.status(202).json({ ok: true });
 });
 app.post('/api/projects/:id/report', (req, res) => {
   const p = project(req, res);
@@ -396,7 +405,8 @@ const server = app.listen(Number(process.env.PORT || 3001), process.env.HOST || 
     `Paper Audit API: http://${process.env.HOST || '127.0.0.1'}:${process.env.PORT || 3001}`,
   ),
 );
-function shutdown() {
+async function shutdown() {
+  await reviews.shutdown();
   for (const worker of workers.values()) void worker.terminate();
   server.close(() => {
     store.db.close();

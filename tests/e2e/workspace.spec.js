@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { pdfFixture, docxFixture } from '../fixtures.js';
 import { createServer } from 'node:http';
+import { reviewReply } from '../review-fixtures.js';
 
 test('all panel widths drag and persist, scrolling is independent, and display controls work', async ({
   page,
@@ -271,4 +272,78 @@ test('mobile layout, accessible dialogs and navigation remain usable', async ({ 
   await page.getByRole('tab', { name: '论文解析', exact: true }).click();
   await expect(page.locator('.parse-metrics')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('scientific review runs through real API, exposes evidence and exports partial scores', async ({
+  page,
+}) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const provider = createServer(async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const data = JSON.parse(body);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    res.setHeader('Content-Type', 'application/json');
+    res.end(
+      JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(reviewReply(data.messages)) } }],
+      }),
+    );
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  try {
+    await page.goto('/');
+    await expect(page.locator('.finding-heading')).toBeVisible();
+    await page.request.put('/api/model-config', {
+      data: {
+        baseUrl: `http://127.0.0.1:${provider.address().port}/v1`,
+        model: 'review-fixture',
+        apiKey: 'local-test',
+        enabled: true,
+      },
+    });
+    await page.getByRole('button', { name: '新建项目', exact: true }).first().click();
+    await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('科学评审自检');
+    await page.getByRole('button', { name: '创建项目', exact: true }).click();
+    await expect(page.locator('.upload-guide')).toBeVisible();
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'study.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      buffer: docxFixture(),
+    });
+    await expect(page.locator('.parse-metrics')).toBeVisible();
+    await page.getByLabel('稿件类型', { exact: true }).selectOption('empirical');
+    await page.getByLabel('评审输出方式').selectOption('scored');
+    await page.getByRole('button', { name: '开始评审', exact: true }).click();
+    await expect(page.getByRole('button', { name: '查看评审报告', exact: true })).toBeVisible({
+      timeout: 30000,
+    });
+    await page.getByRole('button', { name: '查看评审报告', exact: true }).click();
+    await expect(page.locator('.recommendation')).toContainText('系统暂定建议');
+    await expect(page.locator('.recommendation h3')).toHaveText('大修');
+    await expect(page.locator('.result-row')).toHaveCount(11);
+    await expect(page.locator('.report-content')).toContainText('67.5 / 75');
+    await expect(page.locator('.report-content')).toContainText('未形成');
+    await page.screenshot({ path: 'docs/screenshots/scientific-review.png', fullPage: true });
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: '导出 Markdown' }).click();
+    const artifact = await download;
+    const stream = await artifact.createReadStream();
+    let content = '';
+    for await (const chunk of stream) content += chunk;
+    expect(content).toContain('试运行评审');
+    expect(content).toContain('加权覆盖率：75.0%');
+    expect(content).toContain('E09');
+    await page.locator('.report-finding').click();
+    await expect(page.locator('.finding-heading')).toContainText('E04');
+    await expect(page.locator('.evidence-check')).toContainText('模型复核通过');
+    await expect(page.locator('.docx-paper mark')).toBeVisible();
+    await page.reload();
+    await expect(page.locator('.review-progress')).toContainText('11/11');
+    expect(errors).toEqual([]);
+  } finally {
+    await page.request.delete('/api/model-config');
+    await new Promise((resolve) => provider.close(resolve));
+  }
 });

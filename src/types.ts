@@ -1,6 +1,7 @@
 export interface Anchor {
   elementId: string;
   page?: number;
+  paragraph?: number;
   quote: string;
   section: string;
   quality?: string;
@@ -42,6 +43,17 @@ export interface Message {
   findingId?: string;
 }
 export interface Report {
+  trial?: boolean;
+  conclusion?: string;
+  model?: { model: string; baseUrl: string };
+  packHash?: string;
+  score?: {
+    earned: number;
+    assessedMaximum: number;
+    applicableMaximum: number;
+    coverage: number;
+    total: number | null;
+  } | null;
   id: string;
   runId: string;
   versionId: string;
@@ -59,6 +71,11 @@ export interface Report {
     executionStatus: string;
     assessment: string;
     observation: string;
+    name?: string;
+    suggestion?: string;
+    level?: number | null;
+    evidence?: Anchor[];
+    verification?: Record<string, string>;
   }[];
   warnings?: string[];
 }
@@ -76,7 +93,17 @@ export interface Version {
   findings: Finding[];
   messages: Message[];
   reports: Report[];
-  runs: { id: string; status: string; scheme: string; createdAt: string }[];
+  runs: ReviewRun[];
+}
+export interface ReviewRun {
+  id: string;
+  status: string;
+  scheme: string;
+  createdAt: string;
+  scope?: string;
+  stage?: string;
+  error?: string;
+  modules?: { id: string; checkId: string; status: string; attempts: number; error?: string }[];
 }
 export interface Settings {
   scheme: string;

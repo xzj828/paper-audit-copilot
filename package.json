@@ -10,7 +10,7 @@
     "dev": "concurrently -k -n api,web \"node --watch server/index.js\" \"vite --host 127.0.0.1\"",
     "build": "vue-tsc --noEmit && vite build",
     "start": "node server/index.js",
-    "test": "node --test tests/engine.test.js tests/api.test.js",
+    "test": "node --test tests/engine.test.js tests/api.test.js tests/review.test.js",
     "test:e2e": "playwright test",
     "check": "npm run build && npm test && npm run test:e2e",
     "format": "prettier --write src server tests scripts *.json *.ts *.js"

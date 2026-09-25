@@ -5,6 +5,7 @@ import { mkdir, mkdtemp, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createServer } from 'node:http';
 import { pdfFixture, docxFixture } from './fixtures.js';
+import { reviewReply } from './review-fixtures.js';
 
 const base = 'http://127.0.0.1:3103';
 let server,
@@ -190,7 +191,7 @@ test('upload rejects fake extensions and parses real PDF with exact coordinates'
     404,
   );
 });
-test('draft scientific review is blocked while explicit structure reports persist', async () => {
+test('scientific review requires confirmed type and model while structure reports persist', async () => {
   assert.equal((await request(`/api/projects/${p.id}/review`, 'POST', {})).status, 409);
   const response = await request(`/api/projects/${p.id}/report`, 'POST', {
     versionId: p.versions[0].id,
@@ -219,6 +220,88 @@ test('DOCX becomes a separate version and comparison never calls removed issues 
   assert.equal(comparison.status, 200);
   assert.equal(comparison.data.findingStatus, '需重新确认');
   assert.ok(comparison.data.added.length > 0);
+});
+test('real HTTP review provider creates version scoped results, scores and immutable report snapshots', async () => {
+  const calls = [];
+  const provider = createServer(async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const data = JSON.parse(body);
+    calls.push(data);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(
+      JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(reviewReply(data.messages)) } }],
+      }),
+    );
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  try {
+    await request('/api/model-config', 'PUT', {
+      baseUrl: `http://127.0.0.1:${provider.address().port}/v1`,
+      model: 'review-fixture',
+      apiKey: 'local-test',
+      enabled: true,
+    });
+    await request(`/api/projects/${p.id}`, 'PATCH', {
+      settings: {
+        scheme: 'stxb-precheck@0.1.0-trial',
+        articleType: 'empirical',
+        confirmed: true,
+        outputMode: 'scored',
+      },
+    });
+    const versionId = p.versions[1].id;
+    assert.equal(
+      (await request(`/api/projects/${p.id}/review`, 'POST', { versionId }, otherCookie)).status,
+      404,
+    );
+    assert.equal(
+      (
+        await request(
+          `/api/projects/${p.id}/review/cancel`,
+          'POST',
+          { versionId, runId: 'fake' },
+          otherCookie,
+        )
+      ).status,
+      404,
+    );
+    assert.equal(
+      (await request(`/api/projects/${p.id}/review`, 'POST', { versionId })).status,
+      202,
+    );
+    let current;
+    for (let i = 0; i < 200; i++) {
+      current = (await request(`/api/projects/${p.id}`)).data;
+      if (current.versions[1].runs.at(-1).status !== 'running') break;
+      await delay(20);
+    }
+    const v = current.versions[1],
+      report = v.reports.at(-1);
+    assert.equal(v.runs.at(-1).status, 'completed');
+    assert.equal(calls.length, 20);
+    assert.equal(report.trial, true);
+    assert.equal(report.results.length, 11);
+    assert.equal(report.findings.length, 1);
+    assert.equal(report.score.coverage, 0.75);
+    assert.equal(report.score.total, null);
+    assert.equal(report.recommendation, 'major_revision');
+    assert.equal(report.model.model, 'review-fixture');
+    assert.equal(report.packHash.length, 64);
+    assert.equal(current.versions[0].findings.length, 0);
+    const snapshot = JSON.stringify(report);
+    await request(
+      `/api/projects/${p.id}/findings/${encodeURIComponent(v.findings[0].id)}`,
+      'PATCH',
+      { versionId, status: 'acknowledged' },
+    );
+    current = (await request(`/api/projects/${p.id}`)).data;
+    assert.equal(JSON.stringify(current.versions[1].reports.at(-1)), snapshot);
+  } finally {
+    await request('/api/model-config', 'DELETE');
+    await new Promise((resolve) => provider.close(resolve));
+  }
 });
 test('messages are version scoped and restored by subsequent fetch', async () => {
   const versionId = p.versions[1].id;

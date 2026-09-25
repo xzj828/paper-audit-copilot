@@ -63,8 +63,17 @@ async function render() {
       ctx.save();
       ctx.scale(ratio, ratio);
       ctx.fillStyle = 'rgba(255, 208, 72, .35)';
+      const normalize = (text: string) => text.replace(/\s+/g, '').toLowerCase();
+      const joined = content.items
+        .map((item) => ('str' in item ? normalize(item.str) : ''))
+        .join('');
+      const query = normalize(props.query);
+      const start = query ? joined.indexOf(query) : -1;
+      let offset = 0;
       for (const item of content.items) {
-        if ('str' in item && item.str.toLowerCase().includes(props.query.toLowerCase())) {
+        if (!('str' in item)) continue;
+        const end = offset + normalize(item.str).length;
+        if (start >= 0 && end > start && offset < start + query.length) {
           const [x, y] = viewport.convertToViewportPoint(item.transform[4], item.transform[5]);
           ctx.fillRect(
             x,
@@ -73,6 +82,7 @@ async function render() {
             item.height * viewport.scale * 1.2,
           );
         }
+        offset = end;
       }
       ctx.restore();
     }

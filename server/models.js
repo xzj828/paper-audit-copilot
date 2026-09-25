@@ -83,19 +83,26 @@ export function createModelService(db, directory) {
       secret: validated.apiKey ? encrypt(validated.apiKey) : previous.secret,
     };
   }
-  async function complete(config, messages) {
+  async function complete(config, messages, options = {}) {
     if (!config?.secret) throw bad('请先配置模型 API Key', 409);
     let response;
     try {
       response = await fetch(`${config.baseUrl}/chat/completions`, {
         method: 'POST',
         redirect: 'error',
-        signal: AbortSignal.timeout(60000),
+        signal: options.signal
+          ? AbortSignal.any([options.signal, AbortSignal.timeout(90000)])
+          : AbortSignal.timeout(60000),
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${decrypt(config.secret)}`,
         },
-        body: JSON.stringify({ model: config.model, messages, stream: false, max_tokens: 2048 }),
+        body: JSON.stringify({
+          model: config.model,
+          messages,
+          stream: false,
+          max_tokens: options.maxTokens || 2048,
+        }),
       });
     } catch {
       throw bad('模型连接失败或超时，请检查 API 地址、网络与服务状态', 502);
@@ -125,6 +132,7 @@ export function createModelService(db, directory) {
   }
   return {
     get,
+    complete,
     public(workspace) {
       return publicConfig(get(workspace));
     },
