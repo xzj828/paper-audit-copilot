@@ -1,0 +1,37 @@
+{
+  "name": "paper-audit-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"node --watch server/index.js\" \"vite --host 127.0.0.1\"",
+    "build": "vue-tsc --noEmit && vite build",
+    "start": "node server/index.js",
+    "test": "node --test tests/engine.test.js tests/api.test.js",
+    "test:e2e": "playwright test",
+    "check": "npm run build && npm test && npm run test:e2e",
+    "format": "prettier --write src server tests scripts *.json *.ts *.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "express": "^5.1.0",
+    "lucide-vue-next": "^0.468.0",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "pdfjs-dist": "^6.3.289",
+    "vue": "^3.5.22"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@types/node": "^24.5.2",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vue-tsc": "^3.0.8"
+  }
+}

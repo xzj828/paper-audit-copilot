@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+.npm-cache
+test-results
+playwright-report
+docs/superpowers
+package-lock.json
+*.png
