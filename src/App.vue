@@ -3,8 +3,10 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
+import ModelSettings from './components/ModelSettings.vue';
+import { useLayout } from './useLayout';
 import { api, json } from './api';
-import type { Project, Version, Finding, Anchor, Comparison } from './types';
+import type { Project, Version, Finding, Anchor, Comparison, ModelConfig } from './types';
 
 const projects = ref<Project[]>([]),
   project = ref<Project | null>(null);
@@ -51,8 +53,70 @@ const fileInput = ref<HTMLInputElement>(),
 const pendingFile = ref<File | null>(null),
   compareBefore = ref(''),
   comparison = ref<Comparison | null>(null);
-const leftWidth = ref(Number(localStorage.getItem('audit-chat-width')) || 352);
-const sidebarWidth = computed(() => (sidebar.value ? '240px' : '64px'));
+const layout = useLayout(sidebar, inspector, tab);
+const {
+  styles: layoutStyles,
+  sidebarWidth,
+  chatWidth,
+  inspectorWidth,
+  displayMode,
+  maximized,
+  minimized,
+} = layout;
+const modelConfig = ref<ModelConfig>({ baseUrl: '', model: '', enabled: false, hasKey: false });
+const projectMenuId = ref(''),
+  projectMenuPosition = ref({ left: '0px', top: '0px' });
+const menuProject = computed(() => projects.value.find((p) => p.id === projectMenuId.value));
+const dialogProject = ref<Project | null>(null),
+  showArchived = ref(false);
+const sidebarProjects = computed(() =>
+  projects.value
+    .filter((p) => !p.archived)
+    .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned))),
+);
+function toggleProjectMenu(event: MouseEvent, item: Project) {
+  if (projectMenuId.value === item.id) {
+    projectMenuId.value = '';
+    return;
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  projectMenuPosition.value = {
+    left: `${Math.min(window.innerWidth - 212, Math.max(8, rect.right - 12))}px`,
+    top: `${Math.max(8, Math.min(window.innerHeight - 225, rect.top))}px`,
+  };
+  projectMenuId.value = item.id;
+  nextTick(() => document.querySelector<HTMLElement>('.project-context-menu button')?.focus());
+}
+function closeProjectMenu(event: MouseEvent) {
+  if (!(event.target as HTMLElement).closest('.project-context-menu, .project-more-button'))
+    projectMenuId.value = '';
+}
+function projectAction(kind: string, item: Project) {
+  projectMenuId.value = '';
+  if (kind === 'rename' || kind === 'delete') {
+    openDialog(kind);
+    dialogProject.value = item;
+    nameInput.value = kind === 'rename' ? item.title : '';
+    return;
+  }
+  void safe(async () => {
+    const data = await api<Project>(
+      `/projects/${item.id}`,
+      json('PATCH', kind === 'pin' ? { pinned: !item.pinned } : { archived: !item.archived }),
+    );
+    if (project.value?.id === item.id) project.value = data;
+    await refreshList();
+    notify(
+      kind === 'pin'
+        ? data.pinned
+          ? '项目已置顶'
+          : '已取消置顶'
+        : data.archived
+          ? '项目已归档，可在我的项目中恢复'
+          : '项目已恢复',
+    );
+  });
+}
 const theme = ref(localStorage.getItem('audit-theme') || 'light');
 const titles: Record<string, string> = {
   new: '新建论文项目',
@@ -69,7 +133,13 @@ const titles: Record<string, string> = {
   shortcuts: '键盘快捷键',
 };
 const filteredProjects = computed(() =>
-  projects.value.filter((p) => p.title.toLowerCase().includes(projectSearch.value.toLowerCase())),
+  projects.value
+    .filter(
+      (p) =>
+        Boolean(p.archived) === showArchived.value &&
+        p.title.toLowerCase().includes(projectSearch.value.toLowerCase()),
+    )
+    .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned))),
 );
 const searchResults = computed(() => {
   const query = searchInput.value.trim().toLowerCase();
@@ -164,6 +234,7 @@ async function initialize() {
     const id = localStorage.getItem('audit-active-project');
     const target = projects.value.find((p) => p.id === id) || projects.value[0];
     if (target) await openProject(target.id);
+    modelConfig.value = await api<ModelConfig>('/model-config');
   } catch (e) {
     fatalError.value = e instanceof Error ? e.message : '无法连接服务';
   } finally {
@@ -172,6 +243,8 @@ async function initialize() {
 }
 function openDialog(value: string) {
   menu.value = false;
+  projectMenuId.value = '';
+  dialogProject.value = project.value;
   dialog.value = value;
   nameInput.value = value === 'rename' ? project.value?.title || '' : '';
   if (value === 'compare') {
@@ -192,26 +265,30 @@ async function createProject() {
   busy.value = false;
 }
 async function renameProject() {
-  if (!project.value || !nameInput.value.trim()) return;
+  const target = dialogProject.value;
+  if (!target || !nameInput.value.trim()) return;
   await safe(async () => {
-    project.value = await api<Project>(
-      `/projects/${project.value!.id}`,
+    const updated = await api<Project>(
+      `/projects/${target.id}`,
       json('PATCH', { title: nameInput.value }),
     );
+    if (project.value?.id === target.id) project.value = updated;
     await refreshList();
     dialog.value = '';
     notify('项目名称已更新');
   });
 }
 async function deleteProject() {
-  if (!project.value || nameInput.value !== project.value.title) return;
+  const target = dialogProject.value;
+  if (!target || nameInput.value !== target.title) return;
   busy.value = true;
   await safe(async () => {
-    await api(`/projects/${project.value!.id}`, json('DELETE'));
-    project.value = null;
+    await api(`/projects/${target.id}`, json('DELETE'));
+    const wasCurrent = project.value?.id === target.id;
+    if (wasCurrent) project.value = null;
     await refreshList();
     dialog.value = '';
-    if (projects.value[0]) await openProject(projects.value[0].id);
+    if (wasCurrent && sidebarProjects.value[0]) await openProject(sidebarProjects.value[0].id);
     notify('项目、文件、对话及报告已删除');
   });
   busy.value = false;
@@ -423,21 +500,6 @@ async function compare() {
     );
   });
 }
-function resizeChat(event: PointerEvent) {
-  const startX = event.clientX,
-    width = leftWidth.value;
-  const move = (e: PointerEvent) =>
-    (leftWidth.value = Math.max(280, Math.min(480, width + e.clientX - startX)));
-  const stop = () => {
-    document.removeEventListener('pointermove', move);
-    document.removeEventListener('pointerup', stop);
-    document.body.classList.remove('resizing');
-    localStorage.setItem('audit-chat-width', String(leftWidth.value));
-  };
-  document.body.classList.add('resizing');
-  document.addEventListener('pointermove', move);
-  document.addEventListener('pointerup', stop, { once: true });
-}
 function shortcuts(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
@@ -445,6 +507,8 @@ function shortcuts(event: KeyboardEvent) {
   }
   if (event.key === 'Escape') {
     menu.value = false;
+    projectMenuId.value = '';
+    maximized.value = false;
     if (!dialog.value) contextFinding.value = null;
   }
 }
@@ -459,10 +523,12 @@ watch(
 );
 onMounted(() => {
   void initialize();
+  document.addEventListener('click', closeProjectMenu);
   pollTimer = setInterval(poll, 1000);
   document.addEventListener('keydown', shortcuts);
 });
 onUnmounted(() => {
+  document.removeEventListener('click', closeProjectMenu);
   clearInterval(pollTimer);
   clearTimeout(toastTimer);
   document.removeEventListener('keydown', shortcuts);
@@ -472,8 +538,14 @@ onUnmounted(() => {
 <template>
   <div
     class="app-shell"
-    :class="{ 'sidebar-collapsed': !sidebar, 'mobile-chat': mobilePane === 'chat' }"
-    :style="{ '--sidebar-width': sidebarWidth, '--chat-width': `${leftWidth}px` }"
+    :class="{
+      'sidebar-collapsed': !sidebar,
+      'mobile-chat': mobilePane === 'chat',
+      'layout-stacked': displayMode === 'stacked',
+      'preview-maximized': maximized,
+      'preview-minimized': minimized,
+    }"
+    :style="layoutStyles"
   >
     <aside class="sidebar">
       <button
@@ -486,7 +558,7 @@ onUnmounted(() => {
         >
       </button>
       <nav class="primary-nav" aria-label="主导航">
-        <button @click="openDialog('new')">
+        <button :disabled="initialLoading" @click="openDialog('new')">
           <Icon name="new" /><span>新建项目</span><kbd>＋</kbd>
         </button>
         <button class="active" @click="openDialog('projects')">
@@ -496,7 +568,9 @@ onUnmounted(() => {
         <button @click="openDialog('templates')">
           <Icon name="files" /><span>模板与规范</span>
         </button>
-        <button @click="openDialog('settings')"><Icon name="settings" /><span>设置</span></button>
+        <button :disabled="initialLoading" @click="openDialog('settings')">
+          <Icon name="settings" /><span>设置</span>
+        </button>
       </nav>
       <div class="recent-projects">
         <div class="sidebar-label">
@@ -504,16 +578,37 @@ onUnmounted(() => {
             <Icon name="plus" :size="15" />
           </button>
         </div>
-        <button
-          v-for="item in projects.slice(0, 8)"
+        <div
+          v-for="item in sidebarProjects"
           :key="item.id"
-          class="project-link"
+          class="project-row"
           :class="{ selected: project?.id === item.id }"
-          @click="safe(() => openProject(item.id))"
         >
-          <span>{{ item.title }}</span
-          ><small>v{{ item.versions.at(-1)?.number || 1 }}</small></button
-        ><button class="more-projects" @click="openDialog('projects')">
+          <button
+            class="project-link"
+            :title="item.title"
+            @click="safe(() => openProject(item.id))"
+          >
+            <Icon v-if="item.pinned" name="pushpin" :size="13" /><span>{{ item.title }}</span
+            ><small>v{{ item.versions.at(-1)?.number || 1 }}</small>
+          </button>
+          <button
+            class="project-more-button"
+            :aria-label="`项目菜单：${item.title}`"
+            :aria-expanded="projectMenuId === item.id"
+            aria-haspopup="menu"
+            @click.stop="toggleProjectMenu($event, item)"
+          >
+            <Icon name="more" :size="17" />
+          </button>
+        </div>
+        <button
+          class="more-projects"
+          @click="
+            showArchived = false;
+            openDialog('projects');
+          "
+        >
           更多项目 <Icon name="more" :size="17" />
         </button>
         <div class="workspace-note">
@@ -534,6 +629,18 @@ onUnmounted(() => {
       </div>
     </aside>
 
+    <div
+      v-if="sidebar"
+      class="sidebar-resizer resize-handle"
+      role="separator"
+      aria-label="调整项目栏宽度"
+      aria-orientation="vertical"
+      :aria-valuenow="sidebarWidth"
+      tabindex="0"
+      @pointerdown="layout.resize($event, 'sidebar')"
+      @keydown.left.prevent="layout.adjust('sidebar', -10)"
+      @keydown.right.prevent="layout.adjust('sidebar', 10)"
+    ></div>
     <section class="conversation" aria-label="对话与进展">
       <header class="conversation-header">
         <button
@@ -591,7 +698,7 @@ onUnmounted(() => {
         ><span v-if="project?.demo" class="demo-tag" title="内置示例，仅用于体验界面">演示</span>
       </div>
 
-      <div ref="timeline" class="timeline">
+      <div ref="timeline" class="timeline" tabindex="0" aria-label="聊天记录滚动区">
         <div v-if="initialLoading" class="empty-state">
           <Icon name="loading" class="spin" />正在打开工作空间…
         </div>
@@ -775,7 +882,14 @@ onUnmounted(() => {
               @click="openDialog('search')"
             >
               <Icon name="at" /></button
-            ><span v-if="!project?.demo" class="composer-caption">原文检索模式</span
+            ><button
+              type="button"
+              class="composer-caption model-shortcut"
+              aria-label="配置对话模型"
+              @click="openDialog('settings')"
+              :title="modelConfig.enabled ? modelConfig.model : '配置模型 API Key'"
+            >
+              {{ modelConfig.enabled ? modelConfig.model : '配置模型' }}</button
             ><button
               type="submit"
               class="send-button"
@@ -796,17 +910,20 @@ onUnmounted(() => {
       </div>
     </section>
     <div
-      class="panel-resizer"
+      v-if="!minimized"
+      class="panel-resizer resize-handle"
       role="separator"
       aria-label="调整对话栏宽度"
-      aria-orientation="vertical"
+      :aria-orientation="displayMode === 'stacked' ? 'horizontal' : 'vertical'"
+      :aria-valuenow="chatWidth"
       tabindex="0"
-      @pointerdown="resizeChat"
-      @keydown.left="leftWidth = Math.max(280, leftWidth - 10)"
-      @keydown.right="leftWidth = Math.min(480, leftWidth + 10)"
+      @pointerdown="layout.resize($event, 'chat')"
+      @keydown.left.prevent="layout.adjust('chat', -10)"
+      @keydown.right.prevent="layout.adjust('chat', 10)"
+      @keydown.up.prevent="layout.adjust('chat', -10)"
+      @keydown.down.prevent="layout.adjust('chat', 10)"
     ></div>
-
-    <main class="workspace">
+    <main v-show="!minimized" class="workspace">
       <header class="workspace-toolbar">
         <div class="workspace-tabs" role="tablist" aria-label="论文工作区">
           <button
@@ -825,6 +942,37 @@ onUnmounted(() => {
           </button>
         </div>
         <div class="view-tools">
+          <div class="preview-display-controls">
+            <button
+              class="icon-button"
+              :aria-label="maximized ? '还原预览' : '最大化预览'"
+              :title="maximized ? '还原预览 · Esc' : '最大化预览'"
+              :aria-pressed="maximized"
+              @click="maximized = !maximized"
+            >
+              <Icon :name="maximized ? 'restore' : 'maximize'" :size="17" />
+            </button>
+            <button
+              class="icon-button"
+              aria-label="最小化预览"
+              title="最小化预览"
+              @click="
+                maximized = false;
+                minimized = true;
+                mobilePane = 'chat';
+              "
+            >
+              <Icon name="minimize" :size="17" />
+            </button>
+            <button
+              class="icon-button"
+              :aria-label="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
+              :title="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
+              @click="displayMode = displayMode === 'columns' ? 'stacked' : 'columns'"
+            >
+              <Icon :name="displayMode === 'columns' ? 'columns' : 'rows'" :size="17" />
+            </button>
+          </div>
           <div v-if="tab === 'annotations'" class="zoom-control">
             <button
               aria-label="缩小"
@@ -885,7 +1033,7 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="tab === 'annotations'" class="annotation-workspace">
-        <div ref="paperScroll" class="paper-scroll">
+        <div ref="paperScroll" class="paper-scroll" tabindex="0" aria-label="论文预览滚动区">
           <article
             v-if="project?.demo"
             class="paper demo-paper"
@@ -1009,6 +1157,18 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <div
+          v-if="inspector"
+          class="inspector-resizer resize-handle"
+          role="separator"
+          aria-label="调整批注栏宽度"
+          aria-orientation="vertical"
+          :aria-valuenow="inspectorWidth"
+          tabindex="0"
+          @pointerdown="layout.resize($event, 'inspector')"
+          @keydown.left.prevent="layout.adjust('inspector', 10)"
+          @keydown.right.prevent="layout.adjust('inspector', -10)"
+        ></div>
         <aside v-if="inspector" class="inspector" aria-label="批注详情">
           <template v-if="finding"
             ><div class="inspector-navigation">
@@ -1162,7 +1322,12 @@ onUnmounted(() => {
         </aside>
       </div>
 
-      <div v-else-if="tab === 'parse'" class="artifact-scroll">
+      <div
+        v-else-if="tab === 'parse'"
+        class="artifact-scroll"
+        tabindex="0"
+        aria-label="预览内容滚动区"
+      >
         <div class="artifact-content">
           <div class="eyebrow">PAPER COMPILER <span>文档结构层</span></div>
           <div class="artifact-title">
@@ -1253,7 +1418,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div v-else class="artifact-scroll">
+      <div v-else class="artifact-scroll" tabindex="0" aria-label="预览内容滚动区">
         <div class="artifact-content report-content">
           <div class="eyebrow">
             REVIEW REPORT <span>{{ report?.demo ? '演示预览' : '结果快照' }}</span>
@@ -1375,10 +1540,57 @@ onUnmounted(() => {
         </div>
       </div>
     </main>
+    <aside v-if="minimized" class="preview-rail">
+      <button
+        class="icon-button"
+        aria-label="恢复预览"
+        title="恢复预览"
+        @click="
+          minimized = false;
+          mobilePane = 'paper';
+        "
+      >
+        <Icon name="panel" /></button
+      ><span>论文预览</span>
+    </aside>
+    <Teleport to="body"
+      ><div
+        v-if="menuProject"
+        class="project-context-menu dropdown"
+        role="menu"
+        :aria-label="`${menuProject.title}的项目菜单`"
+        :style="projectMenuPosition"
+      >
+        <button role="menuitem" @click="projectAction('pin', menuProject)">
+          <Icon :name="menuProject.pinned ? 'unpin' : 'pushpin'" :size="17" />{{
+            menuProject.pinned ? '取消置顶' : '置顶'
+          }}
+        </button>
+        <button role="menuitem" @click="projectAction('rename', menuProject)">
+          <Icon name="edit" :size="17" />重命名项目
+        </button>
+        <div class="context-menu-divider"></div>
+        <button role="menuitem" @click="projectAction('archive', menuProject)">
+          <Icon :name="menuProject.archived ? 'unarchive' : 'archive'" :size="17" />{{
+            menuProject.archived ? '恢复项目' : '归档项目'
+          }}
+        </button>
+        <div class="context-menu-divider"></div>
+        <button role="menuitem" class="danger-text" @click="projectAction('delete', menuProject)">
+          <Icon name="delete" :size="17" />删除项目
+        </button>
+      </div></Teleport
+    >
     <div class="mobile-switch">
       <button :class="{ active: mobilePane === 'chat' }" @click="mobilePane = 'chat'">
         <Icon name="chat" :size="17" />对话</button
-      ><button :class="{ active: mobilePane === 'paper' }" @click="mobilePane = 'paper'">
+      ><button
+        :class="{ active: mobilePane === 'paper' }"
+        @click="
+          mobilePane = 'paper';
+          minimized = false;
+        "
+      >
         <Icon name="book" :size="17" />论文工作区
       </button>
     </div>
@@ -1432,8 +1644,12 @@ onUnmounted(() => {
           </button>
         </div>
       </form>
-      <template v-else-if="dialog === 'projects'"
-        ><div class="search-field">
+      <template v-else-if="dialog === 'projects'">
+        <div class="project-filter-tabs">
+          <button :class="{ active: !showArchived }" @click="showArchived = false">进行中</button
+          ><button :class="{ active: showArchived }" @click="showArchived = true">已归档</button>
+        </div>
+        <div class="search-field">
           <Icon name="search" :size="18" /><input
             v-model="projectSearch"
             placeholder="搜索项目名称…"
@@ -1441,11 +1657,17 @@ onUnmounted(() => {
           />
         </div>
         <div class="project-grid">
-          <button v-for="p in filteredProjects" :key="p.id" @click="safe(() => openProject(p.id))">
+          <button
+            v-for="p in filteredProjects"
+            :key="p.id"
+            @click="showArchived ? projectAction('archive', p) : safe(() => openProject(p.id))"
+          >
             <Icon name="folder" :size="24" />
             <h3>{{ p.title }}</h3>
             <p>{{ p.demo ? '演示项目' : `${p.versions.length} 个论文版本` }}</p>
-            <span>打开项目 <Icon name="arrow" :size="15" /></span></button
+            <span
+              >{{ showArchived ? '恢复项目' : '打开项目' }} <Icon name="arrow" :size="15"
+            /></span></button
           ><button class="new-project-tile" @click="openDialog('new')">
             <Icon name="plus" :size="25" />
             <h3>新建论文项目</h3>
@@ -1518,7 +1740,8 @@ onUnmounted(() => {
         </div></template
       >
       <template v-else-if="dialog === 'settings'"
-        ><section class="settings-section">
+        ><ModelSettings @updated="modelConfig = $event" />
+        <section class="settings-section">
           <h3>外观</h3>
           <label class="settings-row"
             >阅读主题<select v-model="theme">
@@ -1558,21 +1781,27 @@ onUnmounted(() => {
             后无法恢复该空间的访问。</span
           >
         </div>
-        <p class="small muted">专业模型：未配置 · Copilot 当前使用本地原文检索</p></template
+        <p class="small muted">
+          {{
+            modelConfig.enabled
+              ? `对话模型：${modelConfig.model} · 建议需核验`
+              : 'Copilot 当前使用本地原文检索'
+          }}
+        </p></template
       >
       <template v-else-if="dialog === 'delete'"
         ><div class="notice error-notice">
           将永久删除该项目的原始文件、全部版本、对话、批注与报告，无法撤销。
         </div>
         <p>
-          请输入项目名称以确认：<strong>{{ project?.title }}</strong>
+          请输入项目名称以确认：<strong>{{ dialogProject?.title }}</strong>
         </p>
         <label class="field-label">项目名称<input v-model="nameInput" autofocus /></label>
         <div class="modal-actions">
           <button class="secondary-button" @click="dialog = ''">保留项目</button
           ><button
             class="danger-button"
-            :disabled="nameInput !== project?.title || busy"
+            :disabled="nameInput !== dialogProject?.title || busy"
             @click="deleteProject"
           >
             永久删除

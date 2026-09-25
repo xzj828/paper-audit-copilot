@@ -13,10 +13,11 @@ export default defineConfig({
     launchOptions:
       process.platform === 'win32'
         ? {
+            ignoreDefaultArgs: ['--hide-scrollbars'],
             executablePath:
               process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
           }
-        : {},
+        : { ignoreDefaultArgs: ['--hide-scrollbars'] },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },

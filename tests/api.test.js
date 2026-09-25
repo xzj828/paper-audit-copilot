@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createServer } from 'node:http';
 import { pdfFixture, docxFixture } from './fixtures.js';
 
 const base = 'http://127.0.0.1:3103';
@@ -76,6 +77,100 @@ test('anonymous workspaces isolate project, file, report and mutation access', a
     [`/api/projects/${p.id}`, 'DELETE'],
   ]) {
     assert.equal((await request(url, method, body, otherCookie)).status, 404);
+  }
+});
+
+test('pin and archive persist independently of active selection and can be undone', async () => {
+  const changed = await request(`/api/projects/${p.id}`, 'PATCH', { pinned: true, archived: true });
+  assert.equal(changed.data.pinned, true);
+  assert.equal(changed.data.archived, true);
+  const listed = (await request('/api/projects')).data.find((x) => x.id === p.id);
+  assert.equal(listed.pinned, true);
+  assert.equal(listed.archived, true);
+  await request(`/api/projects/${p.id}`, 'PATCH', { pinned: false, archived: false });
+});
+
+test('model configuration encrypts keys, isolates workspaces, tests real HTTP and persists generated chat', async () => {
+  const calls = [];
+  const provider = createServer(async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    calls.push({ path: req.url, auth: req.headers.authorization, data: JSON.parse(body) });
+    res.setHeader('Content-Type', 'application/json');
+    if (req.headers.authorization === 'Bearer rejected-key') {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: 'do not echo rejected-key' }));
+      return;
+    }
+    res.end(
+      JSON.stringify({
+        choices: [{ message: { content: '模型测试回答：样本结论需限定研究人群。' } }],
+      }),
+    );
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  const config = {
+    baseUrl: `http://127.0.0.1:${provider.address().port}/v1`,
+    model: 'fixture-model',
+    apiKey: 'test-secret-not-a-real-key',
+    enabled: true,
+  };
+  try {
+    assert.equal(
+      (await request('/api/model-config', 'PUT', { ...config, baseUrl: 'http://example.org' }))
+        .status,
+      400,
+    );
+    const saved = await request('/api/model-config', 'PUT', config);
+    assert.equal(saved.status, 200);
+    assert.equal(saved.data.hasKey, true);
+    assert.equal(JSON.stringify(saved.data).includes(config.apiKey), false);
+    assert.equal(
+      (await request('/api/model-config', 'GET', undefined, otherCookie)).data.hasKey,
+      false,
+    );
+    const persisted = Buffer.concat(
+      await Promise.all(
+        ['copilot.sqlite', 'copilot.sqlite-wal'].map((name) =>
+          readFile(path.join(directory, name)).catch(() => Buffer.alloc(0)),
+        ),
+      ),
+    );
+    assert.equal(persisted.includes(Buffer.from(config.apiKey)), false);
+    assert.equal(
+      (await request('/api/model-config/test', 'POST', { ...config, apiKey: '' })).status,
+      200,
+    );
+    assert.equal(calls.at(-1).auth, `Bearer ${config.apiKey}`);
+    assert.equal(calls.at(-1).path, '/v1/chat/completions');
+    assert.equal(
+      (
+        await request('/api/model-config', 'PUT', {
+          ...config,
+          apiKey: '',
+          baseUrl: 'https://different.example/v1',
+        })
+      ).status,
+      400,
+    );
+    const demo = (await request('/api/projects')).data.find((x) => x.demo);
+    const answer = await request(`/api/projects/${demo.id}/messages`, 'POST', {
+      text: '请分析样本',
+      versionId: demo.activeVersionId,
+    });
+    assert.equal(answer.status, 200);
+    assert.match(answer.data.versions[0].messages.at(-1).text, /模型建议 · 待核验/);
+    assert.ok(calls.at(-1).data.messages.some((m) => m.content.includes('<paper>')));
+    assert.equal(answer.data.versions[0].reports.length, 1);
+    const failure = await request('/api/model-config/test', 'POST', {
+      ...config,
+      apiKey: 'rejected-key',
+    });
+    assert.equal(failure.status, 502);
+    assert.equal(JSON.stringify(failure.data).includes('rejected-key'), false);
+    assert.equal((await request('/api/model-config', 'DELETE')).data.hasKey, false);
+  } finally {
+    await new Promise((resolve) => provider.close(resolve));
   }
 });
 test('upload rejects fake extensions and parses real PDF with exact coordinates', async () => {

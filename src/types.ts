@@ -85,6 +85,8 @@ export interface Settings {
   outputMode: string;
 }
 export interface Project {
+  pinned?: boolean;
+  archived?: boolean;
   id: string;
   title: string;
   demo: boolean;
@@ -92,6 +94,12 @@ export interface Project {
   activeVersionId: string | null;
   settings: Settings;
   versions: Version[];
+}
+export interface ModelConfig {
+  baseUrl: string;
+  model: string;
+  enabled: boolean;
+  hasKey: boolean;
 }
 export interface Comparison {
   before: number;

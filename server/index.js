@@ -8,10 +8,13 @@ import { Worker } from 'node:worker_threads';
 import { createStore } from './store.js';
 import { makeDemo, makeEmpty } from './demo.js';
 import { registry, makeStructureReport, answerLocally } from './engine.js';
+import { createModelService } from './models.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const directory = path.resolve(process.env.DATA_DIR || path.join(root, 'data'));
 const store = createStore(directory);
+const models = createModelService(store.db, directory);
+const pendingMessages = new Set();
 const app = express();
 const workers = new Map();
 const upload = multer({
@@ -51,6 +54,13 @@ app.use('/api', (req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '64kb' }));
+
+app.get('/api/model-config', (req, res) => res.json(models.public(req.workspace)));
+app.put('/api/model-config', (req, res) => res.json(models.save(req.workspace, req.body)));
+app.delete('/api/model-config', (req, res) => res.json(models.remove(req.workspace)));
+app.post('/api/model-config/test', async (req, res) =>
+  res.json(await models.test(req.workspace, req.body)),
+);
 
 function project(req, res) {
   const p = store.get(req.workspace, req.params.id);
@@ -167,6 +177,8 @@ app.get('/api/projects/:id', (req, res) => {
 app.patch('/api/projects/:id', (req, res) => {
   const p = project(req, res);
   if (!p) return;
+  for (const field of ['pinned', 'archived'])
+    if (typeof req.body[field] === 'boolean') p[field] = req.body[field];
   if (typeof req.body.title === 'string' && req.body.title.trim())
     p.title = req.body.title.trim().slice(0, 120);
   if (req.body.activeVersionId && p.versions.some((v) => v.id === req.body.activeVersionId))
@@ -301,7 +313,7 @@ app.post('/api/projects/:id/report', (req, res) => {
   }
   res.json(p);
 });
-app.post('/api/projects/:id/messages', (req, res) => {
+app.post('/api/projects/:id/messages', async (req, res) => {
   const p = project(req, res);
   if (!p) return;
   const v = getVersion(p, req.body.versionId);
@@ -309,13 +321,26 @@ app.post('/api/projects/:id/messages', (req, res) => {
   if (!v || !text || text.length > 4000)
     return res.status(400).json({ error: '请先上传论文，消息长度需为 1–4000 字' });
   if (v.messages.length >= 400) return res.status(400).json({ error: '当前版本的对话已达上限' });
-  v.messages.push(event('user', '你', text));
-  v.messages.push({
-    ...event('assistant', 'Copilot'),
-    ...answerLocally(v, text, req.body.findingId),
-  });
-  save(req, p);
-  res.json(p);
+  const lock = `${p.id}:${v.id}`;
+  if (pendingMessages.has(lock)) return res.status(409).json({ error: '正在生成回答，请稍候' });
+  pendingMessages.add(lock);
+  try {
+    const config = models.get(req.workspace);
+    const answer = config?.enabled
+      ? await models.answer(config, v, text, req.body.findingId)
+      : answerLocally(v, text, req.body.findingId);
+    const latest = store.get(req.workspace, p.id);
+    if (!latest) return res.status(404).json({ error: '项目已删除，回答不再保存' });
+    const target = getVersion(latest, v.id);
+    target.messages.push(event('user', '你', text), {
+      ...event('assistant', 'Copilot'),
+      ...answer,
+    });
+    save(req, latest);
+    res.json(latest);
+  } finally {
+    pendingMessages.delete(lock);
+  }
 });
 app.patch('/api/projects/:id/findings/:findingId', (req, res) => {
   const p = project(req, res);
@@ -356,10 +381,15 @@ app.use((error, _req, res, _next) => {
     return res
       .status(400)
       .json({ error: error.code === 'LIMIT_FILE_SIZE' ? '文件不能超过 25 MB' : '上传请求无效' });
-  console.error(error.message);
-  res
-    .status(error.status || 500)
-    .json({ error: error.status === 400 ? '请求格式有误' : '服务暂时不可用，请稍后重试' });
+  console.error('Request failed', { status: error.status || 500, name: error.name });
+  res.status(error.status || 500).json({
+    error:
+      error.type === 'entity.parse.failed'
+        ? '请求 JSON 格式无效'
+        : [400, 409, 502].includes(error.status)
+          ? error.message
+          : '服务暂时不可用，请稍后重试',
+  });
 });
 const server = app.listen(Number(process.env.PORT || 3001), process.env.HOST || '127.0.0.1', () =>
   console.log(
