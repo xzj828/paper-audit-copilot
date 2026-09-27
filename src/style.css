@@ -3523,8 +3523,14 @@ progress {
   *:before,
   *:after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Keep progress visible without accelerating infinite loading animations. */
+  .spin {
+    animation-duration: 3.6s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 /* A compact review toolbar and a single, quiet conversation input. */
