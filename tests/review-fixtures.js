@@ -1,5 +1,23 @@
 export function reviewReply(messages) {
   const input = JSON.parse(messages.at(-1).content);
+  if (input.task === 'verify_atomic')
+    return {
+      applicable: true,
+      supported: true,
+      reason: '逐条测试复核。',
+      issues: input.candidate.issues.map((i) => ({
+        issueId: i.id,
+        applicable: true,
+        supported: true,
+        atomic: true,
+        kind: i.kind,
+        reason: '测试证据与问题匹配。',
+        duplicateOf: null,
+        sameClaim: false,
+        sameDefect: false,
+        sameEvidence: false,
+      })),
+    };
   if (input.task === 'verify')
     return {
       applicable: true,
@@ -8,8 +26,12 @@ export function reviewReply(messages) {
     };
   const check = input.check,
     section = input.paper.find((s) => s.text.trim().length >= 8);
-  return {
+  const result = {
     checkId: check.id,
+    claimPointer: '测试主张：样地观测支持研究推断。',
+    severityRationale: '测试严重性：影响样本层级解释。',
+    resolutionTest: '核对实验单位与模型层级是否一致。',
+    blocking: false,
     assessment:
       check.id === 'E04'
         ? 'issue'
@@ -26,4 +48,19 @@ export function reviewReply(messages) {
     level: check.id === 'E04' ? 2 : check.externalRequired || check.id === 'E09' ? null : 4,
     evidence: section ? [{ elementId: section.id, quote: section.text.trim().slice(0, 60) }] : [],
   };
+  if (input.issueProtocol === 'atomic-v1')
+    result.issues =
+      check.id === 'E04'
+        ? [
+            {
+              ...result,
+              localId: 'I1',
+              category: 'design_replication',
+              title: '独立样本层级',
+              kind: 'scientific_defect',
+              repairability: 'clarification',
+            },
+          ]
+        : [];
+  return result;
 }

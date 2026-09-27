@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import Icon from './Icon.vue';
-defineProps<{ title: string; wide?: boolean }>();
+defineProps<{ title: string; wide?: boolean; documentPreview?: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 const panel = ref<HTMLElement>();
 let previous: HTMLElement | null = null;
@@ -41,7 +41,7 @@ onUnmounted(() => {
         aria-modal="true"
         aria-labelledby="modal-title"
         class="modal"
-        :class="{ wide }"
+        :class="{ wide, 'document-modal': documentPreview }"
       >
         <header>
           <h2 id="modal-title">{{ title }}</h2>

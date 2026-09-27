@@ -4,11 +4,48 @@ import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
 import ModelSettings from './components/ModelSettings.vue';
+import ModelPicker from './components/ModelPicker.vue';
+import MessageContent from './components/MessageContent.vue';
+import { readSSE } from '../shared/sse.js';
 import ReviewControls from './components/ReviewControls.vue';
+import WorkspacePages from './components/WorkspacePages.vue';
+import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
 import type { Project, Version, Finding, Anchor, Comparison, ModelConfig } from './types';
 
+const managementPage = ref('');
+function syncManagementRoute() {
+  const route = window.location.hash.slice(1);
+  managementPage.value = ['library', 'templates', 'settings'].includes(route) ? route : '';
+}
+watch(managementPage, (value) => {
+  const hash = value ? `#${value}` : '';
+  if (window.location.hash !== hash)
+    window.history.pushState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}${hash}`,
+    );
+});
+const readingPreferences = ref<Preferences>({ ...defaultPreferences });
+function jumpToSection(section: { id: string; page?: number }) {
+  page.value = section.page || page.value;
+  void nextTick(() =>
+    document.getElementById(section.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }),
+  );
+}
+function applyPreferences(value: Preferences) {
+  readingPreferences.value = { ...value };
+  theme.value = value.theme;
+  zoom.value = value.zoom;
+}
+async function openLibraryDocument(projectId: string, versionId: string) {
+  await safe(async () => {
+    await openProject(projectId);
+    await switchVersion(versionId);
+  });
+}
 const projects = ref<Project[]>([]),
   project = ref<Project | null>(null);
 const version = computed(() =>
@@ -18,6 +55,67 @@ const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
 const evidenceQuote = ref('');
+const configuration = ref<{
+  packs: { id: string; name: string }[];
+  templates: { id: string; name: string }[];
+}>({ packs: [], templates: [] });
+const reportTemplateId = ref('review-report@1');
+async function loadConfiguration() {
+  configuration.value = await api('/review-configuration');
+}
+async function renderReportTemplate() {
+  if (!project.value || !version.value || !report.value) return;
+  await safe(async () => {
+    project.value = await api<Project>(
+      `/projects/${project.value!.id}/reports/${report.value!.id}/render`,
+      json('POST', { versionId: version.value!.id, templateId: reportTemplateId.value }),
+    );
+    selectedReportId.value = '';
+  });
+}
+async function exportDocument(format: 'pdf' | 'docx' | 'md') {
+  if (!project.value || !report.value || !version.value) return;
+  await safe(async () => {
+    const response = await fetch(
+      `/api/projects/${project.value!.id}/reports/${report.value!.id}/export?versionId=${version.value!.id}&format=${format}`,
+    );
+    if (!response.ok) throw new Error((await response.json()).error);
+    const url = URL.createObjectURL(await response.blob()),
+      link = document.createElement('a');
+    link.href = url;
+    link.download =
+      format === 'md' ? `论文报告-v${version.value?.number}.md` : `论文评审报告.${format}`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+const visualAnchor = ref<Anchor | null>(null);
+const revisionLabels: Record<string, string> = {
+  addressed: '暂判已处理',
+  persists: '仍存在',
+  uncertain: '需人工核对',
+};
+const revisionRun = computed(() =>
+  version.value?.runs.filter((r) => r.scope === 'revision').at(-1),
+);
+async function startRevision() {
+  if (!project.value || !version.value || !compareBefore.value) return;
+  await safe(async () => {
+    project.value = await api<Project>(
+      `/projects/${project.value!.id}/revisions`,
+      json('POST', { before: compareBefore.value, after: version.value!.id }),
+    );
+  });
+}
+async function cancelRevision() {
+  if (!project.value || !revisionRun.value) return;
+  await safe(async () => {
+    await api(
+      `/projects/${project.value!.id}/revisions/${revisionRun.value!.id}/cancel`,
+      json('POST', {}),
+    );
+  });
+}
 const recommendationLabel = (value: string | null) =>
   ({ reject: '拒稿', major_revision: '大修', minor_revision: '小修', accept: '录用' })[
     value || ''
@@ -30,6 +128,13 @@ const assessmentLabel = (value: string) =>
     available: '已提取',
     not_checked: '未检查',
   })[value] || value;
+const repairabilityLabel = (value?: string) =>
+  ({
+    clarification: '补充说明或收缩结论',
+    reanalysis: '重新分析现有数据',
+    new_data: '补充观测或重新采样',
+    unknown: '修复路径待核实',
+  })[value || ''] || '';
 const tab = ref('annotations'),
   timelineTab = ref('chat'),
   detailTab = ref('details');
@@ -51,6 +156,9 @@ const dialog = ref(''),
   nameInput = ref(''),
   searchInput = ref(''),
   projectSearch = ref('');
+const reviewSettingsOpen = ref(false);
+const savingSettings = ref(false);
+let settingsRevision = 0;
 const menu = ref(false),
   dragging = ref(false),
   bookmarked = ref(false);
@@ -58,6 +166,7 @@ const selectedReportId = ref(''),
   report = computed(
     () =>
       version.value?.reports.find((r) => r.id === selectedReportId.value) ||
+      version.value?.reports.filter((r) => r.trial).at(-1) ||
       version.value?.reports.at(-1),
   );
 const fileInput = ref<HTMLInputElement>(),
@@ -78,6 +187,20 @@ const {
   minimized,
 } = layout;
 const modelConfig = ref<ModelConfig>({ baseUrl: '', model: '', enabled: false, hasKey: false });
+const pendingChat = ref<{
+  projectId: string;
+  versionId: string;
+  question: string;
+  answer: string;
+  error: string;
+} | null>(null);
+const activeChat = computed(() =>
+  pendingChat.value?.projectId === project.value?.id &&
+  pendingChat.value?.versionId === version.value?.id
+    ? pendingChat.value
+    : null,
+);
+let chatController: AbortController | null = null;
 const projectMenuId = ref(''),
   projectMenuPosition = ref({ left: '0px', top: '0px' });
 const menuProject = computed(() => projects.value.find((p) => p.id === projectMenuId.value));
@@ -126,7 +249,7 @@ function projectAction(kind: string, item: Project) {
           ? '项目已置顶'
           : '已取消置顶'
         : data.archived
-          ? '项目已归档，可在我的项目中恢复'
+          ? '项目已归档，可在更多项目中恢复'
           : '项目已恢复',
     );
   });
@@ -134,10 +257,11 @@ function projectAction(kind: string, item: Project) {
 const theme = ref(localStorage.getItem('audit-theme') || 'light');
 const titles: Record<string, string> = {
   new: '新建论文项目',
-  projects: '我的项目',
+  projects: '项目管理',
   library: '文献库',
   templates: '模板与规范',
   settings: '工作台设置',
+  model: '配置自定义模型',
   rename: '重命名项目',
   delete: '删除项目',
   search: '搜索论文',
@@ -216,6 +340,7 @@ async function openProject(id: string) {
   const data = await api<Project>(`/projects/${id}`);
   if (sequence !== requestSequence) return;
   project.value = data;
+  managementPage.value = '';
   localStorage.setItem('audit-active-project', id);
   restoreView();
   menu.value = false;
@@ -240,6 +365,7 @@ function restoreView() {
   selectedReportId.value = '';
   searchInput.value = '';
   evidenceQuote.value = '';
+  visualAnchor.value = null;
 }
 async function initialize() {
   initialLoading.value = true;
@@ -250,6 +376,10 @@ async function initialize() {
     const target = projects.value.find((p) => p.id === id) || projects.value[0];
     if (target) await openProject(target.id);
     modelConfig.value = await api<ModelConfig>('/model-config');
+    await loadConfiguration();
+    const workspace = await api<WorkspaceState>('/workspace');
+    applyPreferences(workspace.preferences);
+    syncManagementRoute();
   } catch (e) {
     fatalError.value = e instanceof Error ? e.message : '无法连接服务';
   } finally {
@@ -257,6 +387,14 @@ async function initialize() {
   }
 }
 function openDialog(value: string) {
+  if (['library', 'templates', 'settings'].includes(value)) {
+    managementPage.value = value;
+    dialog.value = '';
+    projectMenuId.value = '';
+    maximized.value = false;
+    minimized.value = false;
+    return;
+  }
   menu.value = false;
   projectMenuId.value = '';
   dialogProject.value = project.value;
@@ -295,7 +433,7 @@ async function renameProject() {
 }
 async function deleteProject() {
   const target = dialogProject.value;
-  if (!target || nameInput.value !== target.title) return;
+  if (!target || busy.value) return;
   busy.value = true;
   await safe(async () => {
     await api(`/projects/${target.id}`, json('DELETE'));
@@ -309,14 +447,20 @@ async function deleteProject() {
   busy.value = false;
 }
 async function saveSettings() {
-  if (!project.value) return;
-  await safe(async () => {
-    project.value = await api<Project>(
-      `/projects/${project.value!.id}`,
-      json('PATCH', { settings: project.value!.settings }),
-    );
-    notify('评审设置已保存，将用于下一次任务');
-  });
+  if (!project.value || savingSettings.value || busy.value) return;
+  const id = project.value.id;
+  const settings = { ...project.value.settings };
+  settingsRevision++;
+  savingSettings.value = true;
+  try {
+    await safe(async () => {
+      const data = await api<Project>(`/projects/${id}`, json('PATCH', { settings }));
+      if (project.value?.id === id) project.value = data;
+      notify('评审设置已保存，将用于下一次任务');
+    });
+  } finally {
+    savingSettings.value = false;
+  }
 }
 async function switchVersion(id: string) {
   if (!project.value) return;
@@ -393,10 +537,23 @@ async function poll() {
   )
     return;
   const id = project.value.id;
+  const revision = settingsRevision;
   try {
+    const follow =
+      timeline.value &&
+      timeline.value.scrollHeight - timeline.value.scrollTop - timeline.value.clientHeight < 100;
     const data = await api<Project>(`/projects/${id}`);
-    if (project.value?.id === id) {
+    if (
+      project.value?.id === id &&
+      revision === settingsRevision &&
+      !savingSettings.value &&
+      !busy.value
+    ) {
       project.value = data;
+      if (follow) {
+        await nextTick();
+        timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
+      }
       if (
         !data.versions.some(
           (v) => v.status === 'parsing' || v.runs.some((r) => r.status === 'running'),
@@ -411,16 +568,32 @@ async function poll() {
   }
 }
 async function startReview(retryId?: string) {
-  if (!project.value || !version.value) return;
+  if (!project.value || !version.value || busy.value || savingSettings.value) return;
+  if (project.value.settings.articleType !== 'empirical') {
+    reviewSettingsOpen.value = true;
+    notify('请选择实证研究；综述与理论研究尚未适配');
+    return;
+  }
   const id = project.value.id,
     versionId = version.value.id;
+  const settings = { ...project.value.settings, confirmed: true };
+  settingsRevision++;
   busy.value = true;
-  await safe(async () => {
-    const data = await api<Project>(`/projects/${id}/review`, json('POST', { versionId, retryId }));
-    if (project.value?.id === id) project.value = data;
-    notify('评审已开始，可查看检查明细');
-  });
-  busy.value = false;
+  try {
+    await safe(async () => {
+      // Starting the review confirms the visible selection, including an unchanged default.
+      const saved = await api<Project>(`/projects/${id}`, json('PATCH', { settings }));
+      if (project.value?.id === id) project.value = saved;
+      const data = await api<Project>(
+        `/projects/${id}/review`,
+        json('POST', { versionId, retryId }),
+      );
+      if (project.value?.id === id) project.value = data;
+      notify('评审已开始，分析结果将逐条显示在对话中');
+    });
+  } finally {
+    busy.value = false;
+  }
 }
 async function cancelReview(runId: string) {
   if (!project.value || !version.value) return;
@@ -450,20 +623,45 @@ async function sendMessage() {
     versionId = version.value.id,
     text = message.value;
   sending.value = true;
+  pendingChat.value = { projectId: id, versionId, question: text, answer: '', error: '' };
+  const pending = pendingChat.value;
+  chatController = new AbortController();
   await safe(async () => {
-    const data = await api<Project>(
-      `/projects/${id}/messages`,
-      json('POST', { text, findingId: contextFinding.value?.id, versionId }),
-    );
-    if (project.value?.id === id && version.value?.id === versionId) {
-      project.value = data;
+    try {
+      const response = await fetch(`/api/projects/${id}/messages`, {
+        ...json('POST', { text, findingId: contextFinding.value?.id, versionId }),
+        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        signal: chatController!.signal,
+      });
+      if (!response.ok) throw new Error((await response.json()).error || '发送失败');
+      if (!response.body) throw new Error('浏览器未收到响应流');
       message.value = '';
-      contextFinding.value = null;
-      await nextTick();
-      timeline.value?.scrollTo({ top: timeline.value.scrollHeight, behavior: 'smooth' });
+      let completed = false;
+      for await (const frame of readSSE(response.body)) {
+        const data = JSON.parse(frame);
+        if (data.type === 'error') throw new Error(data.error);
+        if (data.type === 'delta') pending.answer += data.text;
+        if (data.type === 'done') {
+          completed = true;
+          if (project.value?.id === id && version.value?.id === versionId)
+            project.value = data.project;
+          pendingChat.value = null;
+          contextFinding.value = null;
+        }
+        await nextTick();
+        if (project.value?.id === id && version.value?.id === versionId)
+          timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
+      }
+      if (!completed) throw new Error('连接中断，回答尚未完成，请重试');
+    } catch (e) {
+      pending.error = (e as Error).message;
+      if (project.value?.id === id && version.value?.id === versionId && !message.value)
+        message.value = text;
+      throw e;
     }
   });
   sending.value = false;
+  chatController = null;
 }
 function askCopilot() {
   if (!finding.value) return;
@@ -473,7 +671,8 @@ function askCopilot() {
   nextTick(() => textarea.value?.focus());
 }
 async function locate(anchor: Anchor, findingId?: string) {
-  evidenceQuote.value = anchor.quote;
+  evidenceQuote.value = anchor.kind === 'visual' ? '' : anchor.quote;
+  visualAnchor.value = anchor.kind === 'visual' ? anchor : null;
   tab.value = 'annotations';
   page.value = anchor.page || 1;
   dialog.value = '';
@@ -512,6 +711,12 @@ async function markFinding() {
     notify('问题跟踪状态已更新；历史报告保持不变');
   });
 }
+function openReport() {
+  selectedReportId.value = '';
+  tab.value = 'report';
+  minimized.value = false;
+  mobilePane.value = 'paper';
+}
 async function generateReport() {
   if (!project.value || !version.value) return;
   const id = project.value.id,
@@ -521,23 +726,14 @@ async function generateReport() {
     const data = await api<Project>(`/projects/${id}/report`, json('POST', { versionId }));
     if (project.value?.id === id && version.value?.id === versionId) {
       project.value = data;
-      selectedReportId.value = '';
-      tab.value = 'report';
+      openReport();
     }
     notify('报告已生成并保存');
   });
   busy.value = false;
 }
 function downloadReport() {
-  if (!report.value) return;
-  const r = report.value;
-  const text = `# ${project.value?.title}\n\n${r.demo ? '演示评审报告，不用于实际投稿决策。' : r.trial ? `试运行评审 · 系统暂定建议：${recommendationLabel(r.recommendation)}\n${r.conclusion}` : '解析报告：专业评审尚未执行，暂无法判定。'}\n\n版本：v${version.value?.number}\n方案：${r.scheme}\n模板：${r.template}\n任务：${r.runId}\n模型：${r.model?.model || '无'}\n规则指纹：${r.packHash || '无'}\n生成时间：${r.createdAt}\n\n## 覆盖范围\n${r.coverage}\n${r.score ? `\n已评项得分：${r.score.earned.toFixed(1)}/${r.score.assessedMaximum}；加权覆盖率：${(r.score.coverage * 100).toFixed(1)}%；完整总分：${r.score.total ?? '未形成'}\n` : ''}\n${r.findings.map((f, i) => `## ${i + 1}. ${f.title}\n${f.explanation}\n\n原文：${f.anchor.quote}\n位置：${f.anchor.section}\n建议：${f.suggestion}`).join('\n\n')}\n${r.results?.map((result) => `\n### ${result.checkId} ${result.name || ''}\n状态：${assessmentLabel(result.assessment)}；等级：${result.level ?? '未评分'}\n${result.observation}\n${result.suggestion || ''}\n${result.evidence?.map((e) => `原文 [${e.elementId}]：${e.quote}`).join('\n') || ''}\n复核：${result.verification?.reason || '未完成论证核验'}`).join('\n') || ''}\n${r.warnings?.join('\n') || ''}`;
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `论文报告-v${version.value?.number}.md`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  void exportDocument('md');
 }
 async function compare() {
   if (!project.value || !compareBefore.value || !version.value) return;
@@ -570,11 +766,14 @@ watch(
 );
 onMounted(() => {
   void initialize();
+  window.addEventListener('popstate', syncManagementRoute);
   document.addEventListener('click', closeProjectMenu);
   pollTimer = setInterval(poll, 1000);
   document.addEventListener('keydown', shortcuts);
 });
 onUnmounted(() => {
+  window.removeEventListener('popstate', syncManagementRoute);
+  chatController?.abort();
   document.removeEventListener('click', closeProjectMenu);
   clearInterval(pollTimer);
   clearTimeout(toastTimer);
@@ -586,6 +785,7 @@ onUnmounted(() => {
   <div
     class="app-shell"
     :class="{
+      'management-open': !!managementPage,
       'sidebar-collapsed': !sidebar,
       'mobile-chat': mobilePane === 'chat',
       'layout-stacked': displayMode === 'stacked',
@@ -608,14 +808,29 @@ onUnmounted(() => {
         <button :disabled="initialLoading" @click="openDialog('new')">
           <Icon name="new" /><span>新建项目</span><kbd>＋</kbd>
         </button>
-        <button class="active" @click="openDialog('projects')">
-          <Icon name="folder" /><span>我的项目</span>
+        <button
+          aria-label="文献库"
+          :class="{ active: managementPage === 'library' }"
+          :aria-current="managementPage === 'library' ? 'page' : undefined"
+          @click="openDialog('library')"
+        >
+          <Icon name="library" /><span>文献库</span>
         </button>
-        <button @click="openDialog('library')"><Icon name="library" /><span>文献库</span></button>
-        <button @click="openDialog('templates')">
+        <button
+          aria-label="模板与规范"
+          :class="{ active: managementPage === 'templates' }"
+          :aria-current="managementPage === 'templates' ? 'page' : undefined"
+          @click="openDialog('templates')"
+        >
           <Icon name="files" /><span>模板与规范</span>
         </button>
-        <button :disabled="initialLoading" @click="openDialog('settings')">
+        <button
+          aria-label="设置"
+          :class="{ active: managementPage === 'settings' }"
+          :aria-current="managementPage === 'settings' ? 'page' : undefined"
+          :disabled="initialLoading"
+          @click="openDialog('settings')"
+        >
           <Icon name="settings" /><span>设置</span>
         </button>
       </nav>
@@ -629,7 +844,7 @@ onUnmounted(() => {
           v-for="item in sidebarProjects"
           :key="item.id"
           class="project-row"
-          :class="{ selected: project?.id === item.id }"
+          :class="{ selected: !managementPage && project?.id === item.id }"
         >
           <button
             class="project-link"
@@ -675,6 +890,18 @@ onUnmounted(() => {
         </button>
       </div>
     </aside>
+
+    <WorkspacePages
+      v-if="managementPage"
+      :page="managementPage"
+      :model="modelConfig"
+      @open="openLibraryDocument"
+      @preferences="applyPreferences"
+      @preferences-preview="applyPreferences"
+      @model="modelConfig = $event"
+      @configuration="loadConfiguration"
+      @refresh="refreshList"
+    />
 
     <div
       v-if="sidebar"
@@ -807,8 +1034,12 @@ onUnmounted(() => {
                   item.kind === 'user' || item.kind === 'assistant' ? 'message-card' : 'event-text'
                 "
               >
-                {{ item.text
-                }}<button
+                <MessageContent
+                  v-if="item.kind === 'assistant' || item.kind === 'review-result'"
+                  :text="item.text"
+                />
+                <template v-else>{{ item.text }}</template
+                ><button
                   v-if="item.anchor"
                   class="citation-link"
                   @click="locate(item.anchor!, item.findingId)"
@@ -817,11 +1048,50 @@ onUnmounted(() => {
                   }}<Icon name="arrow" :size="13" />
                 </button>
               </div>
-              <button v-if="item.kind === 'report'" class="artifact-button" @click="tab = 'report'">
+              <button v-if="item.kind === 'report'" class="artifact-button" @click="openReport">
                 <Icon name="file" :size="16" />查看已保存报告<Icon name="right" :size="15" />
               </button>
             </div>
           </article>
+          <article
+            v-for="run in version.runs.filter((r) => r.scope === 'scientific-trial')"
+            :key="`progress-${run.id}`"
+            class="review-conversation"
+          >
+            <div v-if="run.status === 'running'" class="review-thinking" role="status">
+              <Icon name="loading" class="spin" :size="17" />
+              <span
+                >正在思考中……<small v-if="run.stage">正在分析：{{ run.stage }}</small></span
+              >
+            </div>
+            <p
+              v-for="module in run.modules?.filter((m) => m.status === 'failed')"
+              :key="module.id"
+              class="notice error-notice"
+            >
+              {{ module.checkId }}：{{ module.error }}
+            </p>
+            <p v-if="run.error" class="notice error-notice">{{ run.error }}</p>
+          </article>
+          <template v-if="activeChat">
+            <article class="event-user">
+              <strong>你</strong>
+              <div class="message-card">{{ activeChat.question }}</div>
+            </article>
+            <article class="event-assistant streaming-message" aria-live="polite">
+              <strong>Copilot</strong>
+              <div class="message-card">
+                <MessageContent v-if="activeChat.answer" :text="activeChat.answer" /><span
+                  v-else
+                  class="review-thinking"
+                  ><Icon name="loading" class="spin" :size="17" />正在思考中……</span
+                ><span v-if="sending" class="stream-cursor">▋</span>
+              </div>
+              <p v-if="activeChat.error" class="notice error-notice" role="alert">
+                {{ activeChat.error }}（本次回答未保存，可重新发送。）
+              </p>
+            </article>
+          </template>
           <div v-if="version.status === 'parsing'" class="inline-progress">
             <Icon name="loading" class="spin" :size="17" /><span
               >正在提取文档结构… {{ version.progress || 0 }}%</span
@@ -846,6 +1116,7 @@ onUnmounted(() => {
 
       <div
         class="composer-area"
+        :class="{ 'review-workbench': project && !project.demo }"
         @dragover.prevent="dragging = true"
         @dragleave.prevent="dragging = false"
         @drop.prevent="onDrop"
@@ -853,22 +1124,48 @@ onUnmounted(() => {
         <ReviewControls
           v-if="project && !project.demo"
           :version="version"
-          :busy="busy"
+          :busy="busy || savingSettings"
           @start="startReview"
           @cancel="cancelReview"
-          @report="
-            tab = 'report';
-            selectedReportId = '';
-          "
-        />
-        <div v-if="!project?.demo && project" class="review-context">
-          <button @click="openDialog('templates')">
-            生态学实证预审 <span>试运行</span><Icon name="down" :size="12" />
+          @report="openReport"
+        >
+          <button
+            class="review-settings-toggle"
+            :aria-expanded="reviewSettingsOpen"
+            aria-controls="review-settings"
+            @click="reviewSettingsOpen = !reviewSettingsOpen"
+          >
+            <Icon name="sliders" :size="18" />评审配置
+            <Icon name="down" :size="13" :class="{ 'is-open': reviewSettingsOpen }" />
+          </button>
+        </ReviewControls>
+        <div
+          v-if="!project?.demo && project && reviewSettingsOpen"
+          id="review-settings"
+          class="review-context"
+        >
+          <button
+            :class="{ active: managementPage === 'templates' }"
+            :aria-current="managementPage === 'templates' ? 'page' : undefined"
+            @click="openDialog('templates')"
+          >
+            <Icon name="settings" :size="16" />管理模板与规范
           </button>
           <div>
             <select
+              v-model="project.settings.scheme"
+              aria-label="规则版本"
+              :disabled="busy || savingSettings"
+              @change="saveSettings"
+            >
+              <option v-for="p in configuration.packs" :key="p.id" :value="p.id">
+                {{ p.name }}
+              </option>
+            </select>
+            <select
               v-model="project.settings.articleType"
               aria-label="稿件类型"
+              :disabled="busy || savingSettings"
               @change="
                 project.settings.confirmed = true;
                 saveSettings();
@@ -881,10 +1178,11 @@ onUnmounted(() => {
             ><select
               v-model="project.settings.outputMode"
               aria-label="评审输出方式"
+              :disabled="busy || savingSettings"
               @change="saveSettings"
             >
               <option value="narrative">文字意见</option>
-              <option value="scored">文字 + 试运行评分</option>
+              <option value="scored">文字 + 评分</option>
             </select>
           </div>
         </div>
@@ -894,83 +1192,80 @@ onUnmounted(() => {
             <Icon name="close" :size="14" />
           </button>
         </div>
-        <form class="composer" :class="{ dragging }" @submit.prevent="sendMessage">
-          <textarea
-            ref="textarea"
-            v-model="message"
-            :disabled="!version || uploading"
-            maxlength="4000"
-            rows="2"
-            aria-label="询问 Copilot"
-            :placeholder="
-              uploading
-                ? '正在上传论文…'
-                : dragging
-                  ? '松开以上传论文'
-                  : '继续提问，或输入 / 选择功能…'
-            "
-            @keydown.enter.exact.prevent="sendMessage"
-            @keydown="message === '/' && $event.key === 'Enter' && openDialog('shortcuts')"
-          ></textarea>
-          <div v-if="message === '/'" class="slash-menu">
-            <button
-              type="button"
-              @click="
-                message = '';
-                tab = 'parse';
+        <section class="question-panel">
+          <form class="composer" :class="{ dragging }" @submit.prevent="sendMessage">
+            <textarea
+              ref="textarea"
+              v-model="message"
+              :disabled="!version || uploading"
+              maxlength="4000"
+              rows="2"
+              aria-label="询问 Copilot"
+              :placeholder="
+                uploading
+                  ? '正在上传论文…'
+                  : dragging
+                    ? '松开以上传论文'
+                    : '输入问题，结合论文原文展开讨论…'
               "
-            >
-              查看论文解析</button
-            ><button
-              type="button"
-              @click="
-                message = '';
-                generateReport();
-              "
-            >
-              生成报告预览
-            </button>
-          </div>
-          <div class="composer-tools">
-            <button
-              type="button"
-              class="icon-button"
-              aria-label="上传论文"
-              :disabled="uploading"
-              @click="requestUpload()"
-            >
-              <Icon name="attach" /></button
-            ><button
-              type="button"
-              class="icon-button"
-              aria-label="引用论文片段"
-              @click="openDialog('search')"
-            >
-              <Icon name="at" /></button
-            ><button
-              type="button"
-              class="composer-caption model-shortcut"
-              aria-label="配置对话模型"
-              @click="openDialog('settings')"
-              :title="modelConfig.enabled ? modelConfig.model : '配置模型 API Key'"
-            >
-              {{ modelConfig.enabled ? modelConfig.model : '配置模型' }}</button
-            ><button
-              type="submit"
-              class="send-button"
-              :disabled="!message.trim() || !version || sending"
-              aria-label="发送消息"
-            >
-              <Icon :name="sending ? 'loading' : 'send'" :class="{ spin: sending }" :size="21" />
-            </button>
-          </div>
-        </form>
-        <div class="composer-footnote">
-          {{
-            project?.demo
-              ? '演示空间 · 内容仅用于产品体验'
-              : '意见应结合原文核实，不代表期刊正式决定'
-          }}
+              @keydown.enter.exact.prevent="sendMessage"
+              @keydown="message === '/' && $event.key === 'Enter' && openDialog('shortcuts')"
+            ></textarea>
+            <div v-if="message === '/'" class="slash-menu">
+              <button
+                type="button"
+                @click="
+                  message = '';
+                  tab = 'parse';
+                "
+              >
+                查看论文解析</button
+              ><button
+                type="button"
+                @click="
+                  message = '';
+                  generateReport();
+                "
+              >
+                生成报告预览
+              </button>
+            </div>
+            <div class="composer-tools">
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="上传论文"
+                :disabled="uploading"
+                @click="requestUpload()"
+              >
+                <Icon name="plus" /></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="引用论文片段"
+                @click="openDialog('search')"
+              >
+                <Icon name="at" />
+              </button>
+              <ModelPicker
+                :config="modelConfig"
+                :disabled="sending"
+                @updated="modelConfig = $event"
+                @configure="openDialog('model')"
+              />
+              <button
+                type="submit"
+                class="send-button"
+                :disabled="!message.trim() || !version || sending"
+                aria-label="发送消息"
+              >
+                <Icon :name="sending ? 'loading' : 'up'" :class="{ spin: sending }" :size="21" />
+              </button>
+            </div>
+          </form>
+        </section>
+        <div v-if="project?.demo" class="composer-footnote">
+          演示空间 · 内容仅用于产品体验
         </div>
       </div>
     </section>
@@ -1099,6 +1394,19 @@ onUnmounted(() => {
 
       <div v-else-if="tab === 'annotations'" class="annotation-workspace">
         <div ref="paperScroll" class="paper-scroll" tabindex="0" aria-label="论文预览滚动区">
+          <details
+            v-if="readingPreferences.showOutline && version.parse?.sections.length"
+            class="document-outline"
+          >
+            <summary><Icon name="list" :size="17" /> 文档目录</summary>
+            <button
+              v-for="section in version.parse.sections"
+              :key="section.id"
+              @click="jumpToSection(section)"
+            >
+              {{ section.title.slice(0, 100) }}
+            </button>
+          </details>
           <article
             v-if="project?.demo"
             class="paper demo-paper"
@@ -1161,7 +1469,9 @@ onUnmounted(() => {
               :url="uploadUrl"
               :page="page"
               :zoom="zoom"
+              :continuous="readingPreferences.layout === 'continuous'"
               :query="evidenceQuote || searchInput"
+              :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
               @pages="pageCount = $event"
             />
             <article
@@ -1328,8 +1638,10 @@ onUnmounted(() => {
                   </ul>
                   <div v-else>
                     <p>
-                      原文引用：{{
-                        finding.verification.citation === 'passed' ? '精确匹配' : '待核验'
+                      {{
+                        finding.anchor.kind === 'visual'
+                          ? '视觉证据：已核对输入归属，位置为模型定位，需人工确认'
+                          : `原文引用：${finding.verification.citation === 'passed' ? (finding.anchor.quality === 'typography-normalized' ? '排版归一化匹配' : '精确匹配') : '待核验'}`
                       }}
                     </p>
                     <p>
@@ -1347,7 +1659,11 @@ onUnmounted(() => {
                   </div>
                 </section>
                 <section class="finding-section">
-                  <h3>相关原文片段</h3>
+                  <h3>
+                    {{
+                      finding.anchor.kind === 'visual' ? '视觉观察（非逐字引文）' : '相关原文片段'
+                    }}
+                  </h3>
                   <blockquote>{{ finding.anchor.quote }}</blockquote>
                 </section></template
               >
@@ -1374,8 +1690,14 @@ onUnmounted(() => {
                 </section>
                 <section class="finding-section">
                   <h3>复查条件</h3>
+                  <p v-if="finding.repairability">
+                    修复路径：{{ repairabilityLabel(finding.repairability) }}
+                  </p>
                   <p>
-                    补充相关说明后重新检查原文证据与适用范围。确认意见仅代表已阅读，不代表问题已解决。
+                    {{
+                      finding.resolutionTest ||
+                      '补充相关说明后重新检查原文证据与适用范围。确认意见仅代表已阅读，不代表问题已解决。'
+                    }}
                   </p>
                 </section>
                 <button class="secondary-button full" @click="markFinding">
@@ -1402,7 +1724,7 @@ onUnmounted(() => {
               <h3>让每条意见都有出处</h3>
               <p>这里将显示论文批注、原文证据与修改建议。</p>
               <div class="notice">
-                可从左侧开始试运行评审。暂无批注不代表论文没有问题，请同时查看报告中的待核验项。
+                可从左侧开始评审。暂无批注不代表论文没有问题，请同时查看报告中的待核验项。
               </div>
               <button
                 class="secondary-button full"
@@ -1497,9 +1819,7 @@ onUnmounted(() => {
               <Icon name="shield" :size="23" />
               <div>
                 <h3>语义分析与专业评审</h3>
-                <p>
-                  结构提取不等于科学评审。确认实证研究类型并配置模型后，可从左侧启动试运行评审。
-                </p>
+                <p>结构提取不等于科学评审。确认实证研究类型并配置模型后，可从左侧启动评审。</p>
               </div>
             </div>
             <div class="artifact-footer">
@@ -1512,20 +1832,58 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div v-else class="artifact-scroll" tabindex="0" aria-label="预览内容滚动区">
-        <div class="artifact-content report-content">
-          <div class="eyebrow">
-            REVIEW REPORT <span>{{ report?.demo ? '演示预览' : '结果快照' }}</span>
-          </div>
-          <div class="artifact-title">
-            <div>
-              <h2>{{ project?.demo || report?.trial ? '论文预审报告' : '论文解析报告' }}</h2>
-              <p>基于已保存结果，让修改有迹可循。</p>
+      <div v-else class="artifact-scroll report-viewer" tabindex="0" aria-label="预览内容滚动区">
+        <div v-if="report" class="report-toolbar" role="region" aria-label="报告操作">
+          <select
+            v-if="version.reports.length > 1"
+            v-model="selectedReportId"
+            aria-label="选择历史报告"
+          >
+            <option value="">最新报告</option>
+            <option v-for="r in version.reports" :key="r.id" :value="r.id">
+              {{ formattedDate(r.createdAt) }}
+            </option>
+          </select>
+          <button class="secondary-button" :disabled="busy" @click="exportDocument('pdf')">
+            导出 PDF
+          </button>
+          <button class="secondary-button" :disabled="busy" @click="exportDocument('docx')">
+            导出 DOCX
+          </button>
+          <button class="secondary-button" :disabled="busy" @click="downloadReport">
+            导出 Markdown
+          </button>
+          <select v-model="reportTemplateId" aria-label="报告模板">
+            <option v-for="t in configuration.templates" :key="t.id" :value="t.id">
+              {{ t.name }}
+            </option>
+          </select>
+          <button class="secondary-button" :disabled="busy" @click="renderReportTemplate">
+            按模板保存新快照
+          </button>
+        </div>
+        <article class="artifact-content report-content" aria-label="报告正文">
+          <header class="report-document-header">
+            <h2>
+              {{
+                report?.templateSnapshot?.title ||
+                (project?.demo || report?.trial ? '论文评审报告' : '论文解析报告')
+              }}
+            </h2>
+            <div class="report-document-meta">
+              <p>论文题目：{{ project?.title }}</p>
+              <p>
+                论文版本：v{{ version.number
+                }}<template v-if="report"
+                  >　·　生成时间：{{ formattedDate(report.createdAt) }}</template
+                >
+              </p>
+              <p v-if="report?.demo">演示预览 · 非正式评审</p>
             </div>
-            <button v-if="report" class="secondary-button" @click="downloadReport">
-              <Icon name="download" :size="16" />导出 Markdown
-            </button>
-          </div>
+            <p v-if="report?.templateSnapshot?.introduction" class="report-introduction">
+              {{ report.templateSnapshot.introduction }}
+            </p>
+          </header>
           <div v-if="!report" class="empty-report">
             <Icon name="file" :size="40" />
             <h3>还没有生成报告</h3>
@@ -1538,31 +1896,19 @@ onUnmounted(() => {
               生成解析报告
             </button>
           </div>
-          <template v-else
-            ><div class="report-meta">
-              <span>论文 v{{ version.number }}</span
-              ><span>{{ formattedDate(report.createdAt) }}</span
-              ><select
-                v-if="version.reports.length > 1"
-                v-model="selectedReportId"
-                aria-label="选择历史报告"
-              >
-                <option value="">最新报告</option>
-                <option v-for="r in version.reports" :key="r.id" :value="r.id">
-                  {{ formattedDate(r.createdAt) }}
-                </option>
-              </select>
-            </div>
-            <div class="recommendation">
-              <span class="recommendation-icon"
-                ><Icon :name="report.demo ? 'edit' : 'clock'" :size="25"
-              /></span>
+          <template v-else>
+            <div
+              class="recommendation"
+              :data-recommendation="
+                report.demo ? 'major_revision' : report.recommendation || 'pending'
+              "
+            >
               <div>
                 <small>{{
                   report.demo
                     ? '演示系统建议 · 非正式评审'
                     : report.trial
-                      ? '系统暂定建议 · 试运行'
+                      ? '评审建议'
                       : '专业评审状态'
                 }}</small>
                 <h3>
@@ -1578,8 +1924,62 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="report-section">
-              <h3>01 <span>评审覆盖与能力边界</span></h3>
+              <h3>一、评审覆盖与能力边界</h3>
               <p>{{ report.coverage }}</p>
+              <p v-if="report.usage" class="small muted">
+                本次调用 {{ report.usage.requests }} 次（失败
+                {{ report.usage.failedRequests }} 次），累计图片输入
+                {{ report.usage.imageInputs }} 张次；已返回用量的
+                {{ report.usage.reportedRequests }} 次请求：输入
+                {{ report.usage.promptTokens.toLocaleString() }} token，输出
+                {{ report.usage.completionTokens.toLocaleString() }} token，缓存命中
+                {{ report.usage.cachedTokens.toLocaleString() }} token。
+              </p>
+              <details v-if="report.visual" class="visual-coverage">
+                <summary>
+                  逐页视觉核查 · {{ report.visual.renderedPages }}/{{ report.visual.pageCount }} 页
+                  ·
+                  {{
+                    report.visual.complete && report.visual.readable
+                      ? '已覆盖，可读'
+                      : '存在待核验内容'
+                  }}
+                </summary>
+                <article v-for="entry in report.visual.pages" :key="entry.page" class="result-row">
+                  <button
+                    class="text-button"
+                    @click="
+                      page = entry.page;
+                      tab = 'annotations';
+                    "
+                  >
+                    第 {{ entry.page }} 页 · {{ entry.readable ? '已阅读' : '存在不可读内容' }} ·
+                    查看原页
+                  </button>
+                  <p>{{ entry.observation }}</p>
+                  <p v-for="note in entry.uncertainties" :key="note">待核验：{{ note }}</p>
+                </article>
+                <p
+                  v-for="batch in report.visual.batches?.filter((b) => b.status !== 'completed')"
+                  :key="batch.key"
+                  class="notice error-notice"
+                >
+                  第 {{ batch.pages.join('、') }} 页：{{ batch.error || '未完成' }}
+                </p>
+                <article
+                  v-for="detail in report.visual.details"
+                  :key="detail.id"
+                  class="result-row"
+                >
+                  <strong
+                    >局部放大核查 · {{ detail.id }} ·
+                    {{ detail.readable ? '可读' : '待核验' }}</strong
+                  >
+                  <p>{{ detail.observation }}</p>
+                  <p v-for="note in detail.uncertainties" :key="note">{{ note }}</p>
+                </article>
+              </details>
+
               <div v-if="report.score" class="notice">
                 已评项得分 {{ report.score.earned.toFixed(1) }} /
                 {{ report.score.assessedMaximum }} · 加权覆盖率
@@ -1597,9 +1997,7 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="report-section">
-              <h3>
-                02 <span>{{ report.findings.length ? '问题与修改优先级' : '检查项状态' }}</span>
-              </h3>
+              <h3>二、{{ report.findings.length ? '问题与修改优先级' : '检查项状态' }}</h3>
               <button
                 v-for="(f, index) in report.findings"
                 :key="f.id"
@@ -1623,7 +2021,51 @@ onUnmounted(() => {
                     result.checkId === 'document-text' ? '文档文本' : result.checkId
                   }}</strong>
                   <p>{{ result.observation }}</p>
+                  <p v-if="result.verification?.reason">
+                    核验说明：{{ result.verification.reason }}
+                  </p>
                   <p v-if="result.suggestion">建议：{{ result.suggestion }}</p>
+                  <details v-if="result.issues?.length">
+                    <summary>逐条问题与材料请求（{{ result.issues.length }}）</summary>
+                    <article v-for="issue in result.issues" :key="issue.id" class="notice">
+                      <strong>{{ issue.id }} · {{ issue.title }}</strong>
+                      <p>
+                        {{
+                          issue.kind === 'material_request'
+                            ? '材料请求，不计分'
+                            : issue.duplicateOf
+                              ? `与 ${issue.duplicateOf} 重复，不重复计分`
+                              : issue.verification.reasoning === 'passed'
+                                ? '已复核独立问题'
+                                : '待核验，不计分'
+                        }}
+                      </p>
+                      <p>{{ issue.observation }}</p>
+                      <p>建议：{{ issue.suggestion }}</p>
+                      <p>复查条件：{{ issue.resolutionTest }}</p>
+                      <p>修复路径：{{ repairabilityLabel(issue.repairability) }}</p>
+                      <small>{{ issue.verification.reason }}</small>
+                      <button
+                        v-for="(e, index) in issue.evidence"
+                        :key="index"
+                        class="text-button"
+                        @click="locate(e)"
+                      >
+                        查看证据 · {{ e.section }}
+                      </button>
+                    </article>
+                  </details>
+                  <details v-if="result.comparisons?.length">
+                    <summary>摘要范围的创新性比较</summary>
+                    <div v-for="c in result.comparisons" :key="c.sourceId">
+                      <a :href="c.url" target="_blank" rel="noopener noreferrer">{{ c.title }}</a>
+                      <p>本文主张：{{ c.claim }}</p>
+                      <p>已有工作：{{ c.priorWork }}</p>
+                      <p>本文增量：{{ c.increment }}</p>
+                      <p>本文证据：{{ c.evidence }}</p>
+                      <p>剩余疑问：{{ c.remainingQuestion }}</p>
+                    </div>
+                  </details>
                   <small v-if="report.trial"
                     >{{ result.name }} · 等级 {{ result.level ?? '未评分' }} ·
                     {{ result.verification?.reason || '尚无通过的论证复核' }}</small
@@ -1645,7 +2087,7 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="report-section">
-              <h3>03 <span>版本与溯源</span></h3>
+              <h3>三、版本与溯源</h3>
               <dl class="provenance">
                 <dt>评判方案</dt>
                 <dd>{{ report.scheme }}</dd>
@@ -1667,7 +2109,7 @@ onUnmounted(() => {
               系统建议不代表期刊正式决定。报告保存生成时的结果快照，后续问题状态更新不会改写此报告。
             </p></template
           >
-        </div>
+        </article>
       </div>
     </main>
     <aside v-if="minimized" class="preview-rail">
@@ -1806,136 +2248,19 @@ onUnmounted(() => {
         </div>
         <p v-if="!filteredProjects.length" class="muted">没有找到匹配的项目。</p></template
       >
-      <template v-else-if="dialog === 'library'"
-        ><p class="muted">当前匿名工作空间中已上传的论文文件。</p>
-        <template v-for="p in projects" :key="p.id"
-          ><button
-            v-for="v in p.versions"
-            :key="v.id"
-            class="library-item"
-            @click="
-              safe(async () => {
-                await openProject(p.id);
-                await switchVersion(v.id);
-              })
-            "
-          >
-            <span class="pdf-icon"><Icon name="file" :size="22" /></span
-            ><span
-              ><strong>{{ v.filename }}</strong
-              ><small
-                >{{ p.demo ? '演示文件' : fileSize(v.size) }} · v{{ v.number }} ·
-                {{ p.title }}</small
-              ></span
-            ><Icon name="arrow" :size="17" /></button></template
-        ><button class="secondary-button" @click="openDialog('new')">
-          <Icon name="plus" :size="16" />创建项目并上传
-        </button></template
-      >
-      <template v-else-if="dialog === 'templates'"
-        ><div class="template-card">
-          <div>
-            <span class="icon-tile"><Icon name="book" :size="23" /></span
-            ><span class="status-pill warning">试运行 · 可执行</span>
-          </div>
-          <h3>《生态学报》预审标准</h3>
-          <p>
-            依据项目设计整理的系统预审方案，不是期刊官方审稿表。正式规则需经过适用性验证与专家校准。
-          </p>
-          <dl class="provenance">
-            <dt>版本</dt>
-            <dd>stxb-precheck@0.1.0-trial</dd>
-            <dt>初始适配</dt>
-            <dd>实证研究；其他稿件类型待适配</dd>
-            <dt>输出方式</dt>
-            <dd>文字意见及可选分项评分；缺失项不计分</dd>
-          </dl>
-        </div>
-        <h3>报告模板</h3>
-        <div class="template-row">
-          <Icon name="file" />
-          <div>
-            <strong>结构解析报告</strong>
-            <p>展示文本提取、解析覆盖、未检查项目与版本溯源。</p>
-          </div>
-          <span class="status-pill">可用</span>
-        </div>
-        <div class="template-row">
-          <Icon name="file" />
-          <div>
-            <strong>专业预审报告</strong>
-            <p>模型分项评判、原文校验、论证复核、暂定建议和版本快照。</p>
-          </div>
-          <span class="status-pill warning">试运行</span>
-        </div></template
-      >
-      <template v-else-if="dialog === 'settings'"
-        ><ModelSettings @updated="modelConfig = $event" />
-        <section class="settings-section">
-          <h3>外观</h3>
-          <label class="settings-row"
-            >阅读主题<select v-model="theme">
-              <option value="light">浅色工作台</option>
-              <option value="warm">暖纸阅读</option>
-            </select></label
-          ><button class="text-button" @click="openDialog('shortcuts')">
-            查看键盘快捷键 <Icon name="right" :size="14" />
-          </button>
-        </section>
-        <section v-if="project" class="settings-section">
-          <h3>当前项目评审设置</h3>
-          <label class="field-label"
-            >评判标准<select disabled>
-              <option>生态学实证研究预审 · 试运行</option>
-            </select></label
-          ><label class="field-label"
-            >稿件类型<select
-              v-model="project.settings.articleType"
-              @change="project.settings.confirmed = true"
-            >
-              <option value="">待确认</option>
-              <option value="empirical">实证研究</option>
-              <option value="review">综述 · 尚未适配</option>
-              <option value="theory">理论研究 · 尚未适配</option>
-            </select></label
-          ><label class="field-label"
-            >输出方式<select v-model="project.settings.outputMode">
-              <option value="narrative">文字意见</option>
-              <option value="scored">文字意见 + 试运行评分</option>
-            </select></label
-          ><button class="primary-button" @click="saveSettings">保存设置</button>
-        </section>
-        <div class="notice">
-          <Icon name="shield" :size="18" /><span
-            >文件、版本与对话保存在本地服务的数据目录；浏览器使用匿名凭据访问。清除浏览器 Cookie
-            后无法恢复该空间的访问。</span
-          >
-        </div>
-        <p class="small muted">
-          {{
-            modelConfig.enabled
-              ? `对话模型：${modelConfig.model} · 建议需核验`
-              : 'Copilot 当前使用本地原文检索'
-          }}
-        </p></template
-      >
+      <template v-else-if="dialog === 'model'"
+        ><ModelSettings @updated="modelConfig = $event" @cancel="dialog = ''"
+      /></template>
       <template v-else-if="dialog === 'delete'"
         ><div class="notice error-notice">
           将永久删除该项目的原始文件、全部版本、对话、批注与报告，无法撤销。
         </div>
         <p>
-          请输入项目名称以确认：<strong>{{ dialogProject?.title }}</strong>
+          删除项目：<strong>{{ dialogProject?.title }}</strong>
         </p>
-        <label class="field-label">项目名称<input v-model="nameInput" autofocus /></label>
         <div class="modal-actions">
           <button class="secondary-button" @click="dialog = ''">保留项目</button
-          ><button
-            class="danger-button"
-            :disabled="nameInput !== dialogProject?.title || busy"
-            @click="deleteProject"
-          >
-            永久删除
-          </button>
+          ><button class="danger-button" :disabled="busy" @click="deleteProject">永久删除</button>
         </div></template
       >
       <template v-else-if="dialog === 'search'"
@@ -2063,6 +2388,36 @@ onUnmounted(() => {
           >
             开始比较
           </button>
+        </div>
+        <button
+          class="secondary-button"
+          :disabled="busy || !compareBefore || revisionRun?.status === 'running'"
+          @click="startRevision"
+        >
+          开始语义复审
+        </button>
+        <div v-if="revisionRun" class="notice">
+          <p>{{ revisionRun.stage || revisionRun.status }} · {{ revisionRun.note }}</p>
+          <button
+            v-if="revisionRun.status === 'running'"
+            class="text-button"
+            @click="cancelRevision"
+          >
+            取消语义复审
+          </button>
+          <p v-if="revisionRun.error">{{ revisionRun.error }}</p>
+          <div v-for="r in revisionRun.results" :key="r.findingId">
+            <strong>{{ r.title }} · {{ revisionLabels[r.status] || r.status }}</strong>
+            <p>{{ r.reason }}</p>
+            <button
+              v-for="e in r.evidence"
+              :key="e.elementId + e.quote"
+              class="text-button"
+              @click="locate(e)"
+            >
+              查看新版证据
+            </button>
+          </div>
         </div>
         <div v-if="!compareBefore" class="notice">
           需要至少两个已解析的论文版本。请先上传修订版本。

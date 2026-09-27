@@ -1,0 +1,59 @@
+{
+  "retrievedAt": "2026-09-25",
+  "files": [
+    {
+      "sha256": "977d5b3e452865e9903f2ae434907f805c64e2600665a993bc95a19e02820466",
+      "path": "skills/nature-reviewer/SKILL.md"
+    },
+    {
+      "sha256": "3a4259499f3820f9a643d08eec24f3e27eefe80736d46793fa2db603fe3f8566",
+      "path": "skills/nature-reviewer/references/technical-concern-taxonomy.md"
+    },
+    {
+      "sha256": "394caa5c36b64bf32ba4059fd9bae926e280c4cf2d915705459d858a946c67a4",
+      "path": "skills/nature-reviewer/references/domain-specific-review-gates.md"
+    },
+    {
+      "sha256": "ff9626c18ac49b69ddf37db41a67bca0f4e671f3109952a5358650706bd55c48",
+      "path": "skills/nature-reviewer/references/source-basis.md"
+    },
+    {
+      "sha256": "89d2a101fc45d7adf8ca327a6da4bda4a696d6364d7c36ead4f53413627a9b6f",
+      "path": "skills/nature-statistics/SKILL.md"
+    },
+    {
+      "sha256": "4b014328e17cfb06369b6a14fd9eee0d47408d6484c8b9e520fcbe481cb87f3a",
+      "path": "skills/nature-statistics/references/statistical-reporting.md"
+    },
+    {
+      "sha256": "e4db4cbcc5c2c64bbe40e54a0686986e1c540c0e7530fd3ed2902da92968876b",
+      "path": "skills/nature-statistics/references/common-failure-modes.md"
+    },
+    {
+      "sha256": "3956df164b07b60b44097c8e1c5cbbd3eb8e932eb68cce73a4576fe8e63bc632",
+      "path": "skills/nature-statistics/references/figure-statistics.md"
+    },
+    {
+      "sha256": "9cb9c4326fed726ed96ffd53168029db3d4774e7192556488a0eebbde98705da",
+      "path": "skills/nature-statistics/references/reviewer-checklist.md"
+    },
+    {
+      "sha256": "fe3ae278436085ac77b813fb23f8c8f8ab0ac14d6b00c5365adb83d73f19fe71",
+      "path": "skills/nature-statistics/references/source-basis.md"
+    },
+    {
+      "sha256": "eba50785ea176c63ba16d2ddfe614c91525b984c5097ce42b6e49a1beef8ebdc",
+      "path": "skills/nature-reader/references/figure-extraction.md"
+    },
+    {
+      "path": "skills/nature-academic-search/references/workflows/wf1-multi-source-search.md",
+      "sha256": "5fdc6998651430d9d7871800b221e3e324ee237303149d7083784f44461aaccb"
+    },
+    {
+      "path": "skills/nature-ref-verifier/references/common-patterns.md",
+      "sha256": "0f8bba9f8d4e159c7a8dd8a7c971f8faa9ce03c25ce0248015be67eaf1fdf243"
+    }
+  ],
+  "repository": "https://github.com/Yuan1z0825/nature-skills",
+  "commit": "79c9f986501ff462f4b9d1294c8223bfee1a5149"
+}

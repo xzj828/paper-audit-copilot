@@ -1,9 +1,10 @@
-// Original implementation of the local design, sections 18–19. Not an official journal scale.
-export const reviewPack = {
+import { adaptedChecks, natureSource } from './nature-rules.js';
+// Preserve the baseline for explicit selection and comparison with the adaptation.
+export const baselinePack = {
   id: 'stxb-precheck@0.1.0-trial',
   status: 'trial',
   promptVersion: 'evidence-review@1.0.0',
-  name: '生态学实证研究预审 · 试运行',
+  name: '生态学实证研究评审',
   source: 'docs/superpowers/specs/2026-09-23-paper-audit-copilot-design.md#18',
   maxCharacters: 60000,
   supportedTypes: ['empirical'],
@@ -77,3 +78,34 @@ export const reviewPack = {
     },
   ],
 };
+
+export const reviewPack = {
+  ...structuredClone(baselinePack),
+  id: 'stxb-precheck@0.2.0-trial',
+  name: '生态学实证研究评审 · Nature方法适配',
+  promptVersion: 'evidence-review@2.0.0',
+  upstream: natureSource,
+  checks: adaptedChecks(baselinePack.checks).map((check) =>
+    check.id === 'E09'
+      ? {
+          ...check,
+          visualRequired: true,
+          rule: '联合审查已提供的文字、PDF页面和图表裁剪图，检查图注、单位、统计标记与正文一致性。仅完整且可读的视觉覆盖可为全项评分；不可读、超页数预算或未提供图像时 unable_to_assess。引用图表时使用已给定visualId和原文页elementId，不伪造逐字引文。视觉位置是模型定位，必须另行复核。',
+        }
+      : check.id === 'E02'
+        ? {
+            ...check,
+            rule: '比较本文贡献主张与已提供的外部摘要，逐条记录最接近研究、已有工作、本文增量、本文证据与剩余疑问。外部材料仅为有限检索的摘要，保持unable_to_assess、level=null，不形成完整创新性得分；没有摘要则仅请求比较材料。不可把没有检索到当作全球首次，或把元数据匹配当作全文核验。',
+          }
+        : check,
+  ),
+};
+export const atomicPack = {
+  ...structuredClone(reviewPack),
+  id: 'stxb-precheck@0.3.0-trial',
+  name: '生态学实证研究评审 · 逐条证据与去重',
+  promptVersion: 'evidence-review@3.0.0',
+  issueProtocol: 'atomic-v1',
+};
+export const reviewPacks = [baselinePack, reviewPack, atomicPack];
+export const getReviewPack = (id) => reviewPacks.find((pack) => pack.id === id);

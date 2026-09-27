@@ -213,7 +213,7 @@ export function makeEmpty(title = '未命名论文项目') {
     demo: false,
     createdAt: new Date().toISOString(),
     settings: {
-      scheme: 'stxb-precheck@0.1.0-trial',
+      scheme: 'stxb-precheck@0.3.0-trial',
       articleType: '',
       confirmed: false,
       outputMode: 'narrative',

@@ -10,13 +10,36 @@ import { makeDemo, makeEmpty } from './demo.js';
 import { registry, makeStructureReport, answerLocally } from './engine.js';
 import { createModelService } from './models.js';
 import { createReviewService } from './review.js';
-import { reviewPack } from './review-pack.js';
+import { renderVisuals } from './visual.js';
+import { searchLiterature } from './literature.js';
+import { createConfigurationService } from './configuration.js';
+import { exportReport, defaultTemplate } from './reports.js';
+import { createRevisionService } from './revisions.js';
+import { createWorkspaceService } from './workspace.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const directory = path.resolve(process.env.DATA_DIR || path.join(root, 'data'));
 const store = createStore(directory);
 const models = createModelService(store.db, directory);
-const reviews = createReviewService(store, models);
+const configuration = createConfigurationService(store.db);
+const workspaceState = createWorkspaceService(store.db, configuration, store);
+const reviews = createReviewService(store, models, {
+  resolvePack: configuration.pack,
+  resolveModel: (ws, version, pack) =>
+    models.forTask(ws, {
+      auto: workspaceState.read(ws).preferences.autoModel,
+      vision: version.format === 'pdf',
+    }),
+  render: (version, signal, regions, pages) =>
+    renderVisuals(
+      path.join(directory, 'files', version.id),
+      version.contentHash,
+      signal,
+      regions,
+      pages,
+    ),
+});
+const revisions = createRevisionService(store, models);
 const pendingMessages = new Set();
 const app = express();
 const workers = new Map();
@@ -58,7 +81,28 @@ app.use('/api', (req, res, next) => {
 });
 app.use(express.json({ limit: '64kb' }));
 
+app.get('/api/workspace', (req, res) => res.json(workspaceState.read(req.workspace)));
+app.put('/api/workspace/preferences', (req, res) =>
+  res.json(workspaceState.preferences(req.workspace, req.body)),
+);
+app.post('/api/workspace/collections', (req, res) =>
+  res.status(201).json(workspaceState.collection(req.workspace, req.body)),
+);
+app.patch('/api/workspace/collections/:collectionId', (req, res) =>
+  res.json(workspaceState.collection(req.workspace, req.body, req.params.collectionId)),
+);
+app.patch('/api/workspace/documents', (req, res) =>
+  res.json(workspaceState.documents(req.workspace, req.body)),
+);
+app.patch('/api/workspace/configurations/:configId', (req, res) =>
+  res.json(workspaceState.configuration(req.workspace, req.params.configId, req.body)),
+);
+
 app.get('/api/model-config', (req, res) => res.json(models.public(req.workspace)));
+app.get('/api/model-config/profiles', (req, res) => res.json(models.list(req.workspace)));
+app.post('/api/model-config/select', (req, res) =>
+  res.json(models.select(req.workspace, req.body.id)),
+);
 app.put('/api/model-config', (req, res) => res.json(models.save(req.workspace, req.body)));
 app.delete('/api/model-config', (req, res) => res.json(models.remove(req.workspace)));
 app.post('/api/model-config/test', async (req, res) =>
@@ -112,6 +156,10 @@ function startParsing(workspace, projectId, versionId) {
       current.progress = 100;
       current.parse = { ...payload.result, sourceHash: current.contentHash };
       current.pageCount = payload.result.pages.length;
+      const { run, report } = makeStructureReport(current, latest.settings);
+      report.projectTitle = latest.title;
+      current.runs.push(run);
+      current.reports.push(report);
       current.messages.push(
         event(
           'success',
@@ -149,19 +197,35 @@ for (const row of store.db.prepare('SELECT workspace_id,data FROM projects').all
   store.save(row.workspace_id, p);
 }
 
-app.get('/api/registry', (_req, res) => res.json([...registry, reviewPack]));
+app.get('/api/registry', (req, res) =>
+  res.json([...registry, ...configuration.all(req.workspace).packs]),
+);
+app.get('/api/review-configuration', (req, res) => res.json(configuration.all(req.workspace)));
+app.post('/api/review-configuration/packs', (req, res) =>
+  res.status(201).json(configuration.createPack(req.workspace, req.body)),
+);
+app.post('/api/review-configuration/templates', (req, res) =>
+  res.status(201).json(configuration.createTemplate(req.workspace, req.body)),
+);
 app.get('/api/projects', (req, res) =>
   res.json(
     store.list(req.workspace).map(({ versions, ...p }) => ({
       ...p,
-      versions: versions.map(({ id, number, status, filename, size, format }) => ({
-        id,
-        number,
-        status,
-        filename,
-        size,
-        format,
-      })),
+      versions: versions.map(
+        ({ id, number, status, filename, size, format, createdAt, messages }) => ({
+          id,
+          number,
+          status,
+          filename,
+          size,
+          format,
+          createdAt,
+          activityAt: messages?.at(-1)?.at || createdAt,
+          activityText: ['user', 'assistant'].includes(messages?.at(-1)?.kind)
+            ? '论文对话已更新'
+            : messages?.at(-1)?.title,
+        }),
+      ),
     })),
   ),
 );
@@ -170,12 +234,42 @@ app.post('/api/projects', (req, res) => {
     return res.status(400).json({ error: '项目数量已达上限（100）' });
   const title = typeof req.body.title === 'string' ? req.body.title.trim().slice(0, 120) : '';
   const p = makeEmpty(title || undefined);
+  const defaults = workspaceState.read(req.workspace).preferences;
+  p.settings = {
+    ...p.settings,
+    scheme: defaults.scheme,
+    articleType: defaults.articleType,
+    outputMode: defaults.outputMode,
+    confirmed: false,
+  };
   save(req, p);
   res.status(201).json(p);
 });
 app.get('/api/projects/:id', (req, res) => {
   const p = project(req, res);
   if (p) res.json(p);
+});
+const literatureRequests = new Map();
+app.post('/api/projects/:id/literature', async (req, res) => {
+  const p = project(req, res);
+  if (!p) return;
+  const v = getVersion(p, req.body.versionId);
+  if (!v || v.status !== 'ready' || p.demo)
+    return res.status(409).json({ error: '请先上传并解析论文' });
+  if (literatureRequests.has(p.id)) return res.status(409).json({ error: '当前项目正在检索' });
+  const controller = new AbortController();
+  literatureRequests.set(p.id, controller);
+  try {
+    const result = await searchLiterature(req.body.query, { signal: controller.signal });
+    const current = store.get(req.workspace, p.id);
+    if (!current) return res.status(404).json({ error: '项目已删除' });
+    const version = getVersion(current, v.id);
+    version.literatureSearches = [...(version.literatureSearches || []), result].slice(-10);
+    save(req, current);
+    res.json(current);
+  } finally {
+    literatureRequests.delete(p.id);
+  }
 });
 app.patch('/api/projects/:id', (req, res) => {
   const p = project(req, res);
@@ -188,7 +282,11 @@ app.patch('/api/projects/:id', (req, res) => {
     p.activeVersionId = req.body.activeVersionId;
   if (req.body.settings) {
     const s = req.body.settings;
-    if (s.scheme && !['stxb-precheck@0.1.0-draft', reviewPack.id].includes(s.scheme))
+    if (
+      s.scheme &&
+      s.scheme !== 'stxb-precheck@0.1.0-draft' &&
+      !configuration.pack(req.workspace, s.scheme)
+    )
       return res.status(400).json({ error: '不支持的评判标准' });
     if (s.outputMode && !['narrative', 'scored'].includes(s.outputMode))
       return res.status(400).json({ error: '不支持的输出模式' });
@@ -215,6 +313,8 @@ app.delete('/api/projects/:id', async (req, res) => {
   const p = project(req, res);
   if (!p) return;
   reviews.remove(p);
+  revisions.remove(p);
+  literatureRequests.get(p.id)?.abort();
   store.delete(req.workspace, p.id);
   for (const v of p.versions) {
     if (workers.has(v.id)) await workers.get(v.id).terminate();
@@ -313,6 +413,7 @@ app.post('/api/projects/:id/report', (req, res) => {
   if (!v || v.status !== 'ready') return res.status(409).json({ error: '请先完成论文解析' });
   if (!p.demo) {
     const { run, report } = makeStructureReport(v, p.settings);
+    report.projectTitle = p.title;
     v.runs.push(run);
     v.reports.push(report);
     v.messages.push(
@@ -333,21 +434,57 @@ app.post('/api/projects/:id/messages', async (req, res) => {
   const lock = `${p.id}:${v.id}`;
   if (pendingMessages.has(lock)) return res.status(409).json({ error: '正在生成回答，请稍候' });
   pendingMessages.add(lock);
+  const streaming = req.headers.accept?.includes('text/event-stream');
+  const controller = new AbortController();
+  const write = (data) => {
+    if (!res.destroyed) res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+  let heartbeat;
+  if (streaming) {
+    res.set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Accel-Buffering': 'no',
+    });
+    res.flushHeaders();
+    heartbeat = setInterval(() => {
+      if (!res.destroyed) res.write(': keep-alive\n\n');
+    }, 15000);
+    res.on('close', () => controller.abort());
+  }
   try {
     const config = models.get(req.workspace);
     const answer = config?.enabled
-      ? await models.answer(config, v, text, req.body.findingId)
+      ? await models.answer(
+          config,
+          v,
+          text,
+          req.body.findingId,
+          streaming
+            ? { signal: controller.signal, onDelta: (text) => write({ type: 'delta', text }) }
+            : {},
+        )
       : answerLocally(v, text, req.body.findingId);
+    if (controller.signal.aborted) return;
+    if (streaming && !config?.enabled) write({ type: 'delta', text: answer.text });
     const latest = store.get(req.workspace, p.id);
-    if (!latest) return res.status(404).json({ error: '项目已删除，回答不再保存' });
+    if (!latest) throw Object.assign(new Error('项目已删除，回答不再保存'), { status: 404 });
     const target = getVersion(latest, v.id);
     target.messages.push(event('user', '你', text), {
       ...event('assistant', 'Copilot'),
       ...answer,
     });
     save(req, latest);
-    res.json(latest);
+    if (streaming) {
+      write({ type: 'done', project: latest });
+      res.end();
+    } else res.json(latest);
+  } catch (error) {
+    if (!streaming) throw error;
+    write({ type: 'error', error: error.message || '回答中断，请重试' });
+    res.end();
   } finally {
+    clearInterval(heartbeat);
     pendingMessages.delete(lock);
   }
 });
@@ -362,6 +499,45 @@ app.patch('/api/projects/:id/findings/:findingId', (req, res) => {
   finding.status = req.body.status;
   save(req, p);
   res.json(p);
+});
+app.post('/api/projects/:id/reports/:reportId/render', (req, res) => {
+  const p = project(req, res);
+  if (!p) return;
+  const v = getVersion(p, req.body.versionId);
+  const original = v?.reports.find((r) => r.id === req.params.reportId);
+  const template = configuration.template(req.workspace, req.body.templateId || defaultTemplate.id);
+  if (!original || !template) return res.status(404).json({ error: '报告或模板不存在' });
+  if (v.reports.length >= 100) return res.status(409).json({ error: '报告快照已达上限' });
+  v.reports.push({
+    ...structuredClone(original),
+    projectTitle: original.projectTitle || p.title,
+    id: randomUUID(),
+    derivedFrom: original.id,
+    template: template.id,
+    templateSnapshot: structuredClone(template),
+    createdAt: new Date().toISOString(),
+  });
+  save(req, p);
+  res.json(p);
+});
+app.get('/api/projects/:id/reports/:reportId/export', async (req, res) => {
+  const p = project(req, res);
+  if (!p) return;
+  const v = getVersion(p, req.query.versionId),
+    report = v?.reports.find((r) => r.id === req.params.reportId);
+  if (!report) return res.status(404).json({ error: '报告不存在' });
+  const format = req.query.format;
+  const output = await exportReport(report, p.title, format);
+  if (!store.get(req.workspace, p.id)) return res.status(404).json({ error: '项目已删除' });
+  res.setHeader('Content-Disposition', `attachment; filename="paper-review.${format}"`);
+  res.type(
+    format === 'md'
+      ? 'text/markdown; charset=utf-8'
+      : format === 'pdf'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  );
+  res.send(output);
 });
 app.get('/api/projects/:id/compare', (req, res) => {
   const p = project(req, res);
@@ -381,6 +557,17 @@ app.get('/api/projects/:id/compare', (req, res) => {
     findingStatus: '需重新确认',
     note: '这是文本区块差异，不是专业复审。原文消失不代表问题已解决。',
   });
+});
+app.post('/api/projects/:id/revisions', (req, res) => {
+  if (!project(req, res)) return;
+  res
+    .status(202)
+    .json(revisions.start(req.workspace, req.params.id, req.body.before, req.body.after));
+});
+app.post('/api/projects/:id/revisions/:runId/cancel', (req, res) => {
+  if (!project(req, res)) return;
+  revisions.cancel(req.workspace, req.params.id, req.params.runId);
+  res.json({ ok: true });
 });
 app.use('/api', (_req, res) => res.status(404).json({ error: '接口不存在' }));
 app.use(express.static(path.join(root, 'dist')));
@@ -406,6 +593,7 @@ const server = app.listen(Number(process.env.PORT || 3001), process.env.HOST || 
   ),
 );
 async function shutdown() {
+  await revisions.shutdown();
   await reviews.shutdown();
   for (const worker of workers.values()) void worker.terminate();
   server.close(() => {

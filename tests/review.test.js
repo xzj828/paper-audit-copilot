@@ -204,3 +204,176 @@ test('duplicate findings reference the primary check and are not charged twice',
   assert.equal(r.level, null);
   assert.equal(v.reports[0].score.assessedMaximum, 65);
 });
+
+test('novelty comparison uses a frozen retrieved abstract and verifies both internal and external evidence without full scoring', async (t) => {
+  const calls = [];
+  const { service, store, version } = fixture(t, async (_config, messages) => {
+    const input = JSON.parse(messages.at(-1).content);
+    calls.push(input.task);
+    if (input.task === 'verify_comparisons')
+      return JSON.stringify({ supported: true, reason: '本文和外部摘要均支持有限范围比较。' });
+    const reply = reviewReply(messages);
+    if (input.task === 'review' && input.check.id === 'E02')
+      reply.comparisons = [
+        {
+          sourceId: 'ext',
+          quote: 'Soil carbon differs among plots.',
+          claim: '检验样地碳储量',
+          priorWork: '已有样地差异观察',
+          increment: '新环境中的验证',
+          evidence: '本文明确三个样地',
+          remainingQuestion: '需取得外部全文核对方法',
+          paperEvidence: [{ elementId: 's1', quote: parse.sections[0].text }],
+        },
+      ];
+    return JSON.stringify(reply);
+  });
+  const p = store.get('ws', 'project');
+  p.versions[0].literatureSearches = [
+    {
+      id: 'search',
+      searchedAt: '2026-09-25',
+      query: 'soil carbon',
+      records: [
+        {
+          id: 'ext',
+          abstract: 'Soil carbon differs among plots.',
+          title: 'Prior study',
+          doi: '10.1234/test',
+          url: 'https://doi.org/10.1234/test',
+          accessLevel: 'abstract',
+        },
+      ],
+    },
+  ];
+  store.save('ws', p);
+  service.start('ws', 'project', 'v1');
+  const v = await settled(version),
+    r = v.reports[0].results.find((r) => r.checkId === 'E02');
+  assert.equal(r.comparisons.length, 1);
+  assert.equal(r.comparisonVerification.supported, true);
+  assert.equal(r.level, null);
+  assert.ok(calls.includes('verify_comparisons'));
+  assert.equal(v.reports[0].literature.id, 'search');
+});
+
+test('PDF typography is matched to original text without admitting paraphrases', () => {
+  const check = reviewPack.checks.find((c) => c.id === 'E04');
+  const paper = {
+    ...parse,
+    sections: [
+      {
+        id: 's1',
+        title: 'Methods',
+        text: 'We studied three  independent\nforest plots and measured soil carbon.',
+      },
+    ],
+  };
+  const raw = result();
+  raw.evidence = [{ elementId: 's1', quote: 'We studied three independent forest plots' }];
+  const matched = normalizeResult(raw, check, paper);
+  assert.equal(matched.verification.citation, 'passed');
+  assert.equal(matched.evidence[0].quote, 'We studied three  independent\nforest plots');
+  assert.equal(matched.evidence[0].quality, 'typography-normalized');
+  raw.evidence[0].quote = 'We studied thirty independent forest plots';
+  const rejected = normalizeResult(raw, check, paper);
+  assert.equal(rejected.verification.citation, 'failed');
+  assert.equal(rejected.observation, raw.observation);
+  assert.match(rejected.verification.reason, /无法与原文匹配/);
+});
+test('completed modules publish analysis, report and verified annotations before the next module finishes', async (t) => {
+  let release;
+  const blocked = new Promise((resolve) => {
+    release = resolve;
+  });
+  const { service, version } = fixture(t, async (_config, messages) => {
+    const input = JSON.parse(messages.at(-1).content);
+    if (input.check.id === 'E05') await blocked;
+    return JSON.stringify(reviewReply(messages));
+  });
+  service.start('ws', 'project', 'v1');
+  try {
+    for (
+      let n = 0;
+      n < 100 &&
+      !version().runs[0].modules.some((m) => m.checkId === 'E05' && m.status === 'running');
+      n++
+    )
+      await new Promise((r) => setTimeout(r, 5));
+    const v = version();
+    assert.equal(v.runs[0].status, 'running');
+    assert.ok(v.messages.some((m) => m.kind === 'review-result' && m.title.startsWith('E04')));
+    assert.ok(!v.messages.some((m) => m.title.startsWith('E05')));
+    assert.equal(v.reports.length, 1);
+    assert.equal(v.findings.length, 1);
+  } finally {
+    release();
+  }
+  await settled(version);
+});
+
+test('cross-page evidence is repaired once then independently verified before annotation publication', async (t) => {
+  let repairs = 0,
+    verified = false;
+  const { service, version } = fixture(t, async (_config, messages) => {
+    const input = JSON.parse(messages.at(-1).content);
+    if (input.task === 'repair_evidence') {
+      repairs++;
+      return JSON.stringify({
+        repairs: [{ index: 0, evidence: [{ elementId: 's1', quote: parse.sections[0].text }] }],
+      });
+    }
+    const reply = reviewReply(messages);
+    if (input.task === 'review' && input.check.id === 'E04')
+      reply.evidence[0].quote = 'Cross page sentence not present in a single block.';
+    if (input.task === 'verify' && input.check.id === 'E04') {
+      verified = true;
+      assert.equal(input.candidate.evidence[0].quote, parse.sections[0].text);
+    }
+    return JSON.stringify(reply);
+  });
+  service.start('ws', 'project', 'v1');
+  const v = await settled(version);
+  assert.equal(repairs, 1);
+  assert.equal(verified, true);
+  assert.equal(v.findings.length, 1);
+});
+test('unrepairable citations keep analysis and expose retry without publishing an annotation', async (t) => {
+  const { service, version } = fixture(t, async (_config, messages) => {
+    const input = JSON.parse(messages.at(-1).content);
+    if (input.task === 'repair_evidence') return JSON.stringify({ repairs: [] });
+    const reply = reviewReply(messages);
+    if (input.task === 'review' && input.check.id === 'E04')
+      reply.evidence[0].quote = 'An invented sentence not found in the paper.';
+    return JSON.stringify(reply);
+  });
+  service.start('ws', 'project', 'v1');
+  const v = await settled(version);
+  assert.equal(v.runs[0].status, 'partial');
+  assert.equal(v.runs[0].modules.find((m) => m.checkId === 'E04').status, 'failed');
+  assert.equal(v.findings.length, 0);
+  assert.ok(
+    v.messages.some((m) => m.kind === 'review-result' && m.text.includes('需要澄清独立样本')),
+  );
+});
+
+test('truncated structured responses receive one larger-budget retry and preserve usage accounting', async (t) => {
+  let attempts = 0;
+  const { service, version } = fixture(t, async (_config, messages, options) => {
+    const input = JSON.parse(messages.at(-1).content);
+    if (input.task === 'review' && input.check.id === 'E04') {
+      attempts++;
+      if (attempts === 1)
+        throw Object.assign(new Error('模型输出额度耗尽，回答已截断'), { status: 502 });
+      assert.ok(options.maxTokens >= 32768);
+    }
+    options.onUsage?.({ prompt_tokens: 20, completion_tokens: 10 });
+    return JSON.stringify(reviewReply(messages));
+  });
+  service.start('ws', 'project', 'v1');
+  const v = await settled(version);
+  assert.equal(attempts, 2);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(v.runs[0].usage.failedRequests, 1);
+  assert.equal(v.runs[0].usage.promptTokens, v.runs[0].usage.reportedRequests * 20);
+});

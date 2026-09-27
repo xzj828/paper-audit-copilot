@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { ref, shallowRef, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
-const props = defineProps<{ url: string; page: number; zoom: number; query?: string }>();
+import ContinuousPdfPage from './ContinuousPdfPage.vue';
+const props = defineProps<{
+  url: string;
+  page: number;
+  zoom: number;
+  query?: string;
+  bbox?: number[];
+  continuous?: boolean;
+}>();
 const canvas = ref<HTMLCanvasElement>();
 const error = ref(''),
   loading = ref(false);
 const emit = defineEmits<{ pages: [count: number] }>();
 let pdf: import('pdfjs-dist').PDFDocumentProxy | undefined;
+const continuousPdf = shallowRef<import('pdfjs-dist').PDFDocumentProxy>();
 let renderTask: import('pdfjs-dist').RenderTask | undefined;
 let generation = 0;
 let loadTask: import('pdfjs-dist').PDFDocumentLoadingTask | undefined;
@@ -18,6 +27,7 @@ async function load() {
     renderTask?.cancel();
     await loadTask?.destroy();
     pdf = undefined;
+    continuousPdf.value = undefined;
     const lib = await import('pdfjs-dist');
     lib.GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -31,6 +41,7 @@ async function load() {
       return;
     }
     pdf = result;
+    continuousPdf.value = result;
     emit('pages', result.numPages);
     await render();
   } catch (e) {
@@ -56,6 +67,28 @@ async function render() {
     target.style.height = `${viewport.height}px`;
     renderTask = page.render({ canvas: target, viewport, transform: [ratio, 0, 0, ratio, 0, 0] });
     await renderTask.promise;
+    if (token !== rendering) return;
+    if (props.bbox?.length === 4) {
+      const [x1, y1, x2, y2] = props.bbox as [number, number, number, number];
+      const ctx = target.getContext('2d')!;
+      ctx.save();
+      ctx.strokeStyle = '#bd593b';
+      ctx.lineWidth = 3 * ratio;
+      ctx.fillStyle = 'rgba(255, 208, 72, .12)';
+      ctx.fillRect(
+        x1 * target.width,
+        y1 * target.height,
+        (x2 - x1) * target.width,
+        (y2 - y1) * target.height,
+      );
+      ctx.strokeRect(
+        x1 * target.width,
+        y1 * target.height,
+        (x2 - x1) * target.width,
+        (y2 - y1) * target.height,
+      );
+      ctx.restore();
+    }
     if (props.query?.trim()) {
       const content = await page.getTextContent();
       if (token !== rendering) return;
@@ -91,7 +124,7 @@ async function render() {
   }
 }
 watch(() => props.url, load, { immediate: true });
-watch(() => [props.page, props.zoom, props.query], render);
+watch(() => [props.page, props.zoom, props.query, props.bbox], render);
 onBeforeUnmount(() => {
   generation++;
   rendering++;
@@ -106,5 +139,14 @@ onBeforeUnmount(() => {
       {{ error }} <button @click="load">重试</button>
     </div>
     <canvas ref="canvas" aria-label="论文 PDF 原文" />
+    <template v-if="continuous && continuousPdf">
+      <ContinuousPdfPage
+        v-for="offset in Math.max(0, continuousPdf.numPages - page)"
+        :key="`${url}-${page + offset}`"
+        :pdf="continuousPdf"
+        :page="page + offset"
+        :zoom="zoom"
+      />
+    </template>
   </div>
 </template>

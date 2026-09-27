@@ -1,4 +1,7 @@
 export interface Anchor {
+  bbox?: number[];
+  kind?: string;
+  visualId?: string;
   elementId: string;
   page?: number;
   paragraph?: number;
@@ -7,6 +10,12 @@ export interface Anchor {
   quality?: string;
 }
 export interface Finding {
+  kind?: string;
+  repairability?: string;
+  resolutionTest?: string;
+  claimPointer?: string;
+  severityRationale?: string;
+  blocking?: boolean;
   id: string;
   title: string;
   explanation: string;
@@ -42,7 +51,33 @@ export interface Message {
   anchor?: Anchor;
   findingId?: string;
 }
+export interface VisualCoverage {
+  pageCount: number;
+  renderedPages: number;
+  complete: boolean;
+  readable: boolean;
+  pages?: { page: number; readable: boolean; observation: string; uncertainties: string[] }[];
+  batches?: { key: string; pages: number[]; status: string; error?: string }[];
+  details?: {
+    id: string;
+    status: string;
+    readable: boolean;
+    observation: string;
+    uncertainties: string[];
+  }[];
+}
 export interface Report {
+  visual?: VisualCoverage | null;
+  usage?: {
+    requests: number;
+    failedRequests: number;
+    promptTokens: number;
+    completionTokens: number;
+    cachedTokens: number;
+    imageInputs: number;
+    reportedRequests: number;
+  } | null;
+  templateSnapshot?: { title: string; introduction: string; sections: string[] };
   trial?: boolean;
   conclusion?: string;
   model?: { model: string; baseUrl: string };
@@ -76,10 +111,38 @@ export interface Report {
     level?: number | null;
     evidence?: Anchor[];
     verification?: Record<string, string>;
+    comparisons?: {
+      sourceId: string;
+      title: string;
+      url: string;
+      claim: string;
+      priorWork: string;
+      increment: string;
+      evidence: string;
+      remainingQuestion: string;
+      quote: string;
+    }[];
+    issues?: {
+      id: string;
+      title: string;
+      kind: string;
+      assessment: string;
+      observation: string;
+      suggestion: string;
+      resolutionTest: string;
+      repairability: string;
+      duplicateOf?: string;
+      evidence: Anchor[];
+      verification: { reasoning: string; reason?: string; duplicateRejected?: boolean };
+    }[];
   }[];
   warnings?: string[];
 }
 export interface Version {
+  createdAt?: string;
+  activityAt?: string;
+  activityText?: string;
+  literatureSearches?: LiteratureSearch[];
   id: string;
   number: number;
   filename: string;
@@ -95,7 +158,23 @@ export interface Version {
   reports: Report[];
   runs: ReviewRun[];
 }
+export interface LiteratureSearch {
+  id: string;
+  query: string;
+  searchedAt: string;
+  limits: string;
+  access: { source: string; status: string; count?: number; reason?: string }[];
+  records: { id: string; title: string; url: string; year: number | null; accessLevel: string }[];
+}
 export interface ReviewRun {
+  note?: string;
+  results?: {
+    findingId: string;
+    title: string;
+    status: string;
+    reason: string;
+    evidence: Anchor[];
+  }[];
   id: string;
   status: string;
   scheme: string;
@@ -123,6 +202,7 @@ export interface Project {
   versions: Version[];
 }
 export interface ModelConfig {
+  vision?: boolean;
   baseUrl: string;
   model: string;
   enabled: boolean;

@@ -213,7 +213,9 @@ test('DOCX becomes a separate version and comparison never calls removed issues 
   assert.equal(v.status, 'ready', v.error);
   assert.equal(v.filename, '修订论文.docx');
   assert.match(v.parse.sections[1].text, /三个样地/);
-  assert.equal(p.versions[0].reports.length, 1);
+  assert.equal(p.versions[0].reports.length, 2);
+  assert.equal(v.reports.length, 1);
+  assert.equal(v.reports[0].template, 'structure-preview@1.0.0');
   const comparison = await request(
     `/api/projects/${p.id}/compare?before=${p.versions[0].id}&after=${v.id}`,
   );
@@ -350,4 +352,162 @@ test('delete removes all project metadata and uploaded source files', async () =
   assert.equal((await request(`/api/projects/${p.id}`, 'DELETE')).status, 204);
   assert.equal((await request(`/api/projects/${p.id}`)).status, 404);
   await assert.rejects(readFile(file), { code: 'ENOENT' });
+});
+
+test('adapted PDF review sends real page and crop images to analysis and verification over HTTP', async () => {
+  const calls = [];
+  const provider = createServer(async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const data = JSON.parse(body),
+      content = data.messages.at(-1).content;
+    const input = JSON.parse(Array.isArray(content) ? content[0].text : content);
+    calls.push({ input, content });
+    let reply;
+    if (input.task === 'read_visual_pages')
+      reply = {
+        pages: input.pages.map((page) => ({
+          page,
+          readable: true,
+          observation: '已查看该页图文。',
+          uncertainties: [],
+        })),
+        regions: [
+          {
+            page: 1,
+            kind: 'figure',
+            label: 'Figure 1',
+            bbox: [0.1, 0.2, 0.8, 0.8],
+            observation: '蓝绿色柱形图。',
+            needsDetail: false,
+            checkIds: ['E04', 'E06', 'E07', 'E09'],
+            arithmetic: [],
+          },
+        ],
+      };
+    else if (input.task === 'review' && input.check.id === 'E09')
+      reply = {
+        checkId: 'E09',
+        claimPointer: '图表中的误差定义。',
+        severityRationale: '局部图注说明。',
+        resolutionTest: '核对正文与图注一致。',
+        blocking: false,
+        assessment: 'issue',
+        observation: '测试：图表中的误差定义需要核对。',
+        suggestion: '核对图注与正文统计定义。',
+        severity: 'minor',
+        claimType: 'explicit',
+        level: 3,
+        evidence: [
+          {
+            kind: 'visual',
+            visualId: 'visual-p1-1',
+            elementId: 'page-1',
+            description: 'Figure 1 显示蓝色和绿色柱形。',
+          },
+        ],
+      };
+    else reply = reviewReply([{ content: JSON.stringify(input) }]);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(reply) } }] }));
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  const item = (await request('/api/projects', 'POST', { title: 'Visual integration' })).data;
+  try {
+    await upload(
+      item.id,
+      'figure.pdf',
+      pdfFixture(
+        'Figure 1. Independent forest plots and soil carbon.',
+        '0 0 1 rg 100 300 100 120 re f 0 1 0 rg 230 300 100 200 re f',
+      ),
+    );
+    const project = await parsed(item.id),
+      versionId = project.activeVersionId;
+    await request('/api/model-config', 'PUT', {
+      baseUrl: `http://127.0.0.1:${provider.address().port}`,
+      model: 'visual-fixture',
+      apiKey: 'test',
+      enabled: true,
+      vision: true,
+    });
+    await request(`/api/projects/${item.id}`, 'PATCH', {
+      settings: {
+        scheme: 'stxb-precheck@0.2.0-trial',
+        articleType: 'empirical',
+        confirmed: true,
+        outputMode: 'scored',
+      },
+    });
+    assert.equal(
+      (await request(`/api/projects/${item.id}/review`, 'POST', { versionId })).status,
+      202,
+    );
+    let v;
+    for (let i = 0; i < 300; i++) {
+      v = (await request(`/api/projects/${item.id}`)).data.versions[0];
+      if (v.runs.at(-1).status !== 'running') break;
+      await delay(30);
+    }
+    assert.equal(v.runs.at(-1).status, 'completed');
+    assert.equal(v.reports.at(-1).visual.renderedPages, 1);
+    assert.equal(v.reports.at(-1).visual.complete, true);
+    assert.equal(v.reports.at(-1).usage.requests, 22);
+    assert.equal(v.reports.at(-1).visual.pages.length, 1);
+    assert.equal(v.reports.at(-1).score.assessedMaximum, 80);
+    const visualFinding = v.findings.find((f) => f.anchor.kind === 'visual');
+    assert.equal(visualFinding.anchor.page, 1);
+    assert.deepEqual(visualFinding.anchor.bbox, [0.1, 0.2, 0.8, 0.8]);
+    assert.equal(calls.length, 22);
+    for (const task of ['review', 'verify']) {
+      const call = calls.find((c) => c.input.task === task && c.input.check.id === 'E09');
+      if (task === 'review') {
+        assert.deepEqual(call.input.visualEvidenceTargets, [
+          { visualId: 'visual-p1-1', elementId: 'page-1', page: 1, label: 'Figure 1' },
+        ]);
+        assert.equal(call.input.paper[0].page, 1);
+      }
+      assert.equal(
+        call.content.filter((c) => c.type === 'image_url').length,
+        task === 'verify' ? 2 : 1,
+      );
+      for (const image of call.content.filter((c) => c.type === 'image_url'))
+        assert.ok(Buffer.from(image.image_url.url.split(',')[1], 'base64').length > 1000);
+    }
+    assert.ok(
+      calls
+        .find((c) => c.input.check?.id === 'E04')
+        .input.check.methods.some((m) => m.id === 'NS-UNIT'),
+    );
+    assert.ok(!JSON.stringify(v).includes('data:image'));
+    for (const id of ['E04', 'E06', 'E07']) {
+      const scientific = calls.find((c) => c.input.task === 'review' && c.input.check.id === id);
+      assert.ok(
+        scientific.content.some((c) => c.type === 'image_url'),
+        `${id} must receive visual evidence`,
+      );
+    }
+    // Legacy user projects get the same visual preflight, without relying on an E09 flag.
+    await request(`/api/projects/${item.id}`, 'PATCH', {
+      settings: { scheme: 'stxb-precheck@0.1.0-trial' },
+    });
+    const previousCalls = calls.length;
+    await request(`/api/projects/${item.id}/review`, 'POST', { versionId });
+    for (let i = 0; i < 300; i++) {
+      v = (await request(`/api/projects/${item.id}`)).data.versions[0];
+      if (v.runs.at(-1).status !== 'running') break;
+      await delay(30);
+    }
+    assert.equal(v.runs.at(-1).status, 'completed');
+    assert.equal(v.runs.at(-1).visual.complete, true);
+    assert.ok(calls.slice(previousCalls).some((c) => c.input.task === 'read_visual_pages'));
+    assert.equal(
+      (await request(`/api/projects/${item.id}`, 'GET', undefined, otherCookie)).status,
+      404,
+    );
+  } finally {
+    await request(`/api/projects/${item.id}`, 'DELETE');
+    await request('/api/model-config', 'DELETE');
+    await new Promise((resolve) => provider.close(resolve));
+  }
 });

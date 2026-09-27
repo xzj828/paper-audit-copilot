@@ -1,0 +1,242 @@
+/* Report chrome sits outside a quiet, readable document surface. */
+.report-viewer {
+  container-type: inline-size;
+  background: #eceef1;
+  padding: 0 20px 36px;
+}
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: none;
+  margin: 0 auto;
+  padding: 14px 0;
+  font-size: 12px;
+}
+.report-toolbar .secondary-button,
+.report-toolbar select {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.report-content {
+  --report-body-size: 14pt;
+  --report-body-font: 'SimSun', '宋体', 'Songti SC', 'Noto Serif SC', serif;
+  --border: #dedede;
+  --blue: #275a91;
+  --text: #202020;
+  --muted: #595959;
+  color-scheme: light;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 52px 60px 48px;
+  background: #fff;
+  color: #202020;
+  border: 1px solid #dadddf;
+  border-radius: 0;
+  box-shadow: 0 1px 3px #00000008;
+  font-family: var(--report-body-font);
+  font-size: var(--report-body-size);
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+.report-document-header {
+  border-bottom: 1px solid #bcbcbc;
+  padding-bottom: 22px;
+  margin-bottom: 26px;
+}
+.report-document-header h2 {
+  margin: 0 0 26px;
+  text-align: center;
+  font-size: 25px;
+  line-height: 1.5;
+  color: #171717;
+  font-weight: 700;
+}
+.report-content h2,
+.report-content h3,
+.report-content h4,
+.report-content strong {
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+}
+.report-document-meta {
+  font-size: 14px;
+  color: #444;
+}
+.report-document-meta p + p {
+  margin-top: 4px;
+}
+.report-introduction {
+  margin-top: 16px;
+  white-space: pre-wrap;
+}
+.report-content .recommendation {
+  display: block;
+  background: none;
+  border: 0;
+  border-left: 3px solid #9a650d;
+  border-radius: 0;
+  padding: 2px 0 2px 18px;
+}
+.report-content .recommendation small {
+  color: #444;
+  font-size: 14px;
+}
+.report-content .recommendation h3 {
+  display: table;
+  margin: 7px 0 10px;
+  padding: 2px 10px;
+  font-size: 24px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #855409;
+  background: #fbf2df;
+}
+.report-content .recommendation[data-recommendation='reject'] {
+  border-left-color: #a23832;
+}
+.report-content .recommendation[data-recommendation='reject'] h3 {
+  color: #9a302a;
+  background: #fbeeed;
+}
+.report-content .recommendation[data-recommendation='accept'] {
+  border-left-color: #32664b;
+}
+.report-content .recommendation[data-recommendation='accept'] h3 {
+  color: #32664b;
+  background: #edf5ef;
+}
+.report-content .recommendation[data-recommendation='pending'] {
+  border-left-color: #777;
+}
+.report-content .recommendation[data-recommendation='pending'] h3 {
+  color: #444;
+  background: #f1f1f1;
+}
+.report-content .recommendation p,
+.report-content .report-section > p,
+.report-content .report-finding p,
+.report-content .result-row p {
+  font-family: var(--report-body-font);
+  font-size: var(--report-body-size);
+  line-height: 1.9;
+  color: #202020;
+  white-space: pre-wrap;
+}
+.report-content .report-section {
+  margin: 28px 0;
+}
+.report-content .report-section > h3 {
+  display: block;
+  color: #171717;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.report-content .notice {
+  display: block;
+  font-family: var(--report-body-font);
+  margin: 10px 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: #333;
+  font-size: var(--report-body-size);
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+.report-content .report-finding {
+  gap: 10px;
+  padding: 18px 0;
+  color: #202020;
+}
+.report-content .report-finding > div,
+.report-content .result-row > div {
+  min-width: 0;
+}
+.report-content .report-finding > span {
+  color: #555;
+  font-size: 14px;
+}
+.report-content .report-finding h4,
+.report-content .result-row strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+}
+.report-content .report-finding small {
+  font-size: 13px;
+  color: #555;
+}
+.report-content .report-finding small.danger-text {
+  color: #9a302a;
+}
+.report-content .report-finding em,
+.report-content .text-button {
+  font-size: 13px;
+  color: #275a91;
+}
+.report-content .report-finding:hover {
+  background: #f7f7f7;
+}
+.report-content .result-row {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.report-content .result-row small {
+  color: #595959;
+  font-size: 13px;
+}
+.report-content .status-pill {
+  color: #444;
+  background: #f2f2f2;
+  border-radius: 2px;
+  align-self: flex-start;
+}
+.report-content details {
+  margin: 12px 0;
+}
+.report-content summary {
+  cursor: pointer;
+  color: #275a91;
+  font-size: 14px;
+}
+.report-content .provenance {
+  font-size: 13px;
+  gap: 8px 12px;
+}
+.report-content .provenance dt,
+.report-content .provenance dd,
+.report-content .report-disclaimer {
+  color: #555;
+}
+.report-content .report-disclaimer {
+  font-size: 13px;
+  padding-top: 18px;
+}
+@container (max-width: 620px) {
+  .report-content {
+    padding: 30px 24px;
+  }
+  .report-document-header h2 {
+    font-size: 23px;
+  }
+}
+@media (max-width: 700px) {
+  .report-viewer {
+    padding: 0 10px 20px;
+  }
+  .report-content {
+    padding: 28px 18px;
+  }
+  .report-toolbar {
+    gap: 6px;
+    padding: 10px 0;
+  }
+}

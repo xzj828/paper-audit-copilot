@@ -12,6 +12,44 @@ export const registry = [
   },
 ];
 
+// Match typography only; return an actual source slice so navigation stays exact.
+export function resolveTextAnchor(parse, anchor) {
+  const section = parse.sections.find((s) => s.id === anchor?.elementId);
+  if (!section || typeof anchor.quote !== 'string' || !anchor.quote.trim()) return null;
+  const source = `${section.text} ${section.after || ''}`;
+  const exact = source.indexOf(anchor.quote);
+  if (exact >= 0) return { quote: anchor.quote, offset: exact, quality: 'exact' };
+  function canonical(value) {
+    let text = '';
+    const offsets = [];
+    for (let i = 0; i < value.length; i++) {
+      if (
+        value[i] === '-' &&
+        /^-\s*\n\s*[a-z]/.test(value.slice(i)) &&
+        /[a-z]/i.test(value[i - 1] || '')
+      )
+        continue;
+      for (const char of value[i].normalize('NFKC')) {
+        if (/\s|\u00ad/.test(char)) continue;
+        text += char;
+        offsets.push(i);
+      }
+    }
+    return { text, offsets };
+  }
+  const haystack = canonical(source),
+    needle = canonical(anchor.quote).text;
+  if (needle.length < 8) return null;
+  const start = haystack.text.indexOf(needle);
+  if (start < 0 || haystack.text.indexOf(needle, start + 1) >= 0) return null;
+  const offset = haystack.offsets[start];
+  return {
+    quote: source.slice(offset, haystack.offsets[start + needle.length - 1] + 1),
+    offset,
+    quality: 'typography-normalized',
+  };
+}
+
 export function validateAnchor(parse, anchor) {
   const section = parse.sections.find((s) => s.id === anchor.elementId);
   return Boolean(

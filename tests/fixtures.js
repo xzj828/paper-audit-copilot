@@ -1,6 +1,32 @@
 // Minimal, real PDF and DOCX fixtures: no external papers or private research data.
-export function pdfFixture(text = 'Research methods: sample size 312. Results and limitations.') {
-  const content = `BT /F1 14 Tf 50 740 Td (${text.replace(/[()\\]/g, '\\$&')}) Tj ET`;
+export function multipagePdfFixture(count = 27) {
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [${Array.from({ length: count }, (_, i) => `${4 + i * 2} 0 R`).join(' ')}] /Count ${count} >>`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ];
+  for (let i = 0; i < count; i++) {
+    const stream = `BT /F1 14 Tf 50 740 Td (Page ${i + 1}: complete coverage fixture) Tj ET`;
+    objects.push(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + i * 2} 0 R >>`,
+      `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+    );
+  }
+  let result = '%PDF-1.4\n';
+  const offsets = [];
+  for (const [i, object] of objects.entries()) {
+    offsets.push(Buffer.byteLength(result));
+    result += `${i + 1} 0 obj\n${object}\nendobj\n`;
+  }
+  const xref = Buffer.byteLength(result);
+  result += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(result);
+}
+export function pdfFixture(
+  text = 'Research methods: sample size 312. Results and limitations.',
+  drawing = '',
+) {
+  const content = `BT /F1 14 Tf 50 740 Td (${text.replace(/[()\\]/g, '\\$&')}) Tj ET\n${drawing}`;
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',

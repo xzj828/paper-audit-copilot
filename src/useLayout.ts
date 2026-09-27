@@ -6,8 +6,8 @@ const clamp = (value: number, min: number, max: number) =>
 export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: Ref<string>) {
   const read = (key: string, fallback: number) => Number(localStorage.getItem(key)) || fallback;
   const widths = ref({
-    sidebar: read('audit-sidebar-width', 240),
-    chat: read('audit-chat-width', 352),
+    sidebar: read('audit-sidebar-width', window.innerWidth >= 1600 ? 218 : 240),
+    chat: read('audit-chat-width', window.innerWidth >= 1600 ? 584 : 352),
     inspector: read('audit-inspector-width', 360),
   });
   const viewport = ref(window.innerWidth),
@@ -40,21 +40,18 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
     clamp(
       widths.value.chat,
       260,
-      Math.min(600, viewport.value - sidebarWidth.value - 320 - inspectorMinimum.value),
+      viewport.value - sidebarWidth.value - 320 - inspectorMinimum.value,
     ),
   );
   const inspectorWidth = computed(() =>
     clamp(
       widths.value.inspector,
       244,
-      Math.min(
-        600,
-        viewport.value -
-          (maximized.value
-            ? 0
-            : sidebarWidth.value + (displayMode.value === 'columns' ? chatWidth.value : 0)) -
-          320,
-      ),
+      viewport.value -
+        (maximized.value
+          ? 0
+          : sidebarWidth.value + (displayMode.value === 'columns' ? chatWidth.value : 0)) -
+        320,
     ),
   );
   const styles = computed(() => ({
@@ -78,15 +75,12 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
       pane === 'sidebar'
         ? Math.min(400, viewport.value - chatWidth.value - 320 - inspectorMinimum.value)
         : pane === 'chat'
-          ? Math.min(600, viewport.value - sidebarWidth.value - 320 - inspectorMinimum.value)
-          : Math.min(
-              600,
-              viewport.value -
-                (maximized.value
-                  ? 0
-                  : sidebarWidth.value + (displayMode.value === 'columns' ? chatWidth.value : 0)) -
-                320,
-            );
+          ? viewport.value - sidebarWidth.value - 320 - inspectorMinimum.value
+          : viewport.value -
+            (maximized.value
+              ? 0
+              : sidebarWidth.value + (displayMode.value === 'columns' ? chatWidth.value : 0)) -
+            320;
     widths.value[pane] = clamp(
       current + delta,
       pane === 'sidebar' ? 180 : pane === 'chat' ? 260 : 244,

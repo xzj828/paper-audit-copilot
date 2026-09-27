@@ -10,18 +10,22 @@
     "dev": "concurrently -k -n api,web \"node --watch server/index.js\" \"vite --host 127.0.0.1\"",
     "build": "vue-tsc --noEmit && vite build",
     "start": "node server/index.js",
-    "test": "node --test tests/engine.test.js tests/api.test.js tests/review.test.js",
+    "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
     "check": "npm run build && npm test && npm run test:e2e",
     "format": "prettier --write src server tests scripts *.json *.ts *.js"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.80",
+    "@napi-rs/canvas": "^1.0.9",
+    "docx": "^9.7.2",
+    "dompurify": "^3.4.16",
     "express": "^5.1.0",
     "lucide-vue-next": "^0.468.0",
     "mammoth": "^1.11.0",
+    "marked": "^18.0.14",
     "multer": "^2.0.2",
     "pdfjs-dist": "^6.3.289",
+    "playwright": "^1.63.0",
     "vue": "^3.5.22"
   },
   "devDependencies": {

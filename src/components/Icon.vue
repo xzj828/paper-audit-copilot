@@ -30,6 +30,7 @@ import {
   Upload,
   CircleHelp,
   ArrowUpRight,
+  ArrowUp,
   ChevronsUpDown,
   RotateCcw,
   Trash2,
@@ -54,9 +55,11 @@ import {
   PinOff,
   Archive,
   ArchiveRestore,
+  List,
 } from 'lucide-vue-next';
 const props = withDefaults(defineProps<{ name: string; size?: number }>(), { size: 19 });
 const icons: Record<string, unknown> = {
+  list: List,
   maximize: Maximize2,
   restore: Minimize2,
   minimize: PanelBottomClose,
@@ -95,6 +98,7 @@ const icons: Record<string, unknown> = {
   upload: Upload,
   help: CircleHelp,
   arrow: ArrowUpRight,
+  up: ArrowUp,
   switch: ChevronsUpDown,
   retry: RotateCcw,
   delete: Trash2,

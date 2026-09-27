@@ -8,7 +8,7 @@ export default defineConfig({
   expect: { timeout: 10000 },
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:3102',
+    baseURL: 'http://127.0.0.1:5175',
     viewport: { width: 1488, height: 1058 },
     launchOptions:
       process.platform === 'win32'
@@ -21,10 +21,18 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  webServer: {
-    command: 'node server/index.js',
-    url: 'http://127.0.0.1:3102/api/health',
-    reuseExistingServer: false,
-    env: { PORT: '3102', DATA_DIR: './test-results/e2e-data' },
-  },
+  webServer: [
+    {
+      command: 'node server/index.js',
+      url: 'http://127.0.0.1:3102/api/health',
+      reuseExistingServer: false,
+      env: { PORT: '3102', DATA_DIR: './test-results/e2e-data' },
+    },
+    {
+      command: 'node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5175 --strictPort',
+      url: 'http://127.0.0.1:5175',
+      reuseExistingServer: false,
+      env: { API_PROXY_TARGET: 'http://127.0.0.1:3102' },
+    },
+  ],
 });
