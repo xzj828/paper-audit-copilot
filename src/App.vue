@@ -200,6 +200,27 @@ const activeChat = computed(() =>
     ? pendingChat.value
     : null,
 );
+const startingReview = ref<{ projectId: string; versionId: string } | null>(null);
+const runningReview = computed(() =>
+  version.value?.runs.find((r) => r.scope === 'scientific-trial' && r.status === 'running'),
+);
+const reviewThinking = computed(
+  () =>
+    Boolean(runningReview.value) ||
+    (startingReview.value?.projectId === project.value?.id &&
+      startingReview.value?.versionId === version.value?.id &&
+      Boolean(startingReview.value)),
+);
+async function showLatestConversation() {
+  await nextTick();
+  timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
+}
+watch(
+  () => (reviewThinking.value ? `${project.value?.id}:${version.value?.id}` : ''),
+  (active) => {
+    if (active) void showLatestConversation();
+  },
+);
 let chatController: AbortController | null = null;
 const projectMenuId = ref(''),
   projectMenuPosition = ref({ left: '0px', top: '0px' });
@@ -579,6 +600,9 @@ async function startReview(retryId?: string) {
   const settings = { ...project.value.settings, confirmed: true };
   settingsRevision++;
   busy.value = true;
+  startingReview.value = { projectId: id, versionId };
+  timelineTab.value = 'chat';
+  mobilePane.value = 'chat';
   try {
     await safe(async () => {
       // Starting the review confirms the visible selection, including an unchanged default.
@@ -592,6 +616,7 @@ async function startReview(retryId?: string) {
       notify('评审已开始，分析结果将逐条显示在对话中');
     });
   } finally {
+    startingReview.value = null;
     busy.value = false;
   }
 }
@@ -624,6 +649,8 @@ async function sendMessage() {
     text = message.value;
   sending.value = true;
   pendingChat.value = { projectId: id, versionId, question: text, answer: '', error: '' };
+  mobilePane.value = 'chat';
+  void showLatestConversation();
   const pending = pendingChat.value;
   chatController = new AbortController();
   await safe(async () => {
@@ -1053,17 +1080,17 @@ onUnmounted(() => {
               </button>
             </div>
           </article>
+          <div v-if="reviewThinking" class="review-thinking" role="status" aria-live="polite">
+            <Icon name="loading" class="spin" :size="20" />
+            <span
+              >正在思考中……<small>{{ runningReview?.stage || '正在启动评审' }}</small></span
+            >
+          </div>
           <article
             v-for="run in version.runs.filter((r) => r.scope === 'scientific-trial')"
             :key="`progress-${run.id}`"
             class="review-conversation"
           >
-            <div v-if="run.status === 'running'" class="review-thinking" role="status">
-              <Icon name="loading" class="spin" :size="17" />
-              <span
-                >正在思考中……<small v-if="run.stage">正在分析：{{ run.stage }}</small></span
-              >
-            </div>
             <p
               v-for="module in run.modules?.filter((m) => m.status === 'failed')"
               :key="module.id"
@@ -1082,10 +1109,15 @@ onUnmounted(() => {
               <strong>Copilot</strong>
               <div class="message-card">
                 <MessageContent v-if="activeChat.answer" :text="activeChat.answer" /><span
-                  v-else
+                  v-else-if="sending && !activeChat.error"
                   class="review-thinking"
-                  ><Icon name="loading" class="spin" :size="17" />正在思考中……</span
-                ><span v-if="sending" class="stream-cursor">▋</span>
+                  role="status"
+                  ><Icon name="loading" class="spin" :size="20" />正在思考中……</span
+                ><span
+                  v-if="sending && activeChat.answer && !activeChat.error"
+                  class="stream-cursor"
+                  >▋</span
+                >
               </div>
               <p v-if="activeChat.error" class="notice error-notice" role="alert">
                 {{ activeChat.error }}（本次回答未保存，可重新发送。）
@@ -1264,9 +1296,7 @@ onUnmounted(() => {
             </div>
           </form>
         </section>
-        <div v-if="project?.demo" class="composer-footnote">
-          演示空间 · 内容仅用于产品体验
-        </div>
+        <div v-if="project?.demo" class="composer-footnote">演示空间 · 内容仅用于产品体验</div>
       </div>
     </section>
     <div

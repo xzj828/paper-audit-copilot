@@ -272,7 +272,7 @@ export function createModelService(db, directory) {
         .filter((m) => ['user', 'assistant'].includes(m.kind) && m.text)
         .slice(-6)
         .map((m) => ({ role: m.kind, content: m.text.slice(0, 2000) }));
-      options.onDelta?.('【模型建议 · 待核验】\n\n');
+      let started = false;
       const text = await complete(
         config,
         [
@@ -288,7 +288,18 @@ export function createModelService(db, directory) {
           ...history,
           { role: 'user', content: question },
         ],
-        options,
+        {
+          ...options,
+          onDelta: options.onDelta
+            ? (delta) => {
+                if (!started) {
+                  options.onDelta('【模型建议 · 待核验】\n\n');
+                  started = true;
+                }
+                options.onDelta(delta);
+              }
+            : undefined,
+        },
       );
       if (truncated)
         options.onDelta?.('\n\n上下文限制：本次仅发送论文前 24000 个字符，不能据此判断全文缺失。');

@@ -18,6 +18,37 @@ async function createReadyProject(page) {
 }
 
 // Intercept only review execution: settings still persist through the real API.
+test('review shows a rotating waiting indicator before the start request returns and clears it on failure', async ({
+  page,
+}) => {
+  await createReadyProject(page);
+  let release;
+  const pending = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/projects/*/review', async (route) => {
+    await pending;
+    await route.fulfill({ status: 500, json: { error: '评审启动失败，请重试' } });
+  });
+  try {
+    await page.getByRole('button', { name: '开始评审', exact: true }).click();
+    const thinking = page.locator('.review-thinking');
+    await expect(thinking).toContainText('正在思考中');
+    await expect(thinking).toBeInViewport();
+    const spinner = thinking.locator('svg');
+    await expect(spinner).toHaveCSS('animation-name', 'spin');
+    const before = await spinner.evaluate((el) => getComputedStyle(el).transform);
+    await expect
+      .poll(() => spinner.evaluate((el) => getComputedStyle(el).transform))
+      .not.toBe(before);
+    await page.screenshot({ path: 'docs/screenshots/review-thinking.png', fullPage: true });
+  } finally {
+    release();
+  }
+  await expect(page.locator('.review-thinking')).toHaveCount(0);
+  await expect(page.locator('.toast-message')).toContainText('评审启动失败');
+});
+
 test('starting confirms an unchanged default type and preserves output choice', async ({
   page,
 }) => {
@@ -43,7 +74,7 @@ test('starting confirms an unchanged default type and preserves output choice', 
     confirmed: true,
     outputMode: 'scored',
   });
-  await expect(page.getByRole('status')).not.toContainText('请确认稿件类型');
+  await expect(page.locator('.toast-message')).not.toContainText('请确认稿件类型');
 });
 
 test('review cannot start before a pending settings save completes', async ({ page }) => {
@@ -65,6 +96,7 @@ test('review cannot start before a pending settings save completes', async ({ pa
   await expect(page.getByLabel('稿件类型', { exact: true })).toBeDisabled();
   release();
   await expect(page.getByRole('button', { name: '开始评审', exact: true })).toBeEnabled();
+  await expect(page.locator('.review-thinking')).toHaveCount(0);
 });
 
 test('failed confirmation save prevents review execution', async ({ page }) => {
@@ -79,7 +111,8 @@ test('failed confirmation save prevents review execution', async ({ page }) => {
     await route.fulfill({ status: 500, json: { error: '设置保存失败' } });
   });
   await page.getByRole('button', { name: '开始评审', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('设置保存失败');
+  await expect(page.locator('.toast-message')).toContainText('设置保存失败');
+  await expect(page.locator('.review-thinking')).toHaveCount(0);
   expect(reviews).toBe(0);
   await expect(page.getByRole('button', { name: '开始评审', exact: true })).toBeEnabled();
 });

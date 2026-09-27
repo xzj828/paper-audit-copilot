@@ -136,11 +136,17 @@ test('hover project menu targets the chosen project, with pin, rename, archive, 
 test('model settings test, save, preserve a hidden key, and route chat through the configured provider', async ({
   page,
 }) => {
+  let releaseFirst;
+  const firstContent = new Promise((resolve) => {
+    releaseFirst = resolve;
+  });
   const provider = createServer(async (req, res) => {
     let body = '';
     for await (const chunk of req) body += chunk;
     if (JSON.parse(body).stream) {
       res.setHeader('Content-Type', 'text/event-stream');
+      res.flushHeaders();
+      await firstContent;
       res.write(
         'data: ' +
           JSON.stringify({
@@ -184,11 +190,23 @@ test('model settings test, save, preserve a hidden key, and route chat through t
     await page.getByRole('button', { name: '关闭弹窗' }).click();
     await page.getByRole('textbox', { name: '询问 Copilot' }).fill('请分析本文方法');
     await page.getByRole('button', { name: '发送消息' }).click();
+    const thinking = page.locator('.streaming-message .review-thinking');
+    await expect(thinking).toContainText('正在思考中');
+    await expect(thinking).toBeInViewport();
+    const spinner = thinking.locator('svg');
+    await expect(spinner).toHaveCSS('animation-name', 'spin');
+    const before = await spinner.evaluate((el) => getComputedStyle(el).transform);
+    await expect
+      .poll(() => spinner.evaluate((el) => getComputedStyle(el).transform))
+      .not.toBe(before);
+    await page.screenshot({ path: 'docs/screenshots/chat-thinking.png', fullPage: true });
+    releaseFirst();
     await expect(
       page.locator('.streaming-message strong').filter({ hasText: '第一段已到达' }),
     ).toBeVisible();
     await expect(page.getByRole('button', { name: '发送消息' })).toBeDisabled();
     await expect(page.locator('.streaming-message h2')).toHaveText('方法分析');
+    await expect(thinking).toHaveCount(0);
     await expect(page.locator('.streaming-message .message-card')).not.toContainText('**');
     await page.screenshot({ path: 'docs/screenshots/streaming-chat.png', fullPage: true });
     await expect(page.locator('.event-assistant')).toContainText('模型建议 · 待核验');
@@ -225,6 +243,7 @@ test('model settings test, save, preserve a hidden key, and route chat through t
     await page.getByRole('button', { name: '清除配置' }).click();
     await expect(page.locator('.model-settings [role=status]')).toContainText('已删除');
   } finally {
+    releaseFirst();
     await new Promise((resolve) => provider.close(resolve));
   }
 });
@@ -390,6 +409,8 @@ test('scientific review runs through real API, exposes evidence and exports part
     await page.getByLabel('评审输出方式').selectOption('scored');
     await page.getByRole('button', { name: '开始评审', exact: true }).click();
     await expect(page.locator('.review-thinking')).toContainText('正在思考中');
+    await expect(page.locator('.review-thinking')).toBeInViewport();
+    await expect(page.locator('.review-thinking svg')).toHaveCSS('animation-name', 'spin');
     await expect(page.locator('.event-review-result')).toHaveCount(6);
     await expect(page.locator('.event-review-result').last()).toContainText('E04');
     await expect(page.locator('.review-module-list')).toHaveCount(0);

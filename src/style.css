@@ -592,8 +592,11 @@ kbd {
   overflow-wrap: anywhere;
 }
 .event-assistant .message-card {
-  background: #f1f6ff;
-  border-color: #dbe6f8;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 .citation-link {
   display: flex;
@@ -3652,6 +3655,11 @@ progress {
   display: block;
   margin-top: 5px;
   font-size: 12px;
+}
+.review-thinking > .spin {
+  flex-shrink: 0;
+  color: var(--blue);
+  transform-origin: center;
 }
 .event-review-result .event-text {
   line-height: 1.85;
