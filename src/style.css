@@ -3657,6 +3657,7 @@ progress {
   font-size: 12px;
 }
 .review-thinking > .spin {
+  animation-duration: 1.8s;
   flex-shrink: 0;
   color: var(--blue);
   transform-origin: center;
