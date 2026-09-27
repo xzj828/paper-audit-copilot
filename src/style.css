@@ -3529,7 +3529,7 @@ progress {
   }
   /* Keep progress visible without accelerating infinite loading animations. */
   .spin {
-    animation-duration: 3.6s !important;
+    animation-duration: 1s !important;
     animation-iteration-count: infinite !important;
   }
 }
@@ -3663,7 +3663,7 @@ progress {
   font-size: 12px;
 }
 .review-thinking > .spin {
-  animation-duration: 1.8s;
+  animation-duration: 1s;
   flex-shrink: 0;
   color: var(--blue);
   transform-origin: center;

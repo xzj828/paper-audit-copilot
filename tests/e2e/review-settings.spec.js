@@ -38,9 +38,9 @@ test('review shows a rotating waiting indicator before the start request returns
     const spinner = thinking.locator('svg');
     await expect(spinner).toHaveCSS('animation-name', 'spin');
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await expect(spinner).toHaveCSS('animation-duration', '1.8s');
+    await expect(spinner).toHaveCSS('animation-duration', '1s');
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await expect(spinner).toHaveCSS('animation-duration', '3.6s');
+    await expect(spinner).toHaveCSS('animation-duration', '1s');
     await expect(spinner).toHaveCSS('animation-iteration-count', 'infinite');
     const before = await spinner.evaluate((el) => getComputedStyle(el).transform);
     await expect
