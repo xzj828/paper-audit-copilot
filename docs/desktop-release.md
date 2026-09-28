@@ -58,9 +58,19 @@ PowerShell 输出应与 `.sha256` 文件中的十六进制摘要一致。
 
 - `PaperAuditCopilot-Setup-<版本>.exe`
 - `PaperAuditCopilot-Setup-<版本>.exe.sha256`
+- `RELEASES`（位于 `out/make/squirrel.windows/x64/`）
+- `paper_audit_copilot-<版本>-full.nupkg`（以及生成的所有 delta nupkg）
 - 简短版本说明
 
+`RELEASES` 和 `.nupkg` 是自动更新所必需的：`update.electronjs.org` 通过它们向已安装用户下发新版本。漏传这两个文件，自动更新会静默失败，只剩手动下载安装。
+
 版本说明必须注明 Windows x64、数据仅保存在用户电脑、启用模型时内容会发送到相应服务商、安装包尚未签名，以及用户应自行备份数据。
+
+## 自动更新
+
+应用通过 Electron 官方免费服务 [update.electronjs.org](https://update.electronjs.org) 检查更新：启动时以及每 10 分钟检查一次，发现新版本后后台下载并提示用户重启安装。仓库必须是公开仓库，且每个新 Release 都必须包含 `RELEASES` 与 `.nupkg`。
+
+自动更新只在**已包含更新代码的版本**上生效：当前 `0.1.0` 安装包没有更新逻辑，不会自动升级。从下一个版本（如 `0.2.0`）开始，用户安装后即可自动接收后续版本。发布新版本时请先提升 `package.json` 的 `version`，再重新 `npm run desktop:make`。
 
 ## 发布前冒烟检查
 

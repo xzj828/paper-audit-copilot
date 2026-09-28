@@ -1,7 +1,8 @@
 {
   "name": "paper-audit-copilot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "repository": "https://github.com/xzj828/paper-audit-copilot",
   "type": "module",
   "main": "desktop/main.js",
   "engines": {
@@ -32,6 +33,7 @@
     "multer": "^2.0.2",
     "pdfjs-dist": "^6.3.289",
     "playwright": "^1.63.0",
+    "update-electron-app": "^3.3.0",
     "vue": "^3.5.22"
   },
   "devDependencies": {

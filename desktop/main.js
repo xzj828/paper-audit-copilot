@@ -2,6 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { app, BrowserWindow, dialog, Menu, shell } from 'electron';
 import squirrelStartup from 'electron-squirrel-startup';
+import { updateElectronApp } from 'update-electron-app';
 import { createPaperAuditApplication } from '../server/application.js';
 import {
   createWindowOptions,
@@ -60,6 +61,7 @@ async function closeApplication() {
 }
 
 if (hasSingleInstanceLock && !squirrelStartup) {
+  updateElectronApp();
   app.on('second-instance', focusMainWindow);
   app
     .whenReady()
