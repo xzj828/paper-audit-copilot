@@ -95,7 +95,6 @@ export interface Report {
   template: string;
   scheme: string;
   createdAt: string;
-  demo: boolean;
   recommendation: string | null;
   assessmentStatus: string;
   findings: Finding[];
@@ -195,7 +194,6 @@ export interface Project {
   archived?: boolean;
   id: string;
   title: string;
-  demo: boolean;
   createdAt: string;
   activeVersionId: string | null;
   settings: Settings;

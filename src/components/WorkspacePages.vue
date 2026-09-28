@@ -172,7 +172,6 @@ const docs = computed(() =>
       ...v,
       projectId: p.id,
       projectTitle: p.title,
-      demo: p.demo,
       createdAt: v.createdAt || p.createdAt,
       meta: state.value.documents[v.id] || { collections: [] },
     })),
@@ -662,7 +661,7 @@ function reorderSection(i: number, direction: number) {
                       ><strong>{{ d.filename }}</strong
                       ><small>{{ d.projectTitle }}</small
                       ><small
-                        >{{ d.demo ? '演示文献' : d.format.toUpperCase() }} ·
+                        >{{ d.format.toUpperCase() }} ·
                         {{ d.size ? `${(d.size / 1024).toFixed(0)} KB` : '内置示例' }}
                         <Star v-if="d.meta.starred" :size="13" class="starred" /></small
                     ></span>
@@ -711,7 +710,6 @@ function reorderSection(i: number, direction: number) {
                     <button @click="openDocument(d)">打开论文</button
                     ><button v-if="d.status === 'failed'" @click="retryDocument(d)">重新解析</button
                     ><a
-                      v-if="!d.demo"
                       :href="`/api/projects/${d.projectId}/versions/${d.id}/file`"
                       :download="d.filename"
                       >下载原始文件</a

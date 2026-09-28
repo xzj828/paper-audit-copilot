@@ -77,7 +77,7 @@ onUnmounted(() => {
         ><button class="text-button" @click="zoom = 100">重置缩放</button>
       </div>
       <div
-        v-if="!project?.demo && version?.format === 'pdf' && version.status === 'ready'"
+        v-if="version?.format === 'pdf' && version.status === 'ready'"
         class="preview-pagination"
       >
         <button
@@ -135,11 +135,8 @@ onUnmounted(() => {
             {{ section.title.slice(0, 100) }}
           </button>
         </details>
-        <p v-if="project?.demo" class="preview-note">
-          演示文档：当前提供论文节选，未附原始 PDF 文件。
-        </p>
         <PdfReader
-          v-if="!project?.demo && version.format === 'pdf' && version.status === 'ready'"
+          v-if="version.format === 'pdf' && version.status === 'ready'"
           :url="url"
           :page="page"
           :zoom="zoom"
@@ -152,7 +149,7 @@ onUnmounted(() => {
           :style="{ fontSize: `${(16 * zoom) / 100}px`, width: `${(700 * zoom) / 100}px` }"
         >
           <h2>{{ project?.title }}</h2>
-          <p v-if="!project?.demo" class="preview-note">Word 结构化文本预览</p>
+          <p class="preview-note">Word 结构化文本预览</p>
           <section
             v-for="section in version.parse?.sections"
             :id="`preview-${section.id}`"

@@ -380,7 +380,7 @@ function restoreView() {
   }
   tab.value = typeof view.tab === 'string' ? view.tab : 'annotations';
   selected.value = Math.max(0, Math.min(Number(view.selected) || 0, findings.value.length - 1));
-  page.value = Number(view.page) || (project.value?.demo ? 5 : 1);
+  page.value = Number(view.page) || 1;
   bookmarked.value = Boolean(view.bookmarked);
   inspector.value = true;
   selectedReportId.value = '';
@@ -498,11 +498,6 @@ async function switchVersion(id: string) {
   });
 }
 function requestUpload(file?: File) {
-  if (project.value?.demo) {
-    notify('请先新建项目，上传你自己的论文');
-    openDialog('new');
-    return;
-  }
   if (!project.value) {
     openDialog('new');
     return;
@@ -996,7 +991,7 @@ onUnmounted(() => {
           @click="timelineTab = 'all'"
         >
           全部记录</button
-        ><span v-if="project?.demo" class="demo-tag" title="内置示例，仅用于体验界面">演示</span>
+        >
       </div>
 
       <div ref="timeline" class="timeline" tabindex="0" aria-label="聊天记录滚动区">
@@ -1148,13 +1143,13 @@ onUnmounted(() => {
 
       <div
         class="composer-area"
-        :class="{ 'review-workbench': project && !project.demo }"
+        :class="{ 'review-workbench': !!project }"
         @dragover.prevent="dragging = true"
         @dragleave.prevent="dragging = false"
         @drop.prevent="onDrop"
       >
         <ReviewControls
-          v-if="project && !project.demo"
+          v-if="project"
           :version="version"
           :busy="busy || savingSettings"
           @start="startReview"
@@ -1172,7 +1167,7 @@ onUnmounted(() => {
           </button>
         </ReviewControls>
         <div
-          v-if="!project?.demo && project && reviewSettingsOpen"
+          v-if="project && reviewSettingsOpen"
           id="review-settings"
           class="review-context"
         >
@@ -1296,7 +1291,6 @@ onUnmounted(() => {
             </div>
           </form>
         </section>
-        <div v-if="project?.demo" class="composer-footnote">演示空间 · 内容仅用于产品体验</div>
       </div>
     </section>
     <div
@@ -1437,62 +1431,7 @@ onUnmounted(() => {
               {{ section.title.slice(0, 100) }}
             </button>
           </details>
-          <article
-            v-if="project?.demo"
-            class="paper demo-paper"
-            :style="{ fontSize: `${(14.5 * zoom) / 100}px` }"
-          >
-            <div class="paper-running-header">
-              <span>{{ project.title }}</span
-              ><span>5</span>
-            </div>
-            <h2>3　研究方法</h2>
-            <section v-for="section in version.parse?.sections" :id="section.id" :key="section.id">
-              <h3>{{ section.title }}</h3>
-              <p>
-                <template
-                  v-if="
-                    finding?.anchor.elementId === section.id &&
-                    section.text.includes(finding.anchor.quote)
-                  "
-                  >{{ section.text.split(finding.anchor.quote)[0]
-                  }}<span
-                    role="button"
-                    tabindex="0"
-                    @keydown.enter="inspector = true"
-                    @keydown.space.prevent="inspector = true"
-                    class="paper-annotation"
-                    :class="{ 'annotation-active': inspector }"
-                    :title="finding.title"
-                    @click="inspector = true"
-                    ><span>{{ finding.anchor.quote }}</span
-                    ><sup>{{ selected + 1 }}</sup></span
-                  >{{ section.text.split(finding.anchor.quote)[1] }}</template
-                ><template v-else>{{ section.text }}</template>
-              </p>
-              <p v-if="section.after">
-                <template
-                  v-if="
-                    finding?.anchor.elementId === section.id &&
-                    section.after.includes(finding.anchor.quote)
-                  "
-                  >{{ section.after.split(finding.anchor.quote)[0]
-                  }}<span
-                    role="button"
-                    tabindex="0"
-                    @keydown.enter="inspector = true"
-                    @keydown.space.prevent="inspector = true"
-                    class="paper-annotation"
-                    :title="finding.title"
-                    @click="inspector = true"
-                    >{{ finding.anchor.quote }}<sup>{{ selected + 1 }}</sup></span
-                  >{{ section.after.split(finding.anchor.quote)[1] }}</template
-                ><template v-else>{{ section.after }}</template>
-              </p>
-            </section>
-            <footer class="paper-page-number">5</footer>
-          </article>
-          <template v-else-if="version.status === 'ready'"
+          <template v-if="version.status === 'ready'"
             ><PdfReader
               v-if="version.format === 'pdf'"
               :key="version.id"
@@ -1542,7 +1481,7 @@ onUnmounted(() => {
             </button>
           </div>
           <div
-            v-if="!project?.demo && version.format === 'pdf' && version.status === 'ready'"
+            v-if="version.format === 'pdf' && version.status === 'ready'"
             class="page-controls"
           >
             <button class="icon-button" aria-label="上一页" :disabled="page <= 1" @click="page--">
@@ -1634,9 +1573,7 @@ onUnmounted(() => {
                     <Icon name="pin" :size="18" /><span
                       >{{ finding.anchor.page ? `第 ${finding.anchor.page} 页` : '文本段落' }} ·
                       {{ finding.anchor.section
-                      }}<small>{{
-                        project?.demo && selected === 0 ? '第 2 段 · 第 2 句' : '相关原文片段'
-                      }}</small></span
+                      }}<small>{{ '相关原文片段' }}</small></span
                     >
                   </button>
                 </section>
@@ -1646,27 +1583,7 @@ onUnmounted(() => {
                 </section>
                 <section class="evidence-check">
                   <h3>证据核验</h3>
-                  <ul v-if="project?.demo">
-                    <li>
-                      <span class="check-circle"><Icon name="check" :size="13" /></span
-                      >在原文中找到对应内容
-                    </li>
-                    <li>
-                      <span class="check-circle"><Icon name="check" :size="13" /></span
-                      >与研究方法部分的描述一致
-                    </li>
-                    <li>
-                      <span class="check-circle"><Icon name="check" :size="13" /></span
-                      >支持该问题的判断依据充分<small class="demo-label">演示</small>
-                    </li>
-                    <li>
-                      <span class="empty-circle"></span>未发现作者的充分限制说明<small
-                        class="demo-label"
-                        >演示</small
-                      >
-                    </li>
-                  </ul>
-                  <div v-else>
+                  <div>
                     <p>
                       {{
                         finding.anchor.kind === 'visual'
@@ -1897,7 +1814,7 @@ onUnmounted(() => {
             <h2>
               {{
                 report?.templateSnapshot?.title ||
-                (project?.demo || report?.trial ? '论文评审报告' : '论文解析报告')
+                (report?.trial ? '论文评审报告' : '论文解析报告')
               }}
             </h2>
             <div class="report-document-meta">
@@ -1908,7 +1825,6 @@ onUnmounted(() => {
                   >　·　生成时间：{{ formattedDate(report.createdAt) }}</template
                 >
               </p>
-              <p v-if="report?.demo">演示预览 · 非正式评审</p>
             </div>
             <p v-if="report?.templateSnapshot?.introduction" class="report-introduction">
               {{ report.templateSnapshot.introduction }}
@@ -1929,27 +1845,17 @@ onUnmounted(() => {
           <template v-else>
             <div
               class="recommendation"
-              :data-recommendation="
-                report.demo ? 'major_revision' : report.recommendation || 'pending'
-              "
+              :data-recommendation="report.recommendation || 'pending'"
             >
               <div>
                 <small>{{
-                  report.demo
-                    ? '演示系统建议 · 非正式评审'
-                    : report.trial
-                      ? '评审建议'
-                      : '专业评审状态'
+                  report.trial ? '评审建议' : '专业评审状态'
                 }}</small>
                 <h3>
-                  {{ report.demo ? '大修 · 暂定意见' : recommendationLabel(report.recommendation) }}
+                  {{ recommendationLabel(report.recommendation) }}
                 </h3>
                 <p>
-                  {{
-                    report.demo
-                      ? '研究具备进一步完善的空间。优先澄清样本边界、分析方法与推断范围。'
-                      : report.conclusion || '当前为结构解析报告，尚未执行专业评审。'
-                  }}
+                  {{ report.conclusion || '当前为结构解析报告，尚未执行专业评审。' }}
                 </p>
               </div>
             </div>
@@ -2018,9 +1924,6 @@ onUnmounted(() => {
                     ? '未形成（不能把缺失项记为零分或满分）'
                     : report.score.total.toFixed(1)
                 }}
-              </div>
-              <div v-if="report.demo" class="notice">
-                本报告为内置演示数据，不代表对真实论文的评审；示例研究主题未完成《生态学报》期刊适配判断。
               </div>
               <div v-for="warning in report.warnings" :key="warning" class="notice">
                 {{ warning }}
@@ -2266,7 +2169,7 @@ onUnmounted(() => {
           >
             <Icon name="folder" :size="24" />
             <h3>{{ p.title }}</h3>
-            <p>{{ p.demo ? '演示项目' : `${p.versions.length} 个论文版本` }}</p>
+            <p>{{ `${p.versions.length} 个论文版本` }}</p>
             <span
               >{{ showArchived ? '恢复项目' : '打开项目' }} <Icon name="arrow" :size="15"
             /></span></button
