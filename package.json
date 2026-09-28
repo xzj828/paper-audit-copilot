@@ -3,12 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "desktop/main.js",
   "engines": {
     "node": ">=24.12.0"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"node --watch server/index.js\" \"vite --host 127.0.0.1\"",
     "build": "vue-tsc --noEmit && vite build",
+    "desktop:start": "npm run build && electron .",
+    "desktop:package": "npm run build && electron-forge package",
+    "desktop:make": "npm run build && electron-forge make",
+    "release:checksum": "node scripts/checksum-release.js",
     "start": "node server/index.js",
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
@@ -19,6 +24,7 @@
     "@napi-rs/canvas": "^1.0.9",
     "docx": "^9.7.2",
     "dompurify": "^3.4.16",
+    "electron-squirrel-startup": "^1.0.1",
     "express": "^5.1.0",
     "lucide-vue-next": "^0.468.0",
     "mammoth": "^1.11.0",
@@ -29,10 +35,14 @@
     "vue": "^3.5.22"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
     "@playwright/test": "^1.55.1",
     "@types/node": "^24.5.2",
     "@vitejs/plugin-vue": "^6.0.1",
     "concurrently": "^9.2.1",
+    "electron": "^44.4.5",
     "prettier": "^3.9.9",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
