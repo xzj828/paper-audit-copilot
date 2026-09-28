@@ -26,6 +26,18 @@ npm start
 
 默认仅监听本机。`PORT`、`HOST`、`DATA_DIR` 可通过进程环境变量配置，字段说明见 [.env.example](.env.example)。程序不会自动加载 `.env`；需要时使用 `node --env-file=.env server/index.js`。
 
+### Windows 桌面版
+
+桌面版将现有前后端封装为 Windows x64 安装程序，用户不需要安装 Node.js。运行数据保存在 Electron 的用户数据目录中，不写入安装目录，也不占用作者的云服务器空间：
+
+```sh
+npm run desktop:start    # 本机开发启动
+npm run desktop:package  # 生成未安装的桌面应用
+npm run desktop:make     # 生成 Setup.exe
+```
+
+安装、备份、隐私边界、SmartScreen 提示和 GitHub Release 操作见 [桌面版发布说明](docs/desktop-release.md)。
+
 ## 已实现
 
 - Vue 3 Composition API、TypeScript、Vite；项目、对话、批注栏拖动调宽并记忆，聊天和预览独立滚动，预览最大化/最小化、上下/左右布局，窄屏适配。
