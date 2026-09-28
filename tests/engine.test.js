@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeDemo } from '../server/demo.js';
+import { makeDemo } from './fixtures.js';
 import { validateAnchor, makeStructureReport, answerLocally } from '../server/engine.js';
 
 test('every demo finding resolves to actual text; fabricated evidence is rejected', () => {

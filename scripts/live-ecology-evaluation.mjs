@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createStore } from '../server/store.js';
 import { createModelService } from '../server/models.js';
 import { createReviewService } from '../server/review.js';
-import { makeEmpty } from '../server/demo.js';
+import { makeEmpty } from '../server/project.js';
 import { getReviewPack } from '../server/review-pack.js';
 import { ecologyCases, caseParse } from '../tests/ecology-cases.js';
 

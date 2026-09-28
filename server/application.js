@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import { createStore } from './store.js';
-import { makeDemo, makeEmpty } from './demo.js';
+import { makeEmpty } from './project.js';
 import { registry, makeStructureReport, answerLocally } from './engine.js';
 import { createModelService } from './models.js';
 import { createReviewService } from './review.js';
@@ -75,7 +75,6 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     else {
       req.workspace = randomUUID();
       store.addWorkspace(req.workspace);
-      store.save(req.workspace, makeDemo());
       res.setHeader(
         'Set-Cookie',
         `audit_workspace=${req.workspace}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${req.secure ? '; Secure' : ''}`,

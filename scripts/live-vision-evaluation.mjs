@@ -7,7 +7,7 @@ import { createModelService } from '../server/models.js';
 import { createReviewService } from '../server/review.js';
 import { reviewPack, getReviewPack } from '../server/review-pack.js';
 import { renderVisuals } from '../server/visual.js';
-import { makeEmpty } from '../server/demo.js';
+import { makeEmpty } from '../server/project.js';
 import { pdfFixture } from '../tests/fixtures.js';
 
 if (!process.argv.includes('--live')) throw new Error('Paid API experiment requires --live');

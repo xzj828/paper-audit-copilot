@@ -4,7 +4,7 @@ import { normalizeAtomic, verifyAtomic } from '../server/atomic-review.js';
 import { normalizeResult, makeReviewReport, createReviewService } from '../server/review.js';
 import { atomicPack } from '../server/review-pack.js';
 import { createStore } from '../server/store.js';
-import { makeEmpty } from '../server/demo.js';
+import { makeEmpty } from '../server/project.js';
 import { reviewReply } from './review-fixtures.js';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

@@ -154,10 +154,13 @@ test('model configuration encrypts keys, isolates workspaces, tests real HTTP an
       ).status,
       400,
     );
-    const demo = (await request('/api/projects')).data.find((x) => x.demo);
-    const answer = await request(`/api/projects/${demo.id}/messages`, 'POST', {
+    const created = await request('/api/projects', 'POST', { title: 'model chat test' });
+    const paperId = created.data.id;
+    await upload(paperId, 'sample.pdf', pdfFixture('Research methods: sample size 312. Results and limitations.'));
+    const paper = await parsed(paperId);
+    const answer = await request(`/api/projects/${paperId}/messages`, 'POST', {
       text: '请分析样本',
-      versionId: demo.activeVersionId,
+      versionId: paper.activeVersionId,
     });
     assert.equal(answer.status, 200);
     assert.match(answer.data.versions[0].messages.at(-1).text, /模型建议 · 待核验/);
