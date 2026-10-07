@@ -1,0 +1,40 @@
+{
+  "schema": "publisher-pdf-fixed-case@1",
+  "filename": "beule-2021.pdf",
+  "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+  "authors": ["Lukas Beule", "Petr Karlovsky"],
+  "year": 2021,
+  "doi": "10.1371/journal.pone.0246919",
+  "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919&type=printable",
+  "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+  "license": "CC BY 4.0",
+  "licenseURL": "https://creativecommons.org/licenses/by/4.0/",
+  "copyright": "© 2021 Beule, Karlovsky",
+  "licenseCheckedAt": "2026-10-07",
+  "bytes": 3478788,
+  "sha256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+  "pageCount": 20,
+  "changed": false,
+  "expectedLabelOrigin": "Developer-fixed short phrases and physical pages checked using independent pypdf extraction and original rendered pages before running retrieval; not expert labels",
+  "scope": "One original licensed publisher PDF; text extraction, fixed lexical retrieval and text-item coordinate mapping. Not all PDFs, layout reconstruction, glyph-level accuracy, semantic support or expert review accuracy.",
+  "questions": [
+    {
+      "id": "pdf-replicates",
+      "question": "four replicate plots soil sampling",
+      "expectedPage": 4,
+      "expectedPhrase": "four replicate plots"
+    },
+    {
+      "id": "pdf-permutations",
+      "question": "PERMANOVA 999 permutations",
+      "expectedPage": 7,
+      "expectedPhrase": "999 permutations"
+    },
+    {
+      "id": "pdf-supplement-late",
+      "question": "S1 Table PERMANOVA results",
+      "expectedPage": 16,
+      "expectedPhrase": "S1 Table."
+    }
+  ]
+}
