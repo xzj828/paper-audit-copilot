@@ -50,7 +50,7 @@ test('quotes must exist exactly; absent materials and unavailable external compa
   assert.throws(() => parseReviewJSON('not JSON'));
   assert.throws(() => normalizeResult({ ...result(), level: 8 }, check, parse));
 });
-function fixture(t, complete) {
+function fixture(t, complete, options = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'paper-review-')),
     store = createStore(directory);
   store.addWorkspace('ws');
@@ -71,15 +71,19 @@ function fixture(t, complete) {
       },
     ],
   });
-  const service = createReviewService(store, {
-    get: () => ({
-      enabled: true,
-      secret: 'encrypted',
-      model: 'fixture',
-      baseUrl: 'http://localhost',
-    }),
-    complete,
-  });
+  const service = createReviewService(
+    store,
+    {
+      get: () => ({
+        enabled: true,
+        secret: 'encrypted',
+        model: 'fixture',
+        baseUrl: 'http://localhost',
+      }),
+      complete,
+    },
+    options,
+  );
   t.after(async () => {
     await service.shutdown();
     store.db.close();
@@ -376,4 +380,322 @@ test('truncated structured responses receive one larger-budget retry and preserv
   assert.equal(v.runs[0].status, 'completed');
   assert.equal(v.runs[0].usage.failedRequests, 1);
   assert.equal(v.runs[0].usage.promptTokens, v.runs[0].usage.reportedRequests * 20);
+});
+
+test('review request budgets preserve completed modules and immutable pause reports across cumulative resumes', async (t) => {
+  const calls = [];
+  let time = 1000;
+  const { service, version } = fixture(
+    t,
+    async (_config, messages) => {
+      const input = JSON.parse(messages.at(-1).content);
+      calls.push(`${input.task}:${input.check.id}`);
+      time += 100;
+      return JSON.stringify(reviewReply(messages));
+    },
+    { nowMs: () => time },
+  );
+  service.start('ws', 'project', 'v1', undefined, { maxRequests: 2 });
+  let v = await settled(version);
+  const run = v.runs[0];
+  assert.equal(run.status, 'budget_paused');
+  assert.equal(calls.length, 2);
+  assert.equal(run.usage.requests, 2);
+  assert.equal(run.wallMs, 200);
+  assert.equal(run.usage.wallMs, 200);
+  const completed = run.modules.find((m) => m.status === 'completed');
+  assert.ok(completed);
+  const moduleSnapshot = JSON.stringify(completed);
+  const reportSnapshot = JSON.stringify(v.reports[0]);
+  assert.match(v.reports[0].coverage, /预算暂停/);
+  assert.equal(v.reports[0].score.total, null);
+  assert.throws(() => service.start('ws', 'project', 'v1', run.id), /提高对应预算/);
+  assert.equal(calls.length, 2);
+  time += 900000; // Time spent while the user considers a higher budget is excluded.
+  service.start('ws', 'project', 'v1', run.id, { maxRequests: 3 });
+  v = await settled(version);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].usage.requests, 3);
+  assert.equal(v.runs[0].wallMs, 300);
+  assert.equal(
+    JSON.stringify(v.runs[0].modules.find((m) => m.id === completed.id)),
+    moduleSnapshot,
+  );
+  assert.equal(JSON.stringify(v.reports[0]), reportSnapshot);
+  assert.deepEqual(calls.slice(2), ['review:G-ETHICS']);
+  service.start('ws', 'project', 'v1', run.id, { maxRequests: 200 });
+  v = await settled(version);
+  assert.equal(v.runs.length, 1);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(JSON.stringify(v.reports[0]), reportSnapshot);
+  assert.equal(v.runs[0].budgetHistory.length, 3);
+  assert.equal(v.runs[0].wallMs, calls.length * 100);
+  assert.equal(v.runs[0].usage.requests, calls.length);
+});
+
+test('failed and automatic larger-output retries consume the same whole-review request cap', async (t) => {
+  let calls = 0;
+  const { service, version } = fixture(t, async (_config, messages) => {
+    calls++;
+    if (calls === 1)
+      throw Object.assign(new Error('模型输出额度耗尽，回答已截断'), { status: 502 });
+    return JSON.stringify(reviewReply(messages));
+  });
+  service.start('ws', 'project', 'v1', undefined, { maxRequests: 2 });
+  const v = await settled(version);
+  assert.equal(calls, 2);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].usage.requests, 2);
+  assert.equal(v.runs[0].usage.failedRequests, 1);
+  assert.ok(!v.runs[0].modules.some((m) => m.status === 'completed'));
+  assert.equal(v.findings.length, 0);
+  assert.equal(v.reports[0].score.total, null);
+});
+
+test('a normal failed request consumes budget and cannot silently start the next module', async (t) => {
+  let calls = 0;
+  const { service, version } = fixture(t, async () => {
+    calls++;
+    throw Object.assign(new Error('模型服务暂时不可用'), { status: 502 });
+  });
+  service.start('ws', 'project', 'v1', undefined, { maxRequests: 1 });
+  const v = await settled(version);
+  assert.equal(calls, 1);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].usage.failedRequests, 1);
+  assert.equal(v.runs[0].modules[0].status, 'failed');
+});
+
+test('deadline aborts an in-flight model call, distinguishes cancel, and resumes with cumulative active wall time', async (t) => {
+  let time = 1000,
+    timer,
+    delay,
+    cleared = 0,
+    waiting = true;
+  const { service, version } = fixture(
+    t,
+    async (_config, messages, { signal }) => {
+      if (waiting)
+        return new Promise((_resolve, reject) =>
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true }),
+        );
+      time += 10;
+      return JSON.stringify(reviewReply(messages));
+    },
+    {
+      nowMs: () => time,
+      scheduleTimeout: (callback, ms) => {
+        timer = callback;
+        delay = ms;
+        return 1;
+      },
+      clearTimeout: () => {
+        cleared++;
+      },
+    },
+  );
+  service.start('ws', 'project', 'v1', undefined, { maxMinutes: 1 });
+  assert.equal(delay, 60000);
+  time += 60000;
+  timer();
+  let v = await settled(version);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].wallMs, 60000);
+  assert.equal(v.runs[0].usage.requests, 1);
+  assert.equal(v.runs[0].usage.failedRequests, 1);
+  assert.equal(cleared, 1);
+  assert.throws(() => service.start('ws', 'project', 'v1', v.runs[0].id), /提高对应预算/);
+  const firstReport = JSON.stringify(v.reports[0]);
+  time += 900000;
+  waiting = false;
+  service.start('ws', 'project', 'v1', v.runs[0].id, { maxMinutes: 2 });
+  assert.equal(delay, 60000);
+  v = await settled(version);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(v.runs[0].wallMs, 60000 + (v.runs[0].usage.requests - 1) * 10);
+  assert.equal(JSON.stringify(v.reports[0]), firstReport);
+  assert.equal(cleared, 2);
+});
+
+test('time budget includes rendering before any model request, preserving unread coverage', async (t) => {
+  let time = 1000,
+    timer;
+  const { service, store, version } = fixture(
+    t,
+    () => {
+      throw new Error('must not call');
+    },
+    {
+      resolveModel: () => ({
+        enabled: true,
+        secret: 'encrypted',
+        model: 'fixture',
+        baseUrl: 'http://localhost',
+        vision: true,
+      }),
+      nowMs: () => time,
+      scheduleTimeout: (callback) => {
+        timer = callback;
+        return 1;
+      },
+      clearTimeout: () => {},
+      render: (_version, signal) => {
+        signal.throwIfAborted();
+        return new Promise((_resolve, reject) =>
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true }),
+        );
+      },
+    },
+  );
+  const p = store.get('ws', 'project');
+  p.versions[0].format = 'pdf';
+  p.versions[0].parse.pages = [{ page: 1 }];
+  store.save('ws', p);
+  service.start('ws', 'project', 'v1', undefined, { maxMinutes: 1 });
+  time += 60000;
+  timer();
+  const v = await settled(version);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].wallMs, 60000);
+  assert.equal(v.runs[0].usage?.requests || 0, 0);
+  assert.equal(v.runs[0].visual.renderedPages, 0);
+  assert.equal(v.runs[0].visual.complete, false);
+  assert.match(v.reports[0].coverage, /视觉输入 0\/1/);
+});
+
+test('budget resume reuses completed PDF reading batches and never claims the unexamined pages were read', async (t) => {
+  const visualCalls = [];
+  const { service, store, version } = fixture(
+    t,
+    async (_config, messages) => {
+      const content = messages.at(-1).content;
+      const input = JSON.parse(Array.isArray(content) ? content[0].text : content);
+      if (input.task === 'read_visual_pages') {
+        visualCalls.push(input.pages);
+        return JSON.stringify({
+          pages: input.pages.map((page) => ({
+            page,
+            readable: true,
+            observation: '控制样例页面',
+            uncertainties: [],
+          })),
+          regions: [],
+        });
+      }
+      return JSON.stringify(reviewReply([{ content: JSON.stringify(input) }]));
+    },
+    {
+      resolveModel: () => ({
+        enabled: true,
+        secret: 'encrypted',
+        model: 'fixture',
+        baseUrl: 'http://localhost',
+        vision: true,
+      }),
+      render: async (_version, _signal, _regions, pages) => ({
+        images: pages.map((page) => ({ page, url: 'data:image/png;base64,AA==' })),
+      }),
+    },
+  );
+  const p = store.get('ws', 'project');
+  p.versions[0].format = 'pdf';
+  p.versions[0].parse.pages = Array.from({ length: 8 }, (_, i) => ({ page: i + 1 }));
+  store.save('ws', p);
+  service.start('ws', 'project', 'v1', undefined, { maxRequests: 1 });
+  let v = await settled(version);
+  assert.equal(v.runs[0].status, 'budget_paused');
+  assert.equal(v.runs[0].visual.renderedPages, 4);
+  assert.equal(v.runs[0].visual.complete, false);
+  assert.equal(v.reports[0].score.total, null);
+  assert.deepEqual(visualCalls, [[1, 2, 3, 4]]);
+  const report = JSON.stringify(v.reports[0]);
+  service.start('ws', 'project', 'v1', v.runs[0].id, { maxRequests: 200 });
+  v = await settled(version);
+  assert.deepEqual(visualCalls, [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+  ]);
+  assert.equal(v.runs[0].visual.renderedPages, 8);
+  assert.equal(v.runs[0].visual.complete, true);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(JSON.stringify(v.reports[0]), report);
+});
+
+test('invalid budgets are rejected before requests and unlimited reviews remain compatible', async (t) => {
+  let calls = 0;
+  const { service, version } = fixture(t, async (_config, messages) => {
+    calls++;
+    return JSON.stringify(reviewReply(messages));
+  });
+  for (const budget of [
+    [],
+    '1',
+    { maxRequests: 0 },
+    { maxRequests: 201 },
+    { maxRequests: 1.5 },
+    { maxMinutes: 0 },
+    { maxMinutes: 121 },
+    { maxMinutes: '1' },
+    { other: 1 },
+  ])
+    assert.throws(
+      () => service.start('ws', 'project', 'v1', undefined, budget),
+      (error) => error.status === 400,
+    );
+  assert.equal(calls, 0);
+  assert.equal(version().runs.length, 0);
+  service.start('ws', 'project', 'v1');
+  const v = await settled(version);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(v.runs[0].budget, null);
+  assert.equal(v.runs[0].usage.requests, calls);
+  assert.ok(v.runs[0].wallMs >= 0);
+  assert.doesNotMatch(v.reports[0].coverage, /预算暂停/);
+});
+
+test('finishing the last required call at the request cap completes without an artificial pause', async (t) => {
+  let calls = 0;
+  const { service, version } = fixture(
+    t,
+    async (_config, messages) => {
+      calls++;
+      return JSON.stringify(reviewReply(messages));
+    },
+    {
+      resolvePack: () => ({
+        ...structuredClone(reviewPack),
+        checks: [structuredClone(reviewPack.checks[0])],
+      }),
+    },
+  );
+  service.start('ws', 'project', 'v1', undefined, { maxRequests: 2 });
+  const v = await settled(version);
+  assert.equal(calls, 2);
+  assert.equal(v.runs[0].status, 'completed');
+  assert.equal(v.runs[0].usage.requests, 2);
+  assert.doesNotMatch(v.reports[0].coverage, /预算暂停/);
+});
+
+test('a manual cancellation before the deadline stays cancelled and clears its timer', async (t) => {
+  let cleared = 0;
+  const { service, version } = fixture(
+    t,
+    (_config, _messages, { signal }) =>
+      new Promise((_resolve, reject) =>
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true }),
+      ),
+    {
+      scheduleTimeout: () => 1,
+      clearTimeout: () => {
+        cleared++;
+      },
+    },
+  );
+  service.start('ws', 'project', 'v1', undefined, { maxMinutes: 1, maxRequests: 2 });
+  const id = version().runs[0].id;
+  service.cancel('ws', 'project', 'v1', id);
+  const v = await settled(version);
+  assert.equal(v.runs[0].status, 'cancelled');
+  assert.equal(v.reports.length, 0);
+  assert.equal(cleared, 1);
 });
