@@ -16,6 +16,7 @@ import { createConfigurationService } from './configuration.js';
 import { exportReport, defaultTemplate } from './reports.js';
 import { createRevisionService } from './revisions.js';
 import { createWorkspaceService } from './workspace.js';
+import { exportChat } from './chat-export.js';
 
 export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
   const root = path.resolve(
@@ -427,6 +428,23 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       save(req, p);
     }
     res.json(p);
+  });
+  app.get('/api/projects/:id/versions/:versionId/conversation/export', (req, res) => {
+    const p = project(req, res);
+    if (!p) return;
+    // Require an exact version; never fall back to the active version on a typo.
+    const v = p.versions.find((item) => item.id === req.params.versionId);
+    if (!v) return res.status(404).json({ error: '版本不存在' });
+    const format = req.query.format || 'md';
+    const output = exportChat(p, v, format);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="paper-conversation-v${v.number}.${format}"`,
+    );
+    res.type(
+      format === 'json' ? 'application/json; charset=utf-8' : 'text/markdown; charset=utf-8',
+    );
+    res.send(output);
   });
   app.post('/api/projects/:id/messages', async (req, res) => {
     const p = project(req, res);
