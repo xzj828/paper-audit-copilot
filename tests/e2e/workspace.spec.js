@@ -431,9 +431,11 @@ test('scientific review runs through real API, exposes evidence and exports part
       .getByRole('button', { name: '查看评审报告', exact: true })
       .boundingBox();
     const composer = await page.locator('.composer').boundingBox();
+    const budget = await page.locator('.review-budget').boundingBox();
     expect(Math.abs(reportButton.y - configButton.y)).toBeLessThan(2);
     expect(reportButton.x).toBeGreaterThan(configButton.x);
-    expect(composer.y - (configButton.y + configButton.height)).toBeLessThanOrEqual(10);
+    expect(budget.y).toBeGreaterThanOrEqual(configButton.y + configButton.height);
+    expect(composer.y - (budget.y + budget.height)).toBeLessThanOrEqual(10);
     await page.getByRole('button', { name: '查看评审报告', exact: true }).click();
     await expect(page.locator('.recommendation')).toContainText('评审建议');
     await expect(page.locator('.recommendation h3')).toHaveText('大修');
