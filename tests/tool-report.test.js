@@ -4,6 +4,7 @@ import mammoth from 'mammoth';
 import { makeStructureReport } from '../server/engine.js';
 import { auditData } from '../server/data-audit.js';
 import { auditReferences } from '../server/reference-audit.js';
+import { createClaimAudit } from '../server/claim-audit.js';
 import { reportBlocks, reportHtml, exportReport } from '../server/reports.js';
 
 test('reports freeze tool evidence and always export an honest, literal provenance appendix', async () => {
@@ -49,6 +50,27 @@ test('reports freeze tool evidence and always export an honest, literal provenan
       },
     }),
   ];
+  version.claimAudits = [
+    await createClaimAudit(
+      version,
+      {
+        claim: 'The overall mean was 7.00.',
+        source: { elementId: 's1', quote: 'The overall mean was 7.00.' },
+        useModel: false,
+      },
+      {},
+    ),
+  ];
+  assert.ok(version.claimAudits[0].relations.length);
+  version.claimAudits[0].reviewHistory = [
+    {
+      id: 'review-1',
+      relationId: version.claimAudits[0].relations[0].id,
+      decision: 'pending',
+      note: '<script>not executed</script> 原文与均值需要核对',
+      at: 'review-time',
+    },
+  ];
   const { report } = makeStructureReport(version, { scheme: 'test' });
   report.budget = { maxRequests: 2, maxMinutes: 1 };
   report.wallMs = 1500;
@@ -58,7 +80,10 @@ test('reports freeze tool evidence and always export an honest, literal provenan
   const original = JSON.stringify(report);
   version.dataAudits[0].overall.mean = 99;
   version.referenceAudits[0].records[0].raw = 'changed';
+  version.claimAudits[0].claim.text = 'Changed claim';
+  version.claimAudits[0].reviewHistory[0].note = 'Changed human review';
   assert.equal(report.toolAudits.data.overall.mean, 5);
+  assert.equal(report.toolAudits.claims.claim.text, 'The overall mean was 7.00.');
   const blocks = reportBlocks(report, 'control paper');
   const text = blocks.map((item) => item.text).join('\n');
   assert.match(text, /执行与证据工具附录/);
@@ -68,9 +93,12 @@ test('reports freeze tool evidence and always export an honest, literal provenan
   assert.match(text, /Author. Soil study/);
   assert.match(text, /最多 2 次调用/);
   assert.match(text, /不改变科学评分/);
+  assert.match(text, /原文与均值需要核对/);
+  assert.doesNotMatch(text, /Changed human review|Changed claim/);
   const html = reportHtml(report, 'control paper');
   assert.ok(!html.includes('<img>'));
   assert.ok(html.includes('&lt;img&gt;.csv'));
+  assert.ok(!html.includes('<script>'));
   const markdown = (await exportReport(report, 'control paper', 'md')).toString();
   assert.ok(!markdown.includes('<img>'));
   const docx = await mammoth.extractRawText({
@@ -78,5 +106,6 @@ test('reports freeze tool evidence and always export an honest, literal provenan
   });
   assert.match(docx.value, /工具证据报告/);
   assert.match(docx.value, /均值 5/);
+  assert.match(docx.value, /原文与均值需要核对/);
   assert.equal(JSON.stringify(report), original);
 });

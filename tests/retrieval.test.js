@@ -84,6 +84,28 @@ test('chunk quotes preserve original typography, offsets and continuation text e
   assert.ok(validateAnchor(paper.parse, result.sources[0].anchor));
 });
 
+test('scientific symbols and Chinese numerical labels are searchable without rewriting source quotes', () => {
+  const paper = version([
+    { id: 'group', title: '结果', text: '第2组的响应较高，见表1。' },
+    { id: 'statistics', title: '统计', text: 'n = 30; p = 0.03; β = 0.7.' },
+    { id: 'noise', title: 'Introduction', text: 'A general account of forest background.' },
+  ]);
+  for (const [query, id] of [
+    ['第2组', 'group'],
+    ['表1', 'group'],
+    ['p', 'statistics'],
+    ['n', 'statistics'],
+    ['β', 'statistics'],
+  ]) {
+    const result = retrieveEvidence(paper, query);
+    assert.equal(result.sources[0].anchor.elementId, id);
+    assert.ok(validateAnchor(paper.parse, result.sources[0].anchor));
+    assert.equal(result.retrieval.strategy, 'bm25-lexical@2');
+  }
+  assert.equal(retrieveEvidence(paper, 'a').retrieval.status, 'no_match');
+  assert.equal(retrieveEvidence(paper, 'x').retrieval.status, 'no_match');
+});
+
 test('retrieval is bounded, relevant, and never falls back to unrelated leading text', () => {
   const paper = latePaper();
   const result = retrieveEvidence(paper, 'forests biodiversity', undefined, {
