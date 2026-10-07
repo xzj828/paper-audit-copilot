@@ -1,5 +1,7 @@
 import { Document, Packer, Paragraph, HeadingLevel } from 'docx';
 import { chromium } from 'playwright';
+import { dataAuditSummary } from './data-audit.js';
+import { referenceAuditSummary } from './reference-audit.js';
 
 export const defaultTemplate = {
   id: 'review-report@1',
@@ -139,6 +141,67 @@ export function reportBlocks(report, projectTitle) {
         `报告 ${report.id}\n任务 ${report.runId}\n版本 ${report.versionId}\n解析 ${report.parseId || '未提供'}\n方案 ${report.scheme}\n规则指纹 ${report.packHash || '未提供'}\n模型 ${report.model?.model || '无'}\n模板 ${template.id}\n生成时间 ${report.createdAt}`,
       );
   }
+  // Keep execution provenance even when a custom template omits coverage.
+  if (
+    report.wallMs !== undefined ||
+    report.budget ||
+    report.toolAudits?.data ||
+    report.toolAudits?.references
+  ) {
+    blocks.push({ heading: 2, text: '执行与证据工具附录' });
+    const add = (text) => {
+      if (text) blocks.push({ text: String(text), literal: true });
+    };
+    if (report.wallMs !== undefined)
+      add(`任务累计实际运行 ${(report.wallMs / 60000).toFixed(2)} 分钟；暂停等待不计时。`);
+    if (report.budget)
+      add(
+        `任务预算：最多 ${report.budget.maxRequests ?? '不限'} 次调用，最多 ${report.budget.maxMinutes ?? '不限'} 分钟。失败和自动重试计入调用。`,
+      );
+    for (const change of report.budgetHistory || [])
+      add(
+        `预算变更 ${change.changedAt}：调用 ${change.maxRequests ?? '不限'} 次；运行 ${change.maxMinutes ?? '不限'} 分钟。`,
+      );
+    if (report.toolAudits?.data || report.toolAudits?.references)
+      add(
+        '以下为生成本报告时冻结的独立工具结果摘要；评审模型未消费这些结果，不改变科学评分。完整结构化记录另见对应 JSON 快照。',
+      );
+    const data = report.toolAudits?.data;
+    if (data) {
+      add(dataAuditSummary(data));
+      add(
+        `复算 ${data.id}；时间 ${data.createdAt}；原文版本 ${data.versionId}；解析 ${data.parseId}；论文 SHA-256 ${data.contentHash || '未记录'}。`,
+      );
+      add(
+        `列标题（从1开始）：${data.columns.map((c) => `${c.index + 1}. ${c.name}`).join('；')}。`,
+      );
+      add(
+        `列映射（从1开始）：数值 ${data.mapping.valueColumn + 1}；分组 ${data.mapping.groupColumn === null ? '无' : data.mapping.groupColumn + 1}；ID ${data.mapping.idColumn === null ? '无' : data.mapping.idColumn + 1}。`,
+      );
+      add(`全表：最小 ${data.overall.min ?? '不可计算'}，最大 ${data.overall.max ?? '不可计算'}。`);
+      for (const group of data.groups) {
+        add(
+          `分组 ${group.name ?? '空白'}：记录 ${group.records}，有效 ${group.valid}，缺失 ${group.missing}，非法 ${group.invalid}；均值 ${group.mean ?? '不可计算'}，样本标准差 ${group.sampleSD ?? '不可计算'}，最小 ${group.min ?? '不可计算'}，最大 ${group.max ?? '不可计算'}。`,
+        );
+        group.warnings.forEach(add);
+      }
+      if (data.idCheck) {
+        add(
+          `ID 检查：不同 ID ${data.idCheck.unique} 个，缺失 ID ${data.idCheck.missing} 条；重复 ID ${data.idCheck.duplicateIds} 个，多出记录 ${data.idCheck.repeatedRecords} 条。${data.idCheck.notice}`,
+        );
+        for (const item of data.idCheck.examples) add(`重复示例：${item.id}，${item.count} 次。`);
+      }
+      if (data.comparison)
+        add(
+          `人工输入论文均值 ${data.comparison.expectedMean}；绝对容差 ${data.comparison.tolerance}；复算值减论文值 ${data.comparison.difference ?? '不可计算'}。${data.comparison.notice}`,
+        );
+      if (data.mapping.anchor) add(evidence(data.mapping.anchor));
+      data.overall.warnings.forEach(add);
+      add(data.notice);
+    }
+    if (report.toolAudits?.references)
+      add(referenceAuditSummary(report.toolAudits.references, { markdown: false }));
+  }
   return blocks;
 }
 const escape = (text) =>
@@ -159,7 +222,10 @@ export async function exportReport(report, title, format) {
   if (format === 'md')
     return Buffer.from(
       reportBlocks(report, title)
-        .map((b) => `${b.heading ? '#'.repeat(b.heading) + ' ' : ''}${b.text}`)
+        .map(
+          (b) =>
+            `${b.heading ? '#'.repeat(b.heading) + ' ' : ''}${b.literal ? b.text.replace(/[\\`*_[\]<>]/g, '\\$&') : b.text}`,
+        )
         .join('\n\n'),
       'utf8',
     );

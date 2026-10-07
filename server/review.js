@@ -4,6 +4,7 @@ import { resolveTextAnchor } from './engine.js';
 import { visualMessage } from './visual.js';
 import { readPaperVisuals, evidenceImages } from './visual-review.js';
 import { validateComparisons } from './literature.js';
+import { normalizeReviewBudget, reviewBudgetReason, reviewBudgetError } from './review-budget.js';
 import {
   issueOwners,
   atomicInstructions,
@@ -193,6 +194,7 @@ export function makeReviewReport(version, run) {
       !r.checkId.startsWith('G-'),
   );
   const all =
+    run.status !== 'budget_paused' &&
     eligible.length === run.pack.checks.length &&
     (!run.visual || (run.visual.complete && run.visual.readable));
   const recommendation =
@@ -218,6 +220,13 @@ export function makeReviewReport(version, run) {
     projectTitle: run.projectTitle,
     model: run.model,
     usage: run.usage ? structuredClone(run.usage) : null,
+    budget: run.budget ? structuredClone(run.budget) : null,
+    wallMs: run.wallMs || 0,
+    budgetHistory: structuredClone(run.budgetHistory || []),
+    toolAudits: {
+      data: structuredClone(version.dataAudits?.at(-1) || null),
+      references: structuredClone(version.referenceAudits?.at(-1) || null),
+    },
     packHash: run.packHash,
     upstream: run.pack.upstream || null,
     literature: run.literature ? structuredClone(run.literature) : null,
@@ -248,9 +257,10 @@ export function makeReviewReport(version, run) {
             total: all && assessedMaximum === maximum && maximum ? (earned / maximum) * 100 : null,
           }
         : null,
-    coverage: `已完成 ${run.modules.filter((m) => m.status === 'completed').length}/${run.modules.length} 项；有效论证复核 ${eligible.length} 项。发送完整解析文本 ${run.characterCount} 字符（未截断）。${run.visual ? `视觉输入 ${run.visual.renderedPages}/${run.visual.pageCount} 页、${run.visual.regions.length} 个图表区域；${run.visual.readable ? '模型报告可读' : '存在不可读区域'}，定位需人工核对；逐页阅读与局部核查记录附于报告。` : '未执行图表视觉审查。'}${run.literature ? `使用 ${run.literature.searchedAt} 检索快照，${run.literature.records.length} 条注册元数据/摘要，未核验全文，不形成完整创新性得分。` : '未进行外部文献检索。'}未进行原始数据复算或 OCR。`,
+    coverage: `${run.status === 'budget_paused' ? '任务因预算暂停，仅以下已完成部分可供核查。' : ''}已完成 ${run.modules.filter((m) => m.status === 'completed').length}/${run.modules.length} 项；有效论证复核 ${eligible.length} 项。发送完整解析文本 ${run.characterCount} 字符（未截断）。${run.visual ? `视觉输入 ${run.visual.renderedPages}/${run.visual.pageCount} 页、${run.visual.regions.length} 个图表区域；${run.visual.readable ? '模型报告可读' : '存在不可读区域'}，定位需人工核对；逐页阅读与局部核查记录附于报告。` : '未执行图表视觉审查。'}${run.literature ? `使用 ${run.literature.searchedAt} 检索快照，${run.literature.records.length} 条注册元数据/摘要，未核验全文，不形成完整创新性得分。` : '未进行外部文献检索。'}科学评审未消费 CSV 复算结果；未执行 OCR。`,
     warnings: [
       ...version.parse.warnings,
+      ...(run.status === 'budget_paused' ? [run.error || '预算已用完，尚未完成完整评审。'] : []),
       ...(run.visual?.warnings || []),
       '本方案为项目文档衍生的试运行规则，未经专家校准，不是期刊官方评分表。',
       '精确引文匹配与第二轮模型复核不等于专家确认。视觉锚点仅验证输入归属和坐标范围，图中观察仍需人工确认。缺失材料不等于研究未执行；未完整覆盖的检查不计分。',
@@ -261,12 +271,20 @@ export function makeReviewReport(version, run) {
 export function createReviewService(store, models, options = {}) {
   const active = new Map();
   const tasks = new Set();
+  const timings = new Map();
+  const clock = options.nowMs || (() => performance.now());
+  const schedule = options.scheduleTimeout || setTimeout;
+  const unschedule = options.clearTimeout || clearTimeout;
   function mutate(ws, pid, vid, rid, fn) {
     const p = store.get(ws, pid),
       v = p?.versions.find((v) => v.id === vid),
       r = v?.runs.find((r) => r.id === rid);
     if (!r) return false;
+    const timing = timings.get(rid);
+    if (timing) r.wallMs = timing.base + Math.max(0, clock() - timing.started);
+    if (r.usage) r.usage.wallMs = r.wallMs || 0;
     fn(r, v, p);
+    if (r.usage) r.usage.wallMs = r.wallMs || 0;
     store.save(ws, p);
     return true;
   }
@@ -282,10 +300,69 @@ export function createReviewService(store, models, options = {}) {
         }
     store.save(row.workspace_id, p);
   }
+  function pauseReport(r, v, controller) {
+    r.status = 'budget_paused';
+    r.stage = '预算已用完，请调整后继续';
+    r.error = controller.signal.reason.message;
+    r.finishedAt = now();
+    for (const m of r.modules) if (m.status === 'running') m.status = 'budget_paused';
+    const report = makeReviewReport(v, r);
+    const existing = v.reports.findIndex((item) => item.id === r.liveReportId);
+    if (existing >= 0) {
+      report.id = v.reports[existing].id;
+      v.reports[existing] = report;
+    } else v.reports.push(report);
+    const tracked = new Map(v.findings.map((f) => [f.id, f.status]));
+    v.findings = structuredClone(report.findings).map((f) => ({
+      ...f,
+      status: tracked.get(f.id) || 'open',
+    }));
+    v.messages.push({
+      id: randomUUID(),
+      kind: 'report',
+      title: '审查预算已用完',
+      text: `${r.error}已完成的模块和阅读记录已保存；提高预算后继续未完成项。`,
+      at: now(),
+    });
+  }
   async function execute(ws, pid, vid, rid, config, controller) {
+    const enforceTime = () => {
+      controller.signal.throwIfAborted();
+      const r = store
+        .get(ws, pid)
+        ?.versions.find((v) => v.id === vid)
+        ?.runs.find((r) => r.id === rid);
+      if (!r) throw new Error('评审任务不存在');
+      const timing = timings.get(rid);
+      const wallMs = timing.base + Math.max(0, clock() - timing.started);
+      const reason = reviewBudgetReason({ maxMinutes: r.budget?.maxMinutes }, 0, wallMs);
+      if (reason) controller.abort(reviewBudgetError(reason));
+      controller.signal.throwIfAborted();
+      return r;
+    };
     const metered = {
       complete: async (config, messages, options = {}) => {
-        const started = Date.now();
+        const r = enforceTime();
+        const reason = reviewBudgetReason(r.budget, r.usage?.requests || 0, r.wallMs || 0);
+        if (reason) {
+          controller.abort(reviewBudgetError(reason));
+          controller.signal.throwIfAborted();
+        }
+        // Reserve before the request, so an automatic retry cannot exceed the cap.
+        mutate(ws, pid, vid, rid, (r) => {
+          r.usage ||= {
+            requests: 0,
+            failedRequests: 0,
+            promptTokens: 0,
+            completionTokens: 0,
+            cachedTokens: 0,
+            imageInputs: 0,
+            elapsedMs: 0,
+            reportedRequests: 0,
+          };
+          r.usage.requests++;
+        });
+        const started = clock();
         let usage = null,
           attemptElapsed,
           succeeded = false;
@@ -298,9 +375,10 @@ export function createReviewService(store, models, options = {}) {
             },
           });
           succeeded = true;
+          enforceTime();
           return answer;
         } catch (error) {
-          attemptElapsed = Date.now() - started;
+          attemptElapsed = clock() - started;
           if (
             !options.lengthRetry &&
             !controller.signal.aborted &&
@@ -326,7 +404,6 @@ export function createReviewService(store, models, options = {}) {
               elapsedMs: 0,
               reportedRequests: 0,
             };
-            r.usage.requests++;
             if (!succeeded) r.usage.failedRequests++;
             if (usage) r.usage.reportedRequests++;
             r.usage.promptTokens += usage?.prompt_tokens || 0;
@@ -341,7 +418,7 @@ export function createReviewService(store, models, options = {}) {
                   : 0),
               0,
             );
-            r.usage.elapsedMs += attemptElapsed ?? Date.now() - started;
+            r.usage.elapsedMs += attemptElapsed ?? clock() - started;
           });
         }
       },
@@ -696,6 +773,10 @@ export function createReviewService(store, models, options = {}) {
         }
       }
       mutate(ws, pid, vid, rid, (r, v) => {
+        if (controller.signal.reason?.reviewBudget) {
+          pauseReport(r, v, controller);
+          return;
+        }
         if (controller.signal.aborted) {
           r.status = 'cancelled';
           r.stage = '已取消';
@@ -729,7 +810,11 @@ export function createReviewService(store, models, options = {}) {
         });
       });
     } catch {
-      mutate(ws, pid, vid, rid, (r) => {
+      mutate(ws, pid, vid, rid, (r, v) => {
+        if (controller.signal.reason?.reviewBudget) {
+          pauseReport(r, v, controller);
+          return;
+        }
         r.status = controller.signal.aborted ? 'cancelled' : 'interrupted';
         r.stage = controller.signal.aborted ? '已取消' : '评审中断';
         r.error = controller.signal.aborted
@@ -737,11 +822,16 @@ export function createReviewService(store, models, options = {}) {
           : '评审中断，可重试';
       });
     } finally {
+      mutate(ws, pid, vid, rid, () => {});
+      const timing = timings.get(rid);
+      if (timing?.timer != null) unschedule(timing.timer);
+      timings.delete(rid);
       active.delete(rid);
     }
   }
   return {
-    start(ws, pid, vid, retryId) {
+    start(ws, pid, vid, retryId, budget) {
+      const proposedBudget = budget === undefined ? undefined : normalizeReviewBudget(budget);
       const p = store.get(ws, pid),
         v = p?.versions.find((v) => v.id === (vid || p.activeVersionId));
       if (!v || v.status !== 'ready' || p.demo) throw fail('请上传并完成真实论文解析');
@@ -781,7 +871,7 @@ export function createReviewService(store, models, options = {}) {
       let run;
       if (retryId) {
         run = v.runs.find((r) => r.id === retryId && r.scope === 'scientific-trial');
-        if (!run || !['partial', 'interrupted', 'cancelled'].includes(run.status))
+        if (!run || !['partial', 'interrupted', 'cancelled', 'budget_paused'].includes(run.status))
           throw fail('此任务不能重试');
         if (
           run.model.model !== config.model ||
@@ -791,6 +881,18 @@ export function createReviewService(store, models, options = {}) {
           run.parseId !== v.parse.id
         )
           throw fail('模型、执行器或原文已改变，请启动新评审，不能混用结果');
+        const nextBudget = proposedBudget === undefined ? run.budget || null : proposedBudget;
+        const exhausted = reviewBudgetReason(nextBudget, run.usage?.requests || 0, run.wallMs || 0);
+        if (exhausted) throw fail(`${exhausted}请先提高对应预算再继续。`);
+        if (proposedBudget !== undefined) {
+          run.budget = proposedBudget;
+          run.budgetHistory ||= [];
+          run.budgetHistory.push({
+            changedAt: now(),
+            maxRequests: proposedBudget?.maxRequests ?? null,
+            maxMinutes: proposedBudget?.maxMinutes ?? null,
+          });
+        }
         if (run.visual && (!run.visual.complete || !run.visual.readable)) {
           for (const module of run.modules) {
             module.status = 'pending';
@@ -822,6 +924,9 @@ export function createReviewService(store, models, options = {}) {
           model: { baseUrl: config.baseUrl, model: config.model, vision: Boolean(config.vision) },
           settings: structuredClone({ ...p.settings, scheme: selectedPack.id }),
           createdAt: now(),
+          budget: proposedBudget || null,
+          budgetHistory: proposedBudget ? [{ changedAt: now(), ...proposedBudget }] : [],
+          wallMs: 0,
           status: 'running',
           modules: selectedPack.checks.map((c) => ({
             id: randomUUID(),
@@ -835,6 +940,18 @@ export function createReviewService(store, models, options = {}) {
       store.save(ws, p);
       const controller = new AbortController();
       active.set(run.id, controller);
+      const timing = { base: run.wallMs || 0, started: clock(), timer: null };
+      timings.set(run.id, timing);
+      if (run.budget?.maxMinutes != null) {
+        const remaining = run.budget.maxMinutes * 60000 - timing.base;
+        timing.timer = schedule(() => {
+          controller.abort(
+            reviewBudgetError(
+              `已达到本任务累计 ${run.budget.maxMinutes} 分钟运行预算；暂停等待时间不计入。`,
+            ),
+          );
+        }, remaining);
+      }
       const task = execute(ws, pid, v.id, run.id, config, controller);
       tasks.add(task);
       void task.finally(() => tasks.delete(task));

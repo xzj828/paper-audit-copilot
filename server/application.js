@@ -17,6 +17,8 @@ import { exportReport, defaultTemplate } from './reports.js';
 import { createRevisionService } from './revisions.js';
 import { createWorkspaceService } from './workspace.js';
 import { exportChat } from './chat-export.js';
+import { mountReferenceAudit } from './reference-audit.js';
+import { mountDataAudit } from './data-audit.js';
 
 export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
   const root = path.resolve(
@@ -127,6 +129,9 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   function event(kind, title, text) {
     return { id: randomUUID(), kind, title, text, at: new Date().toISOString() };
   }
+
+  const referenceAudits = mountReferenceAudit(app, { store, project, getVersion, save });
+  mountDataAudit(app, { store, project, getVersion, save });
 
   function startParsing(workspace, projectId, versionId) {
     const p = store.get(workspace, projectId);
@@ -318,6 +323,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     if (!p) return;
     reviews.remove(p);
     revisions.remove(p);
+    referenceAudits.cancelProject(req.workspace, p.id);
     literatureRequests.get(p.id)?.abort();
     store.delete(req.workspace, p.id);
     for (const v of p.versions) {
@@ -404,7 +410,11 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   app.post('/api/projects/:id/review', (req, res) => {
     const p = project(req, res);
     if (!p) return;
-    res.status(202).json(reviews.start(req.workspace, p.id, req.body.versionId, req.body.retryId));
+    res
+      .status(202)
+      .json(
+        reviews.start(req.workspace, p.id, req.body.versionId, req.body.retryId, req.body.budget),
+      );
   });
   app.post('/api/projects/:id/review/cancel', (req, res) => {
     const p = project(req, res);
@@ -639,6 +649,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   async function close() {
     if (closing) return closing;
     closing = (async () => {
+      await referenceAudits.shutdown();
       await revisions.shutdown();
       await reviews.shutdown();
       await Promise.all([...workers.values()].map((worker) => worker.terminate()));
