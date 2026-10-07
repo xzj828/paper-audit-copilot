@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Anchor, EvidenceSource, Retrieval } from '../types';
 import Icon from './Icon.vue';
+import { focusAnchor } from '../../shared/text-highlight.js';
 defineProps<{ sources?: EvidenceSource[]; retrieval?: Retrieval }>();
 defineEmits<{ locate: [anchor: Anchor] }>();
 </script>
@@ -29,9 +30,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
         :key="source.id"
         class="source-card"
         :aria-label="`定位证据 ${source.id}：${source.anchor.section}`"
-        @click="
-          $emit('locate', { ...source.anchor, quote: source.focusQuote || source.anchor.quote })
-        "
+        @click="$emit('locate', focusAnchor(source))"
       >
         <span class="source-label"
           ><b>[{{ source.id }}]</b> {{ source.anchor.section }}
