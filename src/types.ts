@@ -34,6 +34,13 @@ export interface Finding {
   anchor: Anchor;
   verification: Record<string, string>;
 }
+export interface DocxTextRun {
+  text: string;
+  offset: number;
+  bold?: boolean;
+  italic?: boolean;
+  script?: 'sup' | 'sub';
+}
 export interface Section {
   id: string;
   title: string;
@@ -41,6 +48,22 @@ export interface Section {
   after?: string;
   page?: number;
   paragraph?: number;
+  kind?: 'paragraph' | 'heading' | 'table';
+  runs?: DocxTextRun[];
+  table?: {
+    columnCount: number;
+    rows: {
+      cells: {
+        text: string;
+        offset: number;
+        column: number;
+        columnSpan: number;
+        rowSpan: number;
+        header: boolean;
+        runs?: DocxTextRun[];
+      }[];
+    }[];
+  };
 }
 export interface ParseArtifact {
   id: string;
@@ -50,6 +73,15 @@ export interface ParseArtifact {
   sections: Section[];
   pages: { page: number; text: string }[];
   warnings: string[];
+  structure?: {
+    tableCount: number;
+    rowCount: number;
+    cellCount: number;
+    mergedCellCount: number;
+    imageCount: number;
+    nestedTableCount: number;
+    normalization: string;
+  };
 }
 export interface Message {
   id: string;
@@ -67,6 +99,7 @@ export interface EvidenceSource {
   id: string;
   excerpt?: string;
   focusQuote?: string;
+  focusOffset?: number;
   anchor: Anchor;
   cited?: boolean;
 }

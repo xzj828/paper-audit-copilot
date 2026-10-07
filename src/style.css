@@ -1900,6 +1900,62 @@ progress {
   font-size: 1.2em;
   text-indent: 0;
 }
+.docx-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 8px;
+}
+.docx-table-scroll:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.docx-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 420px;
+  line-height: 1.65;
+  text-align: left;
+}
+.docx-table caption {
+  padding: 8px 0 12px;
+  text-align: left;
+  font-weight: 700;
+}
+.docx-table th,
+.docx-table td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  min-width: 5em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.docx-table th {
+  background: var(--surface);
+  font-weight: 700;
+}
+.docx-table [data-column='1'] {
+  min-width: 10em;
+}
+.docx-bold {
+  font-weight: 700;
+}
+.docx-italic {
+  font-style: italic;
+}
+.docx-sup,
+.docx-sub {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+}
+.docx-sup {
+  vertical-align: super;
+}
+.docx-sub {
+  vertical-align: sub;
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;

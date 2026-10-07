@@ -12,6 +12,7 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
   });
   const viewport = ref(window.innerWidth),
     height = ref(window.innerHeight);
+  const inspectorOverlaysPaper = computed(() => viewport.value < 1180);
   const displayMode = ref(
     localStorage.getItem('audit-display-mode') === 'stacked' ? 'stacked' : 'columns',
   );
@@ -135,6 +136,7 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
     sidebarWidth,
     chatWidth,
     inspectorWidth,
+    inspectorOverlaysPaper,
     displayMode,
     maximized,
     minimized,

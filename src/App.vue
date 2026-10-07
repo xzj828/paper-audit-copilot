@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
+import DocxSection from './components/DocxSection.vue';
 import ModelSettings from './components/ModelSettings.vue';
 import ModelPicker from './components/ModelPicker.vue';
 import MessageContent from './components/MessageContent.vue';
@@ -91,6 +92,7 @@ const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
 const evidenceQuote = ref('');
+const docxAnchor = ref<Anchor | null>(null);
 const configuration = ref<{
   packs: { id: string; name: string }[];
   templates: { id: string; name: string }[];
@@ -253,6 +255,9 @@ const {
   maximized,
   minimized,
 } = layout;
+const showInspector = computed(
+  () => inspector.value && (!layout.inspectorOverlaysPaper.value || Boolean(finding.value)),
+);
 const modelConfig = ref<ModelConfig>({ baseUrl: '', model: '', enabled: false, hasKey: false });
 const pendingChat = ref<{
   projectId: string;
@@ -477,6 +482,7 @@ function restoreView() {
   selectedReportId.value = '';
   searchInput.value = '';
   evidenceQuote.value = '';
+  docxAnchor.value = null;
   visualAnchor.value = null;
 }
 async function initialize() {
@@ -798,6 +804,7 @@ function askCopilot() {
 }
 async function locate(anchor: Anchor, findingId?: string) {
   evidenceQuote.value = anchor.kind === 'visual' ? '' : anchor.quote;
+  docxAnchor.value = anchor.kind === 'visual' ? null : anchor;
   visualAnchor.value = anchor.kind === 'visual' ? anchor : null;
   tab.value = 'annotations';
   page.value = anchor.page || 1;
@@ -807,7 +814,7 @@ async function locate(anchor: Anchor, findingId?: string) {
     const index = findings.value.findIndex((f) => f.id === findingId);
     if (index >= 0) selected.value = index;
     inspector.value = index >= 0;
-  }
+  } else inspector.value = false;
   await nextTick();
   const target = document.getElementById(anchor.elementId);
   if (target) {
@@ -1495,9 +1502,10 @@ onUnmounted(() => {
           </div>
           <button
             class="icon-button"
-            :class="{ pressed: inspector }"
+            :class="{ pressed: showInspector }"
             aria-label="切换批注面板"
-            :aria-pressed="inspector"
+            :aria-pressed="showInspector"
+            :disabled="layout.inspectorOverlaysPaper.value && !finding"
             @click="inspector = !inspector"
           >
             <Icon name="panel" :size="18" /></button
@@ -1560,33 +1568,27 @@ onUnmounted(() => {
               :continuous="readingPreferences.layout === 'continuous'"
               :query="evidenceQuote || searchInput"
               :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
-              @pages="pageCount = $event"
-            />
+              @pages="pageCount = $event" />
             <article
               v-else
               class="paper docx-paper"
               :style="{ fontSize: `${(16 * zoom) / 100}px` }"
             >
-              <div class="notice">Word 结构化文本预览 · 不还原原始分页和图表</div>
-              <div
-                v-for="section in version.parse?.sections"
-                :id="section.id"
-                :key="section.id"
-                class="docx-paragraph"
-              >
-                <small>{{ section.title === section.text ? '' : section.title }}</small>
-                <p :class="{ 'docx-heading': section.title === section.text }">
-                  <template v-if="evidenceQuote && section.text.includes(evidenceQuote)"
-                    >{{ section.text.slice(0, section.text.indexOf(evidenceQuote))
-                    }}<mark>{{ evidenceQuote }}</mark
-                    >{{
-                      section.text.slice(section.text.indexOf(evidenceQuote) + evidenceQuote.length)
-                    }}</template
-                  ><template v-else>{{ section.text }}</template>
-                </p>
+              <div class="notice">
+                {{
+                  version.parse?.structure
+                    ? 'Word 段落与表格预览 · 保留行列与合并范围'
+                    : 'Word 结构化文本预览'
+                }}
+                · 不还原原始分页、图像内容与公式
               </div>
-            </article></template
-          >
+              <DocxSection
+                v-for="section in version.parse?.sections"
+                :key="section.id"
+                :section="section"
+                :anchor="docxAnchor"
+              /></article
+          ></template>
           <div v-else class="empty-state document-wait">
             <Icon
               :name="version.status === 'failed' ? 'error' : 'loading'"
@@ -1624,7 +1626,7 @@ onUnmounted(() => {
         </div>
 
         <div
-          v-if="inspector"
+          v-if="showInspector"
           class="inspector-resizer resize-handle"
           role="separator"
           aria-label="调整批注栏宽度"
@@ -1635,7 +1637,7 @@ onUnmounted(() => {
           @keydown.left.prevent="layout.adjust('inspector', 10)"
           @keydown.right.prevent="layout.adjust('inspector', -10)"
         ></div>
-        <aside v-if="inspector" class="inspector" aria-label="批注详情">
+        <aside v-if="showInspector" class="inspector" aria-label="批注详情">
           <template v-if="finding"
             ><div class="inspector-navigation">
               <button :disabled="selected === 0" @click="chooseFinding(selected - 1)">
@@ -1849,6 +1851,16 @@ onUnmounted(() => {
                 }}</strong
                 ><span>已提取字符</span>
               </div>
+            </div>
+            <div v-if="version.parse.structure" class="notice document-structure-summary">
+              <Icon name="layers" :size="17" /><span
+                >已保留 {{ version.parse.structure.tableCount }} 个表格、{{
+                  version.parse.structure.rowCount
+                }}
+                行、{{ version.parse.structure.cellCount }} 个单元格，含
+                {{ version.parse.structure.mergedCellCount }} 个合并单元格。表格证据可点击定位；Word
+                页码未映射。</span
+              >
             </div>
             <div v-for="warning in version.parse.warnings" :key="warning" class="notice">
               <Icon name="info" :size="17" /><span>{{ warning }}</span>
