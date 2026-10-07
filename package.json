@@ -18,6 +18,7 @@
     "start": "node server/index.js",
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
+    "evaluate:retrieval": "node scripts/evaluate-retrieval.mjs",
     "check": "npm run build && npm test && npm run test:e2e",
     "format": "prettier --write src server tests scripts *.json *.ts *.js"
   },
