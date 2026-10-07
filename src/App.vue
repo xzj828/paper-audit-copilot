@@ -12,6 +12,7 @@ import ReviewControls from './components/ReviewControls.vue';
 import ReferenceAudit from './components/ReferenceAudit.vue';
 import DataAudit from './components/DataAudit.vue';
 import ToolSnapshots from './components/ToolSnapshots.vue';
+import ClaimAudit, { type ClaimAuditDraft } from './components/ClaimAudit.vue';
 import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
@@ -65,6 +66,27 @@ const projects = ref<Project[]>([]),
 const version = computed(() =>
   project.value?.versions.find((v) => v.id === project.value?.activeVersionId),
 );
+// Keep an unfinished claim while evidence navigation temporarily unmounts its tab.
+const claimDrafts = ref<Record<string, ClaimAuditDraft>>({});
+const claimDraftKey = computed(
+  () => `${project.value?.id}:${version.value?.id}:${version.value?.parse?.id}`,
+);
+function preserveClaimDraft(update: {
+  projectId: string;
+  versionId: string;
+  parseId: string;
+  draft: ClaimAuditDraft;
+}) {
+  const key = `${update.projectId}:${update.versionId}:${update.parseId}`;
+  claimDrafts.value[key] = {
+    ...update.draft,
+    source: update.draft.source
+      ? { ...update.draft.source, anchor: { ...update.draft.source.anchor } }
+      : null,
+  };
+  const keys = Object.keys(claimDrafts.value);
+  if (keys.length > 30) delete claimDrafts.value[keys[0]];
+}
 const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
@@ -553,13 +575,18 @@ async function saveSettings() {
   }
 }
 async function switchVersion(id: string) {
-  if (!project.value) return;
+  if (!project.value?.versions.some((item) => item.id === id)) return;
+  const projectId = project.value.id;
+  const sequence = ++requestSequence;
+  settingsRevision++;
   persistView();
   await safe(async () => {
-    project.value = await api<Project>(
-      `/projects/${project.value!.id}`,
+    const data = await api<Project>(
+      `/projects/${projectId}`,
       json('PATCH', { activeVersionId: id }),
     );
+    if (sequence !== requestSequence || project.value?.id !== projectId) return;
+    project.value = { ...data, activeVersionId: id };
     restoreView();
     contextFinding.value = null;
     dialog.value = '';
@@ -623,6 +650,8 @@ async function poll() {
     return;
   const id = project.value.id;
   const revision = settingsRevision;
+  const navigation = requestSequence;
+  const activeVersionId = project.value.activeVersionId;
   try {
     const follow =
       timeline.value &&
@@ -631,10 +660,12 @@ async function poll() {
     if (
       project.value?.id === id &&
       revision === settingsRevision &&
+      navigation === requestSequence &&
+      project.value.activeVersionId === activeVersionId &&
       !savingSettings.value &&
       !busy.value
     ) {
-      project.value = data;
+      project.value = { ...data, activeVersionId };
       if (follow) {
         await nextTick();
         timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
@@ -1873,10 +1904,20 @@ onUnmounted(() => {
           <div class="artifact-title">
             <div>
               <h2>证据工具</h2>
-              <p>核对文献与数据，留下可复查的计算和来源。</p>
+              <p>梳理主张与证据，核对文献和数据，留下可复查的判断与来源。</p>
             </div>
             <span class="status-pill">当前版本 v{{ version.number }}</span>
           </div>
+          <ClaimAudit
+            v-if="project"
+            :key="`claims-${version.id}`"
+            :project-id="project.id"
+            :version="version"
+            :draft="claimDrafts[claimDraftKey]"
+            @draft="preserveClaimDraft"
+            @updated="acceptToolUpdate"
+            @evidence="locate"
+          />
           <ReferenceAudit
             v-if="project"
             :key="`references-${version.id}`"

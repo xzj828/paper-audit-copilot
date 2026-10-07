@@ -1,5 +1,6 @@
 import type { ReferenceAuditSnapshot } from './reference-types';
 import type { DataAuditSnapshot } from './data-audit-types';
+import type { ClaimAuditSnapshot } from './claim-types';
 
 export interface ReviewBudget {
   maxRequests: number | null;
@@ -104,6 +105,7 @@ export interface Report {
   toolAudits?: {
     data: DataAuditSnapshot | null;
     references: ReferenceAuditSnapshot | null;
+    claims?: ClaimAuditSnapshot | null;
   };
   visual?: VisualCoverage | null;
   usage?: {
@@ -177,6 +179,7 @@ export interface Report {
   warnings?: string[];
 }
 export interface Version {
+  claimAudits?: ClaimAuditSnapshot[];
   dataAudits?: DataAuditSnapshot[];
   referenceAudits?: ReferenceAuditSnapshot[];
   createdAt?: string;
