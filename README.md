@@ -8,7 +8,7 @@
 
 本作品以浏览器 Web 应用参加 AI WEB 网页开发挑战赛；桌面安装包作为补充形式。核心能力是全文分块检索与证据定位、可复核的评审工作流、PDF 图文分析和版本问题追踪。参见 [评分与提交要求对照](docs/competition.md)、[技术文档](docs/technical-document.md)、[技术文档 PDF](docs/technical-document.pdf)、[6 分钟演示脚本](docs/demo-script.md) 和 [本轮 AI 开发记录](docs/ai-development-log.md)。
 
-仓库维护者：`xzj828`；协作开发者以 GitHub 提交历史为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
+参赛开发仓库：[wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，由 `wilsonwuww` 拥有；Fork 自 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)。保留原项目署名和完整提交历史，协作开发者以 GitHub 记录为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
 
 问答支持“为什么”“再详细解释”等简短追问，沿用当前版本最近三条用户问题中的明确主题，并显示检索所沿用的问题。项目右上角“项目操作 → 导出对话与证据”可下载 Markdown 笔记或 JSON 记录，保存问题、回答、原文切片、文件指纹和引用警告。使用与字段说明见[对话研究笔记](docs/conversation-notes.md)。
 
@@ -19,6 +19,15 @@
 新增[主张与证据链](docs/claim-evidence.md)：从原文候选句或手写主张出发，检索当前版本的相关片段；可让已启用模型判断支持、矛盾、上下文或不明确。引文逐字校验，人工复核追加留痕，历史报告保存冻结快照。模型判断明确标为待核查，不自动给出专业结论。
 
 执行 `npm run evaluate:retrieval` 可复现[检索回归评测](docs/retrieval-benchmark.md)，输出命中、无结果、引文保真和耗时记录。固定案例由开发者编写，不能代替真实论文的专家盲评。
+
+新增[公开真实论文检索验证](docs/real-paper-validation.md)：三篇 PLOS 生态学论文、九个预先登记的问题，校验来源身份、CC BY 4.0 许可、文件指纹和原文偏移。首次明确指定下载与本地缓存；此后可离线重跑，不调用模型。完整论文只存本地缓存，公开报告只保留定位、哈希和检查结果。该验证使用出版商 XML，不等同于 PDF/DOCX 上传或专家质量验收。
+
+```sh
+npm run evaluate:real-papers -- --download --materials /tmp/paper-audit-real-papers --output /tmp/paper-audit-real-results
+npm run evaluate:real-papers -- --materials /tmp/paper-audit-real-papers --output /tmp/paper-audit-real-results
+```
+
+[持续开发账本](docs/autonomous-progress.md)记录已交付能力、遗留失败和后续验收条件；后续改动继续按实现、测试、推送和远端内容核对的流程交付。
 
 需要 **Node.js 24.12+**（后端使用 Node 自带 SQLite）。
 
