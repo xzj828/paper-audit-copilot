@@ -85,6 +85,41 @@ test('Markdown export treats text as literal data, preserves embedded fences and
   assert.match(exportChat(project, { ...version, messages: [] }, 'md'), /尚无已保存问答/);
 });
 
+test('table evidence export keeps focused offsets and the parser normalization contract', () => {
+  const text = 'soil type\t15.021';
+  const parsed = {
+    id: 'table-parse',
+    parser: 'mammoth@1:structured-tables@1',
+    schemaVersion: '1.1.0',
+    structure: { normalization: 'cells TAB, rows LF' },
+    sections: [{ id: 'table-1', text }],
+  };
+  const tableVersion = {
+    ...version,
+    parse: parsed,
+    messages: [
+      {
+        kind: 'assistant',
+        sources: [
+          {
+            id: 'R1',
+            anchor: { elementId: 'table-1', section: 'S1 Table', quote: text, offset: 0 },
+            focusQuote: '15.021',
+            focusOffset: 10,
+          },
+        ],
+      },
+    ],
+  };
+  const result = JSON.parse(exportChat(project, tableVersion, 'json'));
+  assert.equal(result.messages[0].sources[0].focusOffset, 10);
+  assert.equal(result.messages[0].sources[0].sourceMatch, 'exact_match');
+  assert.equal(result.version.parser, parsed.parser);
+  assert.equal(result.version.parseSchemaVersion, '1.1.0');
+  assert.equal(result.version.textNormalization, 'cells TAB, rows LF');
+  assert.match(exportChat(project, tableVersion, 'md'), /表格区块（非 Word 页码）/);
+});
+
 test('conversation download isolates workspaces and exact versions after real upload and question', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'chat-export-'));
   const app = createPaperAuditApplication({ dataDirectory: directory });
