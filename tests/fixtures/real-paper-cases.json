@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "id": "plos-ecology-real-paper-pilot-v1",
+  "title": "公开真实生态学论文检索试验集",
+  "materialType": "published-open-access-articles",
+  "notice": "Developer-authored expected labels, not an expert gold standard. This pilot checks retrieval of predefined source phrases, not scientific review accuracy or whether evidence supports a generated answer. Chinese questions retain English source terms and do not establish general cross-language retrieval. No expected-no-hit cases are claimed.",
+  "expectedLabelOrigin": "developer-authored expected labels",
+  "verifiedAt": "2026-10-07",
+  "papers": [
+    {
+      "id": "he-2016-soil-respiration",
+      "doi": "10.1371/journal.pone.0155881",
+      "title": "Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest",
+      "authors": ["Tongxin He", "Qingkui Wang", "Silong Wang", "Fangyue Zhang"],
+      "year": 2016,
+      "publisher": "PLOS",
+      "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+      "canonicalURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+      "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0155881&type=manuscript",
+      "license": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/",
+        "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+        "excerpt": "provided the original author and source are credited",
+        "verifiedAt": "2026-10-07"
+      },
+      "questions": [
+        {
+          "id": "he-plot-spacing",
+          "question": "How far apart were the experimental plots, and approximately how many trees did each plot contain?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "plots were 30–40 m apart",
+              "scope": "body",
+              "heading": "Materials and Methods > Experimental design"
+            }
+          ]
+        },
+        {
+          "id": "he-mbc-method",
+          "question": "Which method was used to determine soil MBC?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "fumigation extraction method",
+              "scope": "body",
+              "heading": "Materials and Methods > Soil sampling and analysis"
+            }
+          ]
+        },
+        {
+          "id": "he-soil-properties",
+          "question": "SOC、TN contents 和 pH 在 girdling 或 N addition 后是否改变？请定位原文。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "pH were unchanged by girdling or N addition",
+              "scope": "body",
+              "heading": "Results > Soil environmental conditions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beule-2021-agroforestry-bacteria",
+      "doi": "10.1371/journal.pone.0246919",
+      "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+      "authors": ["Lukas Beule", "Petr Karlovsky"],
+      "year": 2021,
+      "publisher": "PLOS",
+      "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+      "canonicalURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+      "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919&type=manuscript",
+      "license": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/",
+        "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+        "excerpt": "provided the original author and source are credited",
+        "verifiedAt": "2026-10-07"
+      },
+      "questions": [
+        {
+          "id": "beule-replicate-plots",
+          "question": "How many replicate plots were established at every study site in the agroforestry and monoculture cropland systems?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "four replicate plots",
+              "scope": "body",
+              "heading": "Materials and methods > Study sites and experimental design"
+            }
+          ]
+        },
+        {
+          "id": "beule-sampling-depth",
+          "question": "2019 年 soil samples 的采样深度是多少？请定位正文方法段。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "top 5-cm depth",
+              "scope": "body",
+              "heading": "Materials and methods > Soil collection and DNA extraction"
+            }
+          ]
+        },
+        {
+          "id": "beule-chthoniobacter-result",
+          "question": "How did Chthoniobacter abundance in monoculture compare with the tree row across the three soil types?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "lower abundance of Chthoniobacter",
+              "scope": "body",
+              "heading": "Results > Relative abundance of taxonomic soil bacterial groups"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "du-2014-plantation-carbon",
+      "doi": "10.1371/journal.pone.0087975",
+      "title": "Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China",
+      "authors": ["Zhihong Du", "Wei Wang", "Wenjing Zeng", "Hui Zeng"],
+      "year": 2014,
+      "publisher": "PLOS",
+      "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+      "canonicalURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+      "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0087975&type=manuscript",
+      "license": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/",
+        "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+        "excerpt": "provided the original author and source are credited",
+        "verifiedAt": "2026-10-07"
+      },
+      "questions": [
+        {
+          "id": "du-random-allocation",
+          "question": "How were plots and treatments allocated in the nitrogen addition experiment?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "plots and treatments were randomly laid out",
+              "scope": "body",
+              "heading": "Materials and Methods > Experimental treatments"
+            }
+          ]
+        },
+        {
+          "id": "du-nep-result",
+          "question": "How did net ecosystem productivity (NEP) change under fertilization when HR decreased and NPP increased?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "from 149 to 426.6",
+              "scope": "body",
+              "heading": "Results > Net ecosystem productivity (NEP)"
+            }
+          ]
+        },
+        {
+          "id": "du-extrapolation-limit",
+          "question": "作者对将结果 extrapolating 到 long-term N inputs 的系统提出了什么提醒？请定位原文。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "systems with long-term N inputs",
+              "scope": "body",
+              "heading": "Discussion > Effect of N fertilization on NEP"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
