@@ -21,7 +21,8 @@
     "evaluate:retrieval": "node scripts/evaluate-retrieval.mjs",
     "check": "npm run build && npm test && npm run test:e2e",
     "format": "prettier --write src server tests scripts *.json *.ts *.js",
-    "evaluate:real-papers": "node scripts/evaluate-real-papers.mjs"
+    "evaluate:real-papers": "node scripts/evaluate-real-papers.mjs",
+    "evaluate:docx": "node scripts/evaluate-docx.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",

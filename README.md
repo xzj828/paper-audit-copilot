@@ -8,7 +8,7 @@
 
 本作品以浏览器 Web 应用参加 AI WEB 网页开发挑战赛；桌面安装包作为补充形式。核心能力是全文分块检索与证据定位、可复核的评审工作流、PDF 图文分析和版本问题追踪。参见 [评分与提交要求对照](docs/competition.md)、[技术文档](docs/technical-document.md)、[技术文档 PDF](docs/technical-document.pdf)、[6 分钟演示脚本](docs/demo-script.md) 和 [本轮 AI 开发记录](docs/ai-development-log.md)。
 
-参赛开发仓库：[wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，由 `wilsonwuww` 拥有；Fork 自 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)。保留原项目署名和完整提交历史，协作开发者以 GitHub 记录为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
+参赛开发仓库：[wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，由 `wilsonwuww` 拥有，已按用户明确要求解除 Fork 关联并设为 Private。基础来源为 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)，本地保留为 `upstream`。原项目署名与完整提交历史保留，协作开发者以 GitHub 记录为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
 
 问答支持“为什么”“再详细解释”等简短追问，沿用当前版本最近三条用户问题中的明确主题，并显示检索所沿用的问题。项目右上角“项目操作 → 导出对话与证据”可下载 Markdown 笔记或 JSON 记录，保存问题、回答、原文切片、文件指纹和引用警告。使用与字段说明见[对话研究笔记](docs/conversation-notes.md)。
 
@@ -28,6 +28,8 @@ npm run evaluate:real-papers -- --materials /tmp/paper-audit-real-papers --outpu
 ```
 
 [持续开发账本](docs/autonomous-progress.md)记录已交付能力、遗留失败和后续验收条件；后续改动继续按实现、测试、推送和远端内容核对的流程交付。
+
+新增 [DOCX 表格与证据定位](docs/document-parsing.md)：保留行列、合并单元格和上下标等有限格式，表格参与全文检索，可按字符偏移定位到单元格；手机端可横向阅读。提供一份署名与许可清楚的出版商原始补充表格，实际上传与定位已验证。`npm run evaluate:docx` 可离线复现固定来源检查，结果属于开发者预设，不是专家审稿准确率。
 
 需要 **Node.js 24.12+**（后端使用 Node 自带 SQLite）。
 
@@ -65,7 +67,7 @@ npm run desktop:make     # 生成 Setup.exe
 
 - Vue 3 Composition API、TypeScript、Vite；项目、对话、批注栏拖动调宽并记忆，聊天和预览独立滚动，预览最大化/最小化、上下/左右布局，窄屏适配。
 - 项目创建、搜索、重命名、切换、删除；悬浮三点菜单支持置顶、归档与恢复，操作非当前项目不会切换或删除当前项目。
-- PDF/DOCX 实际上传（25 MB 上限）；SHA-256 去重，原始文件独立保存。
+- PDF/DOCX 实际上传（25 MB 上限）；SHA-256 去重，原始文件独立保存；DOCX 表格行列、合并范围、有限文字格式与单元格证据定位。
 - 独立 Worker 解析，真实进度、失败重试、超时中止；服务重启后的中断状态恢复。
 - PDF 文本与坐标提取，PDF.js 原始页面渲染、缩放、翻页和关键词高亮。
 - DOCX 段落文本提取与结构预览；明确提示分页、图片、公式和表格覆盖限制。
