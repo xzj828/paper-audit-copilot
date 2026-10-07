@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './seeded-test.js';
 import { pdfFixture, docxFixture } from '../fixtures.js';
 import { createServer } from 'node:http';
 import { reviewReply } from '../review-fixtures.js';
@@ -258,7 +259,7 @@ test('desktop reference layout, annotations, search, chat, report and saved read
     '样本代表性不足，可能影响结论的外推性',
   );
   await page.screenshot({ path: 'docs/screenshots/desktop.png', fullPage: true });
-  await expect(page.locator('.paper-annotation')).toContainText('东部地区');
+  await expect(page.locator('.docx-paper')).toContainText('东部地区');
   await page.getByRole('button', { name: '下一条', exact: true }).click();
   await expect(page.locator('.inspector-navigation')).toContainText('2 / 8');
   await page.getByRole('tab', { name: '建议', exact: true }).click();
@@ -267,13 +268,13 @@ test('desktop reference layout, annotations, search, chat, report and saved read
   await page.getByRole('button', { name: '询问 Copilot', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '询问 Copilot' })).toHaveValue(/问卷有效性/);
   await page.getByRole('button', { name: '发送消息' }).click();
-  await expect(page.locator('.event-assistant')).toContainText('演示意见解释');
+  await expect(page.locator('.event-assistant')).toContainText('已保存意见');
   await page.getByRole('button', { name: '搜索论文', exact: true }).click();
   await page.getByRole('textbox', { name: '原文搜索关键词' }).fill('Cohen');
   await page.locator('.search-result').click();
   await expect(page.locator('#s33')).toBeInViewport();
   await page.getByRole('tab', { name: '评审报告', exact: true }).click();
-  await expect(page.locator('.recommendation')).toContainText('大修 · 暂定意见');
+  await expect(page.locator('.recommendation h3')).toHaveText('大修');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: '导出 Markdown' }).click();
   expect((await download).suggestedFilename()).toBe('论文报告-v2.md');

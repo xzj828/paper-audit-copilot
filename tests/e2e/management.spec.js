@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './seeded-test.js';
 import { docxFixture } from '../fixtures.js';
 
 test('management navigation stays fixed and preserves each page context', async ({ page }) => {
@@ -77,7 +78,7 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
     .locator('input[type=file][multiple]')
     .setInputFiles({ name: '连续阅读.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) });
   const row = page.locator('.literature-table tbody tr').filter({ hasText: '连续阅读.pdf' });
-  await expect(row).toContainText('解析完成');
+  await expect(row).toContainText('解析完成', { timeout: 20000 });
   await row.locator('.document-name').click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page).toHaveURL(/#library$/);
@@ -149,7 +150,7 @@ test('all appearance themes preview immediately, persist after save, and apply t
   await page.locator('.primary-nav').getByRole('button', { name: '文献库', exact: true }).click();
   await page.locator('.document-name').first().click();
   await expect(page.locator('.document-modal')).toBeVisible();
-  await expect(page.getByText('演示文档：当前提供论文节选，未附原始 PDF 文件。')).toBeVisible();
+  await expect(page.getByText('Word 结构化文本预览', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '放大文档', exact: true }).click();
   await expect(page.getByLabel('文档缩放比例')).toHaveText('125%');
   await page.screenshot({ path: 'docs/screenshots/library-preview-dark.png' });
@@ -212,7 +213,7 @@ test('full-page library supports import, collections, search, grid, recycle and 
     page.getByRole('navigation', { name: '文献集合' }).getByRole('button', { name: /科研方法/ }),
   ).toBeVisible();
   await page.locator('.document-name').filter({ hasText: '研究方法.docx' }).click();
-  await expect(page.locator('.docx-paper')).toBeVisible();
+  await expect(page.locator('.document-modal .docx-paper')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

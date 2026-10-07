@@ -6,6 +6,7 @@ async function createReadyProject(page) {
   await page.getByRole('button', { name: '新建项目', exact: true }).first().click();
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('稿件类型确认回归');
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
+  await expect(page.locator('.conversation-header h1')).toHaveText('稿件类型确认回归');
   await expect(page.locator('.upload-guide')).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({
     name: 'confirmation.docx',
