@@ -63,6 +63,8 @@ export interface EvidenceSource {
   cited?: boolean;
 }
 export interface Retrieval {
+  queryText?: string;
+  followUpTo?: string | null;
   strategy: string;
   mode: string;
   versionId: string;

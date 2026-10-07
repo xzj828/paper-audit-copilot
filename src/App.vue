@@ -100,6 +100,37 @@ async function exportDocument(format: 'pdf' | 'docx' | 'md') {
   });
 }
 const visualAnchor = ref<Anchor | null>(null);
+const chatExporting = ref(false);
+const savedChatCount = computed(
+  () =>
+    version.value?.messages.filter((item) => ['user', 'assistant'].includes(item.kind)).length || 0,
+);
+async function exportConversation(format: 'md' | 'json') {
+  if (!project.value || !version.value || chatExporting.value) return;
+  const target = {
+    projectId: project.value.id,
+    versionId: version.value.id,
+    number: version.value.number,
+  };
+  chatExporting.value = true;
+  try {
+    await safe(async () => {
+      const response = await fetch(
+        `/api/projects/${target.projectId}/versions/${target.versionId}/conversation/export?format=${format}`,
+      );
+      if (!response.ok) throw new Error((await response.json()).error);
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `论文对话与证据-v${target.number}.${format}`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      notify('对话与证据记录已导出');
+    });
+  } finally {
+    chatExporting.value = false;
+  }
+}
 const revisionLabels: Record<string, string> = {
   addressed: '暂判已处理',
   persists: '仍存在',
@@ -301,6 +332,7 @@ const titles: Record<string, string> = {
   versions: '论文版本',
   upload: '上传修订版本',
   compare: '版本对比',
+  'chat-export': '导出对话与证据',
   shortcuts: '键盘快捷键',
 };
 const filteredProjects = computed(() =>
@@ -989,6 +1021,8 @@ onUnmounted(() => {
               <Icon name="layers" :size="16" />论文版本</button
             ><button @click="openDialog('compare')">
               <Icon name="switch" :size="16" />比较版本</button
+            ><button :disabled="!version" @click="openDialog('chat-export')">
+              <Icon name="download" :size="16" />导出对话与证据</button
             ><button class="danger-text" @click="openDialog('delete')">
               <Icon name="delete" :size="16" />删除项目
             </button>
@@ -2165,6 +2199,29 @@ onUnmounted(() => {
           </button>
         </div>
       </form>
+      <template v-else-if="dialog === 'chat-export'">
+        <p>当前版本 v{{ version?.number }} · {{ savedChatCount }} 条已保存问答记录。</p>
+        <p class="muted">
+          导出问题、回答、原文证据和检索范围，便于整理研究笔记或交给同伴复核。证据编号只在各条回答内有效，文字匹配不代表结论已核验。
+        </p>
+        <p v-if="activeChat" class="muted">正在生成的回答尚未保存，本次导出不包含该回答。</p>
+        <div class="modal-actions">
+          <button
+            class="secondary-button"
+            :disabled="chatExporting || !version"
+            @click="exportConversation('json')"
+          >
+            下载 JSON 记录
+          </button>
+          <button
+            class="primary-button"
+            :disabled="chatExporting || !version"
+            @click="exportConversation('md')"
+          >
+            下载 Markdown 笔记
+          </button>
+        </div>
+      </template>
       <template v-else-if="dialog === 'projects'">
         <div class="project-filter-tabs">
           <button :class="{ active: !showArchived }" @click="showArchived = false">进行中</button
