@@ -466,12 +466,20 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
             text,
             req.body.findingId,
             streaming
-              ? { signal: controller.signal, onDelta: (text) => write({ type: 'delta', text }) }
+              ? {
+                  signal: controller.signal,
+                  onDelta: (text) => write({ type: 'delta', text }),
+                  onContext: (context) => write({ type: 'context', ...context }),
+                }
               : {},
           )
         : answerLocally(v, text, req.body.findingId);
       if (controller.signal.aborted) return;
-      if (streaming && !config?.enabled) write({ type: 'delta', text: answer.text });
+      if (streaming && !config?.enabled) {
+        if (answer.retrieval)
+          write({ type: 'context', sources: answer.sources, retrieval: answer.retrieval });
+        write({ type: 'delta', text: answer.text });
+      }
       const latest = store.get(req.workspace, p.id);
       if (!latest) throw Object.assign(new Error('项目已删除，回答不再保存'), { status: 404 });
       const target = getVersion(latest, v.id);

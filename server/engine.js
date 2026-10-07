@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { retrieveEvidence } from './retrieval.js';
 
 export const registry = [
   {
@@ -117,20 +118,17 @@ export function answerLocally(version, question, findingId) {
       anchor: finding.anchor,
       findingId: finding.id,
     };
-  const terms = question.match(/[\u4e00-\u9fff]{2,}|[a-zA-Z]{3,}/g) || [];
-  const sections = version.parse?.sections || [];
-  const match = sections.find((s) => terms.some((term) => `${s.title} ${s.text}`.includes(term)));
-  if (match)
+  const { sources, retrieval } = retrieveEvidence(version, question);
+  if (sources.length)
     return {
-      text: `【原文检索】找到相关段落「${match.title}」：\n\n${match.text.slice(0, 500)}\n\n当前未接入语言模型，此结果是关键词检索，不构成专业评审意见。`,
-      anchor: {
-        elementId: match.id,
-        page: match.page || 1,
-        quote: match.text.slice(0, 100),
-        section: match.title,
-      },
+      text: `【原文检索】${retrieval.mode === 'overview' ? '全文抽样' : '按相关性检索'}得到 ${sources.length} 个片段：\n\n${sources.map(({ id, anchor }) => `[${id}] ${anchor.section}\n${anchor.quote}`).join('\n\n')}\n\n当前未接入语言模型，此结果是关键词检索，不构成专业评审意见。`,
+      sources,
+      retrieval,
+      anchor: sources[0].anchor,
     };
   return {
-    text: '当前可查看解析结构、检索原文和解释已有批注。尚未接入语言模型，暂不能对这个问题作出专业判断。你可以输入原文中的关键词，或点击批注中的“询问 Copilot”。',
+    text: '当前版本未检索到与问题匹配的原文片段。尚未接入语言模型，暂不能对这个问题作出专业判断。请尝试原文中的术语，或点击批注中的“询问 Copilot”。未检索到不代表全文没有相关内容。',
+    sources,
+    retrieval,
   };
 }
