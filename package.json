@@ -2,7 +2,7 @@
   "name": "paper-audit-copilot",
   "version": "0.2.0",
   "private": true,
-  "repository": "https://github.com/xzj828/paper-audit-copilot",
+  "repository": "https://github.com/wilsonwuww/paper-audit-copilot",
   "type": "module",
   "main": "desktop/main.js",
   "engines": {
@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "evaluate:retrieval": "node scripts/evaluate-retrieval.mjs",
     "check": "npm run build && npm test && npm run test:e2e",
-    "format": "prettier --write src server tests scripts *.json *.ts *.js"
+    "format": "prettier --write src server tests scripts *.json *.ts *.js",
+    "evaluate:real-papers": "node scripts/evaluate-real-papers.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",
@@ -35,7 +36,8 @@
     "pdfjs-dist": "^6.3.289",
     "playwright": "^1.63.0",
     "update-electron-app": "^3.3.0",
-    "vue": "^3.5.22"
+    "vue": "^3.5.22",
+    "sax": "1.6.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.11.2",
