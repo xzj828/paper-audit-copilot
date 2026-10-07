@@ -185,6 +185,7 @@ export function retrieveEvidence(
     sources.push({
       id,
       focusQuote: chunk.quote.slice(excerptStart, excerptEnd),
+      focusOffset: chunk.offset + excerptStart,
       excerpt: `${excerptStart ? '…' : ''}${chunk.quote.slice(excerptStart, excerptEnd)}${excerptEnd < chunk.quote.length ? '…' : ''}`,
       anchor: {
         elementId: chunk.elementId,

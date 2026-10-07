@@ -29,7 +29,11 @@ function sourceSnapshot(source, parse) {
           : text.includes(anchor.quote))
       ? 'exact_match'
       : 'not_found';
-  return { ...pick(source, ['id', 'excerpt', 'focusQuote', 'cited']), anchor, sourceMatch };
+  return {
+    ...pick(source, ['id', 'excerpt', 'focusQuote', 'focusOffset', 'cited']),
+    anchor,
+    sourceMatch,
+  };
 }
 
 export function chatSnapshot(project, version, exportedAt = new Date().toISOString()) {
@@ -41,6 +45,9 @@ export function chatSnapshot(project, version, exportedAt = new Date().toISOStri
     version: {
       ...pick(version, ['id', 'number', 'filename', 'contentHash']),
       parseId: version.parse?.id || null,
+      parser: version.parse?.parser || null,
+      parseSchemaVersion: version.parse?.schemaVersion || null,
+      textNormalization: version.parse?.structure?.normalization || null,
     },
     messages: (version.messages || [])
       .filter((message) => ['user', 'assistant'].includes(message.kind))
@@ -114,6 +121,8 @@ export function exportChat(project, version, format) {
     `文件：${inline(snapshot.version.filename)}`,
     `文件 SHA-256：${inline(snapshot.version.contentHash || '未记录')}`,
     `当前解析 ID：${inline(snapshot.version.parseId || '未解析')}`,
+    `解析器：${inline(snapshot.version.parser || '未记录')} · 结构版本：${inline(snapshot.version.parseSchemaVersion || '未记录')}`,
+    `文本坐标：${inline(snapshot.version.textNormalization || '以当前解析文本为准，非原文件字节坐标')}`,
     `导出时间：${snapshot.exportedAt}`,
     '',
   ];
@@ -147,7 +156,7 @@ export function exportChat(project, version, format) {
       lines.push(
         `### 本条回答的 [${inline(source.id)}] ${inline(a.section)}`,
         '',
-        `位置：${a.page ? `第 ${a.page} 页` : `段落 ${a.paragraph ?? '未记录'}`} · 元素 ${inline(a.elementId)} · 偏移 ${a.offset ?? '未记录'}`,
+        `位置：${a.page ? `第 ${a.page} 页` : a.elementId?.startsWith('table-') ? '表格区块（非 Word 页码）' : `段落 ${a.paragraph ?? '未记录'}`} · 元素 ${inline(a.elementId)} · 偏移 ${a.offset ?? '未记录'}`,
         `与当前解析原文：${{ exact_match: '逐字匹配', not_found: '未匹配，需人工核对', unavailable: '无法检查，缺少解析' }[source.sourceMatch]} · ${source.cited ? '回答已引用' : '检索提供的片段'}`,
         '',
         literal(a.quote),

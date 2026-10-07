@@ -1,7 +1,7 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import mammoth from 'mammoth';
+import { parseDocxStructure } from './docx-structure.js';
 
 async function parse() {
   const buffer = await readFile(workerData.path);
@@ -9,6 +9,7 @@ async function parse() {
   const sections = [];
   const pages = [];
   let parser;
+  let structure;
   if (workerData.format === 'pdf') {
     const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const task = getDocument({ data: new Uint8Array(buffer), useSystemFonts: true });
@@ -42,38 +43,21 @@ async function parse() {
     await task.destroy();
     parser = 'pdfjs-dist@6';
   } else {
-    const result = await mammoth.extractRawText({ buffer });
-    const paragraphs = result.value
-      .split(/\n\s*\n/)
-      .map((t) => t.trim())
-      .filter(Boolean);
-    if (paragraphs.length > 20000) throw new Error('文档段落数量超出当前处理上限');
-    paragraphs.forEach((text, i) =>
-      sections.push({
-        id: `paragraph-${i + 1}`,
-        title:
-          /^(\d+(\.\d+)*[\s　]|摘要|关键词|参考文献|Abstract|Introduction)/i.test(text) &&
-          text.length < 120
-            ? text
-            : `段落 ${i + 1}`,
-        text,
-        paragraph: i + 1,
-      }),
-    );
-    warnings.push(
-      'DOCX 为结构化文本预览，不还原 Word 分页、图表与公式；专业检查需确认解析覆盖。',
-      ...result.messages.map((m) => m.message),
-    );
-    parser = 'mammoth@1';
+    const result = await parseDocxStructure(buffer);
+    sections.push(...result.sections);
+    warnings.push(...result.warnings);
+    structure = result.structure;
+    parser = 'mammoth@1:structured-tables@1';
   }
   const characterCount = sections.reduce((sum, s) => sum + s.text.length, 0);
   if (!characterCount) warnings.push('没有提取到可读文本，请上传含文本层的 PDF 或 DOCX。');
   return {
     id: randomUUID(),
     parser,
-    schemaVersion: '1.0.0',
+    schemaVersion: structure ? '1.1.0' : '1.0.0',
     sections,
     pages,
+    ...(structure ? { structure } : {}),
     characterCount,
     coverage: warnings.length ? 'partial' : 'text-only',
     warnings,
