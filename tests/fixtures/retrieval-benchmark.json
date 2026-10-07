@@ -1,0 +1,1350 @@
+{
+  "schemaVersion": 1,
+  "id": "retrieval-regression-synthetic-v1",
+  "title": "检索可靠性固定合成回归集",
+  "materialType": "synthetic",
+  "expectedLabelOrigin": "developer-authored expected labels; not expert gold standard or real-paper accuracy",
+  "construction": "材料及期望由开发者预先编写；repeat按固定text与count展开；不使用模型生成或评价。",
+  "baselineObservations": [
+    {
+      "strategy": "bm25-lexical@1",
+      "caseId": "number-linked-han",
+      "status": "no_match"
+    },
+    {
+      "strategy": "bm25-lexical@1",
+      "caseId": "single-scientific-variable",
+      "status": "no_match"
+    }
+  ],
+  "versions": [
+    {
+      "id": "ecology-cn",
+      "parse": {
+        "id": "parse-ecology-cn",
+        "sections": [
+          {
+            "id": "design",
+            "title": "研究设计",
+            "text": "处理分配单位为样地，共30个独立样地，每处理15个；每样地采集10份土壤子样。"
+          },
+          {
+            "id": "stats",
+            "title": "统计分析",
+            "text": "先将子样汇总为样地均值。以处理为固定效应、区组为随机截距拟合线性混合模型，报告95%置信区间。"
+          },
+          {
+            "id": "carbon",
+            "title": "结果",
+            "text": "同一天测得表层土壤碳储量4千克碳每平方米。本次储量测量不代表年固碳通量。"
+          },
+          {
+            "id": "quality",
+            "title": "测量质控",
+            "text": "叶绿素测量包含每批空白与标准物质，仪器异常时复测。"
+          },
+          {
+            "id": "limits",
+            "title": "局限性",
+            "text": "外推范围限于本站点、本年度与表层土壤，不声称所有森林具有同一响应。"
+          },
+          {
+            "id": "data",
+            "title": "可复现性",
+            "text": "数据与代码位于机构仓库，原始观测表包含处理分配和样地编号。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "english-methods",
+      "parse": {
+        "id": "parse-english-methods",
+        "sections": [
+          {
+            "id": "en-method",
+            "title": "Methods",
+            "text": "Sample size was 312 independent plots. Methods included a randomized block design."
+          },
+          {
+            "id": "en-results",
+            "title": "Results",
+            "text": "Results showed a bounded effect and broad uncertainty."
+          },
+          {
+            "id": "en-limits",
+            "title": "Limitations",
+            "text": "Limitations included one location and one season."
+          },
+          {
+            "id": "en-data",
+            "title": "Data",
+            "text": "Data and code were archived in an institutional repository."
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "numbers",
+      "parse": {
+        "id": "parse-numbers",
+        "sections": [
+          {
+            "id": "number-312",
+            "title": "Counts",
+            "text": "The final sample included 312 independent observations."
+          },
+          {
+            "id": "number-318",
+            "title": "Pilot",
+            "text": "A pilot study included 318 independent observations."
+          },
+          {
+            "id": "number-decimal",
+            "title": "Numerical results",
+            "text": "The adjusted probability was p = 0.031 with confidence interval 0.12 to 0.35."
+          },
+          {
+            "id": "number-unit",
+            "title": "Units",
+            "text": "Estimated carbon density was 4.2 kg per square metre."
+          },
+          {
+            "id": "group-2",
+            "title": "分组记录",
+            "text": "第2组测得土壤碳含量。"
+          },
+          {
+            "id": "group-3",
+            "title": "分组记录",
+            "text": "第3组测得土壤碳含量。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "single-variable",
+      "parse": {
+        "id": "parse-single-variable",
+        "sections": [
+          {
+            "id": "p-value",
+            "title": "显著性",
+            "text": "检验报告 p = 0.03；未进行多重比较调整。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "late-paper",
+      "parse": {
+        "id": "parse-late-paper",
+        "sections": [
+          {
+            "id": "background-1",
+            "title": "背景 1",
+            "text": "",
+            "page": 1,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-2",
+            "title": "背景 2",
+            "text": "",
+            "page": 2,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-3",
+            "title": "背景 3",
+            "text": "",
+            "page": 3,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-4",
+            "title": "背景 4",
+            "text": "",
+            "page": 4,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-5",
+            "title": "背景 5",
+            "text": "",
+            "page": 5,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-6",
+            "title": "背景 6",
+            "text": "",
+            "page": 6,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-7",
+            "title": "背景 7",
+            "text": "",
+            "page": 7,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-8",
+            "title": "背景 8",
+            "text": "",
+            "page": 8,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-9",
+            "title": "背景 9",
+            "text": "",
+            "page": 9,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-10",
+            "title": "背景 10",
+            "text": "",
+            "page": 10,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-11",
+            "title": "背景 11",
+            "text": "",
+            "page": 11,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-12",
+            "title": "背景 12",
+            "text": "",
+            "page": 12,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-13",
+            "title": "背景 13",
+            "text": "",
+            "page": 13,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-14",
+            "title": "背景 14",
+            "text": "",
+            "page": 14,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-15",
+            "title": "背景 15",
+            "text": "",
+            "page": 15,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-16",
+            "title": "背景 16",
+            "text": "",
+            "page": 16,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-17",
+            "title": "背景 17",
+            "text": "",
+            "page": 17,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-18",
+            "title": "背景 18",
+            "text": "",
+            "page": 18,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-19",
+            "title": "背景 19",
+            "text": "",
+            "page": 19,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-20",
+            "title": "背景 20",
+            "text": "",
+            "page": 20,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-21",
+            "title": "背景 21",
+            "text": "",
+            "page": 21,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-22",
+            "title": "背景 22",
+            "text": "",
+            "page": 22,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-23",
+            "title": "背景 23",
+            "text": "",
+            "page": 23,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-24",
+            "title": "背景 24",
+            "text": "",
+            "page": 24,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-25",
+            "title": "背景 25",
+            "text": "",
+            "page": 25,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-26",
+            "title": "背景 26",
+            "text": "",
+            "page": 26,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-27",
+            "title": "背景 27",
+            "text": "",
+            "page": 27,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-28",
+            "title": "背景 28",
+            "text": "",
+            "page": 28,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-29",
+            "title": "背景 29",
+            "text": "",
+            "page": 29,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-30",
+            "title": "背景 30",
+            "text": "",
+            "page": 30,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-31",
+            "title": "背景 31",
+            "text": "",
+            "page": 31,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-32",
+            "title": "背景 32",
+            "text": "",
+            "page": 32,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-33",
+            "title": "背景 33",
+            "text": "",
+            "page": 33,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-34",
+            "title": "背景 34",
+            "text": "",
+            "page": 34,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-35",
+            "title": "背景 35",
+            "text": "",
+            "page": 35,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "background-36",
+            "title": "背景 36",
+            "text": "",
+            "page": 36,
+            "repeat": {
+              "text": "常见森林背景与历史观测记录。 Background forest monitoring. ",
+              "count": 24
+            }
+          },
+          {
+            "id": "late-method",
+            "title": "Late protocol",
+            "text": "Glacier variance was measured using 312 independent samples; the detection protocol was cryospectrometry.",
+            "page": 37
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "long-paragraph",
+      "parse": {
+        "id": "parse-long-paragraph",
+        "sections": [
+          {
+            "id": "continued",
+            "title": "结果",
+            "text": "",
+            "paragraph": 7,
+            "repeat": {
+              "text": "常见监测记录。",
+              "count": 450
+            },
+            "after": "最终结果：ｇｌａｃｉｅｒ 支持有限观察性结论。"
+          },
+          {
+            "id": "unrelated",
+            "title": "其他内容",
+            "text": "火山灰沉积的独立历史记录。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "typography",
+      "parse": {
+        "id": "parse-typography",
+        "sections": [
+          {
+            "id": "typography-fullwidth",
+            "title": "全角文本",
+            "text": "ＣＡＲＢＯＮ　采样记录与ｇｌａｃｉｅｒ观察。",
+            "paragraph": 3
+          },
+          {
+            "id": "typography-newlines",
+            "title": "Layout",
+            "text": "Repeated  measurement\nvariance was measured without omitting\nthe original whitespace.",
+            "page": 4
+          },
+          {
+            "id": "typography-unicode",
+            "title": "字符保真",
+            "text": "遥感植被指数记录含 é 重音，不改写原始 Unicode。",
+            "paragraph": 5
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "old-version",
+      "parse": {
+        "id": "parse-old-version",
+        "sections": [
+          {
+            "id": "shared-method",
+            "title": "Older method",
+            "text": "Glacier variance was measured using 312 independent samples."
+          }
+        ]
+      },
+      "findings": [],
+      "messages": [
+        {
+          "id": "old-q",
+          "kind": "user",
+          "text": "glacier variance"
+        }
+      ]
+    },
+    {
+      "id": "current-version",
+      "parse": {
+        "id": "parse-current-version",
+        "sections": [
+          {
+            "id": "shared-method",
+            "title": "Current method",
+            "text": "本版本测量栎树花粉，采用显微镜计数，不含旧版冰川材料。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "empty",
+      "parse": {
+        "id": "parse-empty",
+        "sections": []
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "overview",
+      "parse": {
+        "id": "parse-overview",
+        "sections": [
+          {
+            "id": "overview-1",
+            "title": "章节 1",
+            "text": "第1段合成观察记录，描述本地物种变化。",
+            "page": 1
+          },
+          {
+            "id": "overview-2",
+            "title": "章节 2",
+            "text": "第2段合成观察记录，描述本地物种变化。",
+            "page": 2
+          },
+          {
+            "id": "overview-3",
+            "title": "章节 3",
+            "text": "第3段合成观察记录，描述本地物种变化。",
+            "page": 3
+          },
+          {
+            "id": "overview-4",
+            "title": "章节 4",
+            "text": "第4段合成观察记录，描述本地物种变化。",
+            "page": 4
+          },
+          {
+            "id": "overview-5",
+            "title": "章节 5",
+            "text": "第5段合成观察记录，描述本地物种变化。",
+            "page": 5
+          },
+          {
+            "id": "overview-6",
+            "title": "章节 6",
+            "text": "第6段合成观察记录，描述本地物种变化。",
+            "page": 6
+          },
+          {
+            "id": "overview-7",
+            "title": "章节 7",
+            "text": "第7段合成观察记录，描述本地物种变化。",
+            "page": 7
+          },
+          {
+            "id": "overview-8",
+            "title": "章节 8",
+            "text": "第8段合成观察记录，描述本地物种变化。",
+            "page": 8
+          },
+          {
+            "id": "overview-9",
+            "title": "章节 9",
+            "text": "第9段合成观察记录，描述本地物种变化。",
+            "page": 9
+          },
+          {
+            "id": "overview-10",
+            "title": "章节 10",
+            "text": "第10段合成观察记录，描述本地物种变化。",
+            "page": 10
+          },
+          {
+            "id": "overview-11",
+            "title": "章节 11",
+            "text": "第11段合成观察记录，描述本地物种变化。",
+            "page": 11
+          },
+          {
+            "id": "overview-12",
+            "title": "章节 12",
+            "text": "第12段合成观察记录，描述本地物种变化。",
+            "page": 12
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    },
+    {
+      "id": "follow-one",
+      "parse": {
+        "id": "parse-follow-one",
+        "sections": [
+          {
+            "id": "follow-glacier",
+            "title": "Climate",
+            "text": "Glacier variance was measured using 312 independent samples."
+          },
+          {
+            "id": "follow-birds",
+            "title": "城市生态",
+            "text": "城市鸟类观察以街区为重复单位。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": [
+        {
+          "id": "topic-glacier",
+          "kind": "user",
+          "text": "glacier variance"
+        },
+        {
+          "id": "generated-answer",
+          "kind": "assistant",
+          "text": "quasars spacetime 是模型生成的无关主张。"
+        }
+      ]
+    },
+    {
+      "id": "follow-repeat",
+      "parse": {
+        "id": "parse-follow-repeat",
+        "sections": [
+          {
+            "id": "follow-glacier",
+            "title": "Climate",
+            "text": "Glacier variance was measured using 312 independent samples."
+          },
+          {
+            "id": "follow-birds",
+            "title": "城市生态",
+            "text": "城市鸟类观察以街区为重复单位。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": [
+        {
+          "id": "topic-glacier",
+          "kind": "user",
+          "text": "glacier variance"
+        },
+        {
+          "id": "follow-1",
+          "kind": "user",
+          "text": "为什么？"
+        },
+        {
+          "id": "follow-2",
+          "kind": "user",
+          "text": "继续解释"
+        }
+      ]
+    },
+    {
+      "id": "follow-expired",
+      "parse": {
+        "id": "parse-follow-expired",
+        "sections": [
+          {
+            "id": "follow-glacier",
+            "title": "Climate",
+            "text": "Glacier variance was measured using 312 independent samples."
+          },
+          {
+            "id": "follow-birds",
+            "title": "城市生态",
+            "text": "城市鸟类观察以街区为重复单位。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": [
+        {
+          "id": "topic-glacier",
+          "kind": "user",
+          "text": "glacier variance"
+        },
+        {
+          "id": "expired-0",
+          "kind": "user",
+          "text": "继续解释"
+        },
+        {
+          "id": "expired-1",
+          "kind": "user",
+          "text": "继续解释"
+        },
+        {
+          "id": "expired-2",
+          "kind": "user",
+          "text": "继续解释"
+        }
+      ]
+    },
+    {
+      "id": "follow-assistant-only",
+      "parse": {
+        "id": "parse-follow-assistant-only",
+        "sections": [
+          {
+            "id": "follow-glacier",
+            "title": "Climate",
+            "text": "Glacier variance was measured using 312 independent samples."
+          },
+          {
+            "id": "follow-birds",
+            "title": "城市生态",
+            "text": "城市鸟类观察以街区为重复单位。"
+          }
+        ]
+      },
+      "findings": [],
+      "messages": [
+        {
+          "id": "assistant-topic",
+          "kind": "assistant",
+          "text": "glacier variance"
+        }
+      ]
+    },
+    {
+      "id": "finding-valid",
+      "parse": {
+        "id": "parse-finding-valid",
+        "sections": [
+          {
+            "id": "finding-target",
+            "title": "设计记录",
+            "text": "独立样地为处理单位，土样为子样本。"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "anchor": {
+            "elementId": "finding-target",
+            "quote": "独立样地为处理单位"
+          }
+        }
+      ],
+      "messages": []
+    },
+    {
+      "id": "finding-fabricated",
+      "parse": {
+        "id": "parse-finding-fabricated",
+        "sections": [
+          {
+            "id": "finding-target",
+            "title": "设计记录",
+            "text": "独立样地为处理单位，土样为子样本。"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "finding-1",
+          "anchor": {
+            "elementId": "finding-target",
+            "quote": "fabricated quasar mechanism"
+          }
+        }
+      ],
+      "messages": []
+    },
+    {
+      "id": "unsupported-translation",
+      "parse": {
+        "id": "parse-unsupported-translation",
+        "sections": [
+          {
+            "id": "photosynthesis",
+            "title": "Physiology",
+            "text": "Photosynthesis was measured under controlled illumination."
+          },
+          {
+            "id": "habitat",
+            "title": "Landscape",
+            "text": "Habitat fragmentation was quantified using landscape patches."
+          }
+        ]
+      },
+      "findings": [],
+      "messages": []
+    }
+  ],
+  "cases": [
+    {
+      "id": "zh-independent-plots",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "请解释独立样地",
+      "expectedNoHit": false,
+      "expectedElementIds": ["design"]
+    },
+    {
+      "id": "zh-mixed-model",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "线性混合模型如何使用",
+      "expectedNoHit": false,
+      "expectedElementIds": ["stats"]
+    },
+    {
+      "id": "zh-stock-flux",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "碳储量与年固碳通量",
+      "expectedNoHit": false,
+      "expectedElementIds": ["carbon"]
+    },
+    {
+      "id": "zh-quality",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "叶绿素测量质控",
+      "expectedNoHit": false,
+      "expectedElementIds": ["quality"]
+    },
+    {
+      "id": "bilingual-sample",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "english-methods",
+      "question": "请说明样本量",
+      "expectedNoHit": false,
+      "expectedElementIds": ["en-method"]
+    },
+    {
+      "id": "bilingual-method",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "english-methods",
+      "question": "方法是什么",
+      "expectedNoHit": false,
+      "expectedElementIds": ["en-method"]
+    },
+    {
+      "id": "bilingual-results",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "english-methods",
+      "question": "请解释结果",
+      "expectedNoHit": false,
+      "expectedElementIds": ["en-results"]
+    },
+    {
+      "id": "bilingual-limitations",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "english-methods",
+      "question": "请说明局限性",
+      "expectedNoHit": false,
+      "expectedElementIds": ["en-limits"]
+    },
+    {
+      "id": "bilingual-en-to-zh-data",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "where are the data",
+      "expectedNoHit": false,
+      "expectedElementIds": ["data"]
+    },
+    {
+      "id": "number-count",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "numbers",
+      "question": "312",
+      "expectedNoHit": false,
+      "expectedElementIds": ["number-312"]
+    },
+    {
+      "id": "number-decimal",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "numbers",
+      "question": "0.031",
+      "expectedNoHit": false,
+      "expectedElementIds": ["number-decimal"]
+    },
+    {
+      "id": "number-unit",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "numbers",
+      "question": "kg",
+      "expectedNoHit": false,
+      "expectedElementIds": ["number-unit"]
+    },
+    {
+      "id": "number-linked-han",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "numbers",
+      "question": "第2组",
+      "expectedNoHit": false,
+      "expectedElementIds": ["group-2"],
+      "regressionOrigin": "v1基线把数字相连汉字查询分成单字符，曾返回no_match；保留期望，不删除失败。"
+    },
+    {
+      "id": "single-scientific-variable",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "single-variable",
+      "question": "p",
+      "expectedNoHit": false,
+      "expectedElementIds": ["p-value"],
+      "regressionOrigin": "v1基线过滤单字母p，曾返回no_match；保留期望，不删除失败。"
+    },
+    {
+      "id": "late-specific-protocol",
+      "category": "late-paper",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "late-paper",
+      "question": "cryospectrometry",
+      "expectedNoHit": false,
+      "expectedElementIds": ["late-method"],
+      "expectedQuotes": [
+        {
+          "elementId": "late-method",
+          "contains": "cryospectrometry"
+        }
+      ],
+      "minimumPrefixCharacters": 24000
+    },
+    {
+      "id": "late-glacier-query",
+      "category": "late-paper",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "late-paper",
+      "question": "How was glacier variance measured?",
+      "expectedNoHit": false,
+      "expectedElementIds": ["late-method"],
+      "expectedQuotes": [
+        {
+          "elementId": "late-method",
+          "contains": "312 independent samples"
+        }
+      ]
+    },
+    {
+      "id": "continued-fullwidth",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "long-paragraph",
+      "question": "glacier",
+      "expectedNoHit": false,
+      "expectedElementIds": ["continued"],
+      "expectedQuotes": [
+        {
+          "elementId": "continued",
+          "contains": "ｇｌａｃｉｅｒ"
+        }
+      ]
+    },
+    {
+      "id": "fullwidth-nfkc",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "typography",
+      "question": "carbon",
+      "expectedNoHit": false,
+      "expectedElementIds": ["typography-fullwidth"],
+      "expectedQuotes": [
+        {
+          "elementId": "typography-fullwidth",
+          "contains": "ＣＡＲＢＯＮ"
+        }
+      ]
+    },
+    {
+      "id": "newlines-original",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "typography",
+      "question": "repeated measurement variance",
+      "expectedNoHit": false,
+      "expectedElementIds": ["typography-newlines"],
+      "expectedQuotes": [
+        {
+          "elementId": "typography-newlines",
+          "contains": "Repeated  measurement\nvariance"
+        }
+      ]
+    },
+    {
+      "id": "combining-mark-original",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "typography",
+      "question": "遥感植被指数",
+      "expectedNoHit": false,
+      "expectedElementIds": ["typography-unicode"],
+      "expectedQuotes": [
+        {
+          "elementId": "typography-unicode",
+          "contains": "é"
+        }
+      ]
+    },
+    {
+      "id": "nohit-quasars",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "quasars spacetime",
+      "expectedNoHit": true,
+      "expectedElementIds": []
+    },
+    {
+      "id": "nohit-quantum",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "english-methods",
+      "question": "quantum teleportation",
+      "expectedNoHit": true,
+      "expectedElementIds": []
+    },
+    {
+      "id": "nohit-empty",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "empty",
+      "question": "glacier",
+      "expectedNoHit": true,
+      "expectedElementIds": []
+    },
+    {
+      "id": "nohit-unrelated-summary",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "ecology-cn",
+      "question": "请总结火星探测器",
+      "expectedNoHit": true,
+      "expectedElementIds": []
+    },
+    {
+      "id": "version-old-topic-excluded",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "current-version",
+      "question": "glacier",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenVersionIds": ["old-version"]
+    },
+    {
+      "id": "version-old-conversation-excluded",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "current-version",
+      "question": "为什么？",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "expectedFollowUpTo": null,
+      "expectedQueryText": "为什么？",
+      "forbiddenVersionIds": ["old-version"]
+    },
+    {
+      "id": "version-current-evidence",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "current-version",
+      "question": "栎树花粉",
+      "expectedNoHit": false,
+      "expectedElementIds": ["shared-method"],
+      "expectedQuotes": [
+        {
+          "elementId": "shared-method",
+          "contains": "本版本测量栎树花粉"
+        }
+      ],
+      "forbiddenVersionIds": ["old-version"]
+    },
+    {
+      "id": "overview-both-ends",
+      "category": "overview",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "overview",
+      "question": "请概括这篇论文",
+      "expectedNoHit": false,
+      "expectedElementIds": ["overview-1", "overview-12"],
+      "expectedMode": "overview"
+    },
+    {
+      "id": "overview-empty",
+      "category": "overview",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "empty",
+      "question": "overview",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "expectedMode": "overview"
+    },
+    {
+      "id": "follow-first-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "follow-one",
+      "question": "为什么？",
+      "expectedNoHit": false,
+      "expectedElementIds": ["follow-glacier"],
+      "expectedFollowUpTo": "topic-glacier",
+      "expectedQueryText": "glacier variance"
+    },
+    {
+      "id": "follow-repeat-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "follow-repeat",
+      "question": "请再详细解释",
+      "expectedNoHit": false,
+      "expectedElementIds": ["follow-glacier"],
+      "expectedFollowUpTo": "topic-glacier",
+      "expectedQueryText": "glacier variance"
+    },
+    {
+      "id": "follow-expired-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "follow-expired",
+      "question": "为什么？",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "expectedFollowUpTo": null
+    },
+    {
+      "id": "follow-ignore-assistant",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "follow-assistant-only",
+      "question": "为何",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "expectedFollowUpTo": null
+    },
+    {
+      "id": "follow-new-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "follow-one",
+      "question": "城市鸟类",
+      "expectedNoHit": false,
+      "expectedElementIds": ["follow-birds"],
+      "expectedFollowUpTo": null,
+      "expectedQueryText": "城市鸟类"
+    },
+    {
+      "id": "finding-authentic",
+      "category": "finding-anchor",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "finding-valid",
+      "question": "请解释这条意见",
+      "expectedNoHit": false,
+      "expectedElementIds": ["finding-target"],
+      "findingId": "finding-1"
+    },
+    {
+      "id": "finding-invented",
+      "category": "finding-anchor",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "versionId": "finding-fabricated",
+      "question": "请解释这条意见",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "findingId": "finding-1"
+    },
+    {
+      "id": "unsupported-photosynthesis",
+      "category": "exploratory-language",
+      "cohort": "exploratory",
+      "materialType": "synthetic",
+      "versionId": "unsupported-translation",
+      "question": "光合作用",
+      "expectedNoHit": false,
+      "expectedElementIds": ["photosynthesis"],
+      "knownGap": "有限中英词表未覆盖光合作用与photosynthesis，不属于当前词法检索承诺。"
+    },
+    {
+      "id": "unsupported-habitat",
+      "category": "exploratory-language",
+      "cohort": "exploratory",
+      "materialType": "synthetic",
+      "versionId": "unsupported-translation",
+      "question": "生境破碎化",
+      "expectedNoHit": false,
+      "expectedElementIds": ["habitat"],
+      "knownGap": "有限中英词表未覆盖生境破碎化与habitat fragmentation；不据此宣称通用语义检索。"
+    }
+  ]
+}
