@@ -226,6 +226,7 @@ export function makeReviewReport(version, run) {
     toolAudits: {
       data: structuredClone(version.dataAudits?.at(-1) || null),
       references: structuredClone(version.referenceAudits?.at(-1) || null),
+      claims: structuredClone(version.claimAudits?.at(-1) || null),
     },
     packHash: run.packHash,
     upstream: run.pack.upstream || null,

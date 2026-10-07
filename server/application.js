@@ -19,6 +19,7 @@ import { createWorkspaceService } from './workspace.js';
 import { exportChat } from './chat-export.js';
 import { mountReferenceAudit } from './reference-audit.js';
 import { mountDataAudit } from './data-audit.js';
+import { mountClaimAudit } from './claim-audit.js';
 
 export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
   const root = path.resolve(
@@ -132,6 +133,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
 
   const referenceAudits = mountReferenceAudit(app, { store, project, getVersion, save });
   mountDataAudit(app, { store, project, getVersion, save });
+  const claimAudits = mountClaimAudit(app, { store, project, save, models });
 
   function startParsing(workspace, projectId, versionId) {
     const p = store.get(workspace, projectId);
@@ -324,6 +326,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     reviews.remove(p);
     revisions.remove(p);
     referenceAudits.cancelProject(req.workspace, p.id);
+    claimAudits.cancelProject(req.workspace, p.id);
     literatureRequests.get(p.id)?.abort();
     store.delete(req.workspace, p.id);
     for (const v of p.versions) {
@@ -650,6 +653,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     if (closing) return closing;
     closing = (async () => {
       await referenceAudits.shutdown();
+      await claimAudits.shutdown();
       await revisions.shutdown();
       await reviews.shutdown();
       await Promise.all([...workers.values()].map((worker) => worker.terminate()));

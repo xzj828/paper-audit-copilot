@@ -1,5 +1,7 @@
 // Version-scoped lexical RAG. Quotes are source slices; no model generates anchors.
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+// Keep standalone scientific notation without admitting every single-letter word.
+const scientificSymbols = new Set(['p', 'n', 'r', 't', 'f', 'α', 'β', 'χ']);
 const stopwords = new Set(
   (
     '请 请问 解释 分析 告诉 我 我们 你 您 的 地 得 了 是 在 和 与 及 或 对 有 ' +
@@ -15,15 +17,21 @@ function terms(text, withBigrams = true) {
   const normalized = String(text).normalize('NFKC').toLowerCase();
   for (const part of segmenter.segment(normalized)) {
     const word = part.segment;
-    if (!part.isWordLike || stopwords.has(word) || word.length < 2) continue;
+    if (
+      !part.isWordLike ||
+      stopwords.has(word) ||
+      (word.length < 2 && !scientificSymbols.has(word))
+    )
+      continue;
     tokens.push(word);
   }
   // Scientific compounds such as 样地 may be split into two single-character words.
   // Build bigrams across each Han run, independently of the dictionary boundaries.
-  for (const run of withBigrams ? normalized.match(/[\p{Script=Han}]{2,}/gu) || [] : [])
+  // Chinese labels such as 第2组 and 表1 span word boundaries around the digit.
+  for (const run of withBigrams ? normalized.match(/[\p{Script=Han}\d]{2,}/gu) || [] : [])
     for (let i = 0; i < run.length - 1; i++) {
       const pair = run.slice(i, i + 2);
-      if (!stopwords.has(pair)) tokens.push(pair);
+      if (/\p{Script=Han}/u.test(pair) && !stopwords.has(pair)) tokens.push(pair);
     }
   return tokens;
 }
@@ -190,7 +198,7 @@ export function retrieveEvidence(
     characters += header.length + chunk.quote.length + 2;
   }
   const retrieval = {
-    strategy: 'bm25-lexical@1',
+    strategy: 'bm25-lexical@2',
     mode: overview ? 'overview' : 'query',
     versionId: version.id,
     parseId: version.parse?.id || null,

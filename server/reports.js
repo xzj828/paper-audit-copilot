@@ -2,6 +2,7 @@ import { Document, Packer, Paragraph, HeadingLevel } from 'docx';
 import { chromium } from 'playwright';
 import { dataAuditSummary } from './data-audit.js';
 import { referenceAuditSummary } from './reference-audit.js';
+import { claimAuditSummary } from './claim-audit.js';
 
 export const defaultTemplate = {
   id: 'review-report@1',
@@ -146,7 +147,8 @@ export function reportBlocks(report, projectTitle) {
     report.wallMs !== undefined ||
     report.budget ||
     report.toolAudits?.data ||
-    report.toolAudits?.references
+    report.toolAudits?.references ||
+    report.toolAudits?.claims
   ) {
     blocks.push({ heading: 2, text: '执行与证据工具附录' });
     const add = (text) => {
@@ -162,7 +164,7 @@ export function reportBlocks(report, projectTitle) {
       add(
         `预算变更 ${change.changedAt}：调用 ${change.maxRequests ?? '不限'} 次；运行 ${change.maxMinutes ?? '不限'} 分钟。`,
       );
-    if (report.toolAudits?.data || report.toolAudits?.references)
+    if (report.toolAudits?.data || report.toolAudits?.references || report.toolAudits?.claims)
       add(
         '以下为生成本报告时冻结的独立工具结果摘要；评审模型未消费这些结果，不改变科学评分。完整结构化记录另见对应 JSON 快照。',
       );
@@ -201,6 +203,7 @@ export function reportBlocks(report, projectTitle) {
     }
     if (report.toolAudits?.references)
       add(referenceAuditSummary(report.toolAudits.references, { markdown: false }));
+    if (report.toolAudits?.claims) add(claimAuditSummary(report.toolAudits.claims));
   }
   return blocks;
 }

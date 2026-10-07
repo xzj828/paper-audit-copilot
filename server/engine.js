@@ -107,6 +107,7 @@ export function makeStructureReport(version, settings) {
     toolAudits: {
       data: structuredClone(version.dataAudits?.at(-1) || null),
       references: structuredClone(version.referenceAudits?.at(-1) || null),
+      claims: structuredClone(version.claimAudits?.at(-1) || null),
     },
     coverage: '仅完成文本与结构提取。专业评审、语义分析、外部文献比较及 OCR 尚未执行。',
     warnings: [...version.parse.warnings],
