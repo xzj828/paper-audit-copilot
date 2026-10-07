@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Anchor, Report } from '../types';
-defineProps<{ snapshots: NonNullable<Report['toolAudits']>; parseId?: string }>();
+import type { ClaimAuditSnapshot } from '../claim-types';
+defineProps<{
+  snapshots: NonNullable<Report['toolAudits']> & { claims?: ClaimAuditSnapshot | null };
+  parseId?: string;
+}>();
 defineEmits<{ evidence: [anchor: Anchor] }>();
 const statuses: Record<string, string> = {
   found: '已取得注册记录',
@@ -9,12 +13,28 @@ const statuses: Record<string, string> = {
   unavailable: '查询不可用 / 未完成',
   no_doi: '未识别 DOI',
 };
+const relations = {
+  supports: '支持',
+  contradicts: '矛盾',
+  context: '相关上下文',
+  unclear: '关系不明确',
+};
+const decisions = { confirmed: '人工确认关系', rejected: '人工不认可关系', pending: '人工待核对' };
+const claimStatuses = {
+  retrieved: '仅完成原文检索',
+  model_assessed: '模型关系建议，待人工确认',
+  model_failed: '模型判断未完成',
+  no_evidence: '本次未检索到匹配证据',
+};
+function lastReview(snapshot: ClaimAuditSnapshot, relationId: string) {
+  return (snapshot.reviewHistory || []).filter((event) => event.relationId === relationId).at(-1);
+}
 </script>
 <template>
-  <details v-if="snapshots.data || snapshots.references" class="tool-snapshots">
+  <details v-if="snapshots.data || snapshots.references || snapshots.claims" class="tool-snapshots">
     <summary>本报告保存的证据工具快照</summary>
     <p class="small muted">
-      生成本报告时冻结的独立工具结果。评审模型未消费这些结果，不改变科学评分。
+      生成本报告时冻结的独立工具结果。科学评审模型未消费这些结果，不改变科学评分。
     </p>
     <section v-if="snapshots.data" aria-label="报告中的数据复算快照">
       <h4>CSV 描述统计复算</h4>
@@ -71,6 +91,54 @@ const statuses: Record<string, string> = {
         <p v-for="difference in item.differences" :key="difference">{{ difference }}</p>
       </article>
       <p class="small muted">{{ snapshots.references.notice }}</p>
+    </section>
+    <section v-if="snapshots.claims" aria-label="报告中的主张证据链快照">
+      <h4>主张与证据链</h4>
+      <p>
+        {{ snapshots.claims.createdAt }} · {{ claimStatuses[snapshots.claims.status] }} ·
+        {{ snapshots.claims.strategy }}
+      </p>
+      <p><strong>待核对主张：</strong>{{ snapshots.claims.claim.text }}</p>
+      <button
+        v-if="snapshots.claims.claim.anchor"
+        type="button"
+        class="text-button"
+        :disabled="snapshots.claims.parseId !== parseId"
+        @click="$emit('evidence', snapshots.claims.claim.anchor)"
+      >
+        定位证据链快照主张：{{ snapshots.claims.claim.anchor.quote }}
+      </button>
+      <p class="small muted">{{ snapshots.claims.scope }}</p>
+      <p v-if="snapshots.claims.status === 'no_evidence'">
+        本次未检索到匹配证据，不代表论文中不存在证据。
+      </p>
+      <article v-for="relation in snapshots.claims.relations" :key="relation.id">
+        <strong>{{ relation.sourceId }} → {{ relations[relation.relation] }}</strong>
+        <p v-if="lastReview(snapshots.claims, relation.id)">
+          {{ decisions[lastReview(snapshots.claims, relation.id)!.decision] }} ·
+          {{ lastReview(snapshots.claims, relation.id)!.note || '未填写说明' }}
+        </p>
+        <p v-else class="small muted">尚未人工核对</p>
+        <button
+          type="button"
+          class="text-button"
+          :disabled="snapshots.claims.parseId !== parseId"
+          @click="$emit('evidence', relation.anchor)"
+        >
+          {{ relation.anchor.quote }}
+        </button>
+        <p>{{ relation.reasoning }}</p>
+      </article>
+      <details v-if="snapshots.claims.reviewHistory?.length">
+        <summary>本报告保存的人工核对历史</summary>
+        <p v-for="event in snapshots.claims.reviewHistory" :key="event.id">
+          {{ event.at }} · {{ decisions[event.decision] }} · {{ event.note || '未填写说明' }}
+        </p>
+      </details>
+      <p v-for="warning in snapshots.claims.warnings" :key="warning" class="small muted">
+        {{ warning }}
+      </p>
+      <p class="small muted">{{ snapshots.claims.notice }}</p>
     </section>
   </details>
 </template>
