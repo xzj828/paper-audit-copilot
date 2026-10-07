@@ -1,0 +1,1303 @@
+{
+  "schemaVersion": 1,
+  "title": "公开真实论文的固定词法检索验证",
+  "evaluatedAt": "2026-10-07T10:53:44.687Z",
+  "expectedLabelOrigin": "developer-authored expected quotes; not expert gold standard",
+  "datasetNotice": "Developer-authored expected labels, not an expert gold standard. This pilot checks retrieval of predefined source phrases, not scientific review accuracy or whether evidence supports a generated answer. Chinese questions retain English source terms and do not establish general cross-language retrieval. No expected-no-hit cases are claimed.",
+  "fixtureSha256": "0a2d608eafaf30f543b90602a7dcc9472647c5a67fa8ad5d657f98c172955925",
+  "parserVersion": "plos-jats-sax@1",
+  "runtime": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": "local lexical retrieval; no model requests or model cost; network only for explicitly requested publisher XML download",
+  "parameters": {
+    "maxPapers": 3,
+    "maxBytes": 8388608,
+    "timeoutMs": 20000,
+    "maxDepth": 128,
+    "maxNodes": 200000,
+    "topK": 8,
+    "maxContextCharacters": 12000
+  },
+  "gate": "fixed_expectations_passed",
+  "gateMeaning": "只判定本份开发者预设、材料完整性及原文切片校验是否满足；不能认证专家审查、模型推断或一般真实论文准确率。",
+  "summary": {
+    "plannedPapers": 3,
+    "evaluatedPapers": 3,
+    "materialFailures": 0,
+    "plannedQuestions": 9,
+    "completedQuestions": 9,
+    "invalidExpectations": 0,
+    "passedQuestions": 9,
+    "recallAt8": {
+      "matchedExpectedQuotes": 9,
+      "preparedExpectedQuotes": 9,
+      "value": 1,
+      "definition": "仅在成功获取并验证预设的材料中，top-8片段完整包含开发者预设短引文的微平均召回；失败材料与非法预设另行计数，不是专家评审或一般论文准确率。"
+    },
+    "exactQuoteValidity": {
+      "checked": 72,
+      "valid": 72,
+      "value": 1
+    }
+  },
+  "papers": [
+    {
+      "id": "he-2016-soil-respiration",
+      "status": "evaluated",
+      "metadata": {
+        "doi": "10.1371/journal.pone.0155881",
+        "title": "Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest",
+        "authors": ["Tongxin He", "Qingkui Wang", "Silong Wang", "Fangyue Zhang"],
+        "years": ["2016"],
+        "licenses": [
+          {
+            "url": "http://creativecommons.org/licenses/by/4.0/",
+            "type": null,
+            "textSha256": "db6b08e715f8cabd693e0ee58fd429fa739dcb16b9307aeb550f1ba9e514d4ec"
+          }
+        ]
+      },
+      "provenance": {
+        "doi": "10.1371/journal.pone.0155881",
+        "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+        "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0155881&type=manuscript",
+        "retrievedAt": "2026-10-07T10:53:42.717Z",
+        "retrievalTimeSource": "download-completed-clock",
+        "contentSha256": "4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
+        "bytes": 116403,
+        "parserVersion": "plos-jats-sax@1",
+        "license": {
+          "name": "CC BY 4.0",
+          "url": "https://creativecommons.org/licenses/by/4.0/",
+          "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+          "excerpt": "provided the original author and source are credited",
+          "verifiedAt": "2026-10-07"
+        },
+        "fetch": {
+          "redirect": "manual-one-publisher-storage-hop",
+          "redirectCount": 1,
+          "resolvedOrigin": "https://storage.googleapis.com",
+          "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0155881/1/pone.0155881.xml",
+          "signedQuerySaved": false,
+          "timeoutMs": 20000,
+          "maxBytes": 8388608
+        }
+      },
+      "parsedContentSha256": "673a0f38ff3d4b19446103488e5f8b795e8507b8adb4a3b75559548a9c83f59e",
+      "parser": {
+        "version": "plos-jats-sax@1",
+        "library": "sax@1.6.1",
+        "normalization": "XML predefined/numeric entities decoded; inline text joined; whitespace collapsed to one space; no page coordinates",
+        "exclusions": [
+          "ref-list",
+          "ref",
+          "code",
+          "script",
+          "style",
+          "preformat",
+          "supplementary-material",
+          "media",
+          "graphic",
+          "inline-graphic",
+          "tex-math",
+          "inline-formula",
+          "disp-formula"
+        ],
+        "externalResourcesFetched": false
+      },
+      "counts": {
+        "abstract": 1,
+        "body": 37,
+        "paragraphs": 28,
+        "tables": 3,
+        "captions": 7
+      },
+      "questions": [
+        {
+          "id": "he-plot-spacing",
+          "question": "How far apart were the experimental plots, and approximately how many trees did each plot contain?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "plots were 30–40 m apart",
+              "scope": "body",
+              "heading": "Materials and Methods > Experimental design",
+              "elementIds": ["he-2016-soil-respiration:body:0008"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 4.031417000000147,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "he-2016-soil-respiration",
+              "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
+              "queryText": "How far apart were the experimental plots, and approximately how many trees did each plot contain?",
+              "followUpTo": null,
+              "totalChunks": 51,
+              "selectedChunks": 8,
+              "contextCharacters": 6563,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "he-2016-soil-respiration:body:0008",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Experimental design",
+                "offset": 0,
+                "length": 991,
+                "quoteSha256": "035e2c2c29d47e8bc455373887d46564b51373a7d9d8c56bf55f4428c8a93dc5",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "he-2016-soil-respiration:body:0008",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Experimental design",
+                "offset": 871,
+                "length": 268,
+                "quoteSha256": "be345334460a055d6bcb6f2fe06b912c76c84b3c841c85a00a9099dfb753016e",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "he-2016-soil-respiration:body:0007",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Site description",
+                "offset": 0,
+                "length": 488,
+                "quoteSha256": "4ef4b742fdd46ebeec9d15bb19fda6fa1acc848d18dc72ecc854627b9d600812",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "he-2016-soil-respiration:body:0022",
+                "scope": "body",
+                "section": "Body > Results > Soil respiration",
+                "offset": 0,
+                "length": 917,
+                "quoteSha256": "9880c6462428ef7c379c998db44c6248a295c313a7bcd4f5596544a1ffa0ee93",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "he-2016-soil-respiration:body:0010",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 0,
+                "length": 719,
+                "quoteSha256": "b590e8e5bc4421027ff273e0496ceebc06199e1430085a1bc0c5b5702f972640",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "he-2016-soil-respiration:body:0009",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil respiration",
+                "offset": 0,
+                "length": 571,
+                "quoteSha256": "3818c94279a65ebd5acbd6843dead9040c6ef18eb30ee27341b03ecaf4cd1944",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "he-2016-soil-respiration:abstract:0001",
+                "scope": "abstract",
+                "section": "Abstract",
+                "offset": 0,
+                "length": 977,
+                "quoteSha256": "d51cc913c14615bb8c0d6a7b313db29712c4c05edcab50b909e1f15b3f47b549",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "he-2016-soil-respiration:body:0032",
+                "scope": "body",
+                "section": "Body > Discussion > Soil respiration",
+                "offset": 0,
+                "length": 940,
+                "quoteSha256": "1edffac8e090f6a02a2b0c0fe446ebe45151e8dd070e1996546aeef414573550",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "he-mbc-method",
+          "question": "Which method was used to determine soil MBC?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "fumigation extraction method",
+              "scope": "body",
+              "heading": "Materials and Methods > Soil sampling and analysis",
+              "elementIds": ["he-2016-soil-respiration:body:0011"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 2.499416999999994,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "he-2016-soil-respiration",
+              "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
+              "queryText": "Which method was used to determine soil MBC?",
+              "followUpTo": null,
+              "totalChunks": 51,
+              "selectedChunks": 8,
+              "contextCharacters": 5745,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "he-2016-soil-respiration:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 0,
+                "length": 941,
+                "quoteSha256": "372a4d3bceef713bdaadb6558f066fd9fc1551e8f608b36b55bebf2d885663d5",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "he-2016-soil-respiration:body:0010",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 0,
+                "length": 719,
+                "quoteSha256": "b590e8e5bc4421027ff273e0496ceebc06199e1430085a1bc0c5b5702f972640",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "he-2016-soil-respiration:body:0031",
+                "scope": "body",
+                "section": "Body > Discussion > Soil respiration",
+                "offset": 0,
+                "length": 466,
+                "quoteSha256": "187008406cd561618531877c6a257f2ee47e999d6a23d7491d90796ac9079938",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "he-2016-soil-respiration:body:0017",
+                "scope": "body",
+                "section": "Body > Results > Soil environmental conditions",
+                "offset": 0,
+                "length": 515,
+                "quoteSha256": "2b3d0d5f476836e12bb2989c45ac87fe019f0eb8bf6822bbfb99f4ecdad1fce8",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "he-2016-soil-respiration:body:0014",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Calculation and statistical analysis",
+                "offset": 0,
+                "length": 802,
+                "quoteSha256": "59de50059f4ba9fc14524bcaad6a69f5a3616c7d9753266aaebb474a6b35f81a",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "he-2016-soil-respiration:body:0002",
+                "scope": "body",
+                "section": "Body > Introduction",
+                "offset": 0,
+                "length": 915,
+                "quoteSha256": "fb8eccaef35e8350c9f77eebd14fdbd21e70234b162e029a8238891a0a08d608",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "he-2016-soil-respiration:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 821,
+                "length": 300,
+                "quoteSha256": "8a69980fb5056dd64abc0d33534a36a06b9afe35c55c45c219a49d0913d088de",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "he-2016-soil-respiration:body:0023",
+                "scope": "body",
+                "section": "Body > Results > Soil respiration",
+                "offset": 0,
+                "length": 355,
+                "quoteSha256": "ff09a16b13c7f1774af66b217c09a59b61865f41a8cd2a336dd6bb82be600662",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "he-soil-properties",
+          "question": "SOC、TN contents 和 pH 在 girdling 或 N addition 后是否改变？请定位原文。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "pH were unchanged by girdling or N addition",
+              "scope": "body",
+              "heading": "Results > Soil environmental conditions",
+              "elementIds": ["he-2016-soil-respiration:body:0015"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 3.126875000000382,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "he-2016-soil-respiration",
+              "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
+              "queryText": "SOC、TN contents 和 pH 在 girdling 或 N addition 后是否改变？请定位原文。",
+              "followUpTo": null,
+              "totalChunks": 51,
+              "selectedChunks": 8,
+              "contextCharacters": 5200,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "he-2016-soil-respiration:body:0015",
+                "scope": "body",
+                "section": "Body > Results > Soil environmental conditions",
+                "offset": 0,
+                "length": 540,
+                "quoteSha256": "8b2b90f429b4b2208b60f971c494e517f03adfa6722bd0f4406390aba6e4f5a7",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "he-2016-soil-respiration:body:0017",
+                "scope": "body",
+                "section": "Body > Results > Soil environmental conditions",
+                "offset": 0,
+                "length": 515,
+                "quoteSha256": "2b3d0d5f476836e12bb2989c45ac87fe019f0eb8bf6822bbfb99f4ecdad1fce8",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "he-2016-soil-respiration:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 0,
+                "length": 941,
+                "quoteSha256": "372a4d3bceef713bdaadb6558f066fd9fc1551e8f608b36b55bebf2d885663d5",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "he-2016-soil-respiration:body:0010",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 0,
+                "length": 719,
+                "quoteSha256": "b590e8e5bc4421027ff273e0496ceebc06199e1430085a1bc0c5b5702f972640",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "he-2016-soil-respiration:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Soil sampling and analysis",
+                "offset": 821,
+                "length": 300,
+                "quoteSha256": "8a69980fb5056dd64abc0d33534a36a06b9afe35c55c45c219a49d0913d088de",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "he-2016-soil-respiration:abstract:0001",
+                "scope": "abstract",
+                "section": "Abstract",
+                "offset": 857,
+                "length": 763,
+                "quoteSha256": "fec7c692313900e75fc4b2a5dd451587fedb7af8127382acc106ed9e27da781a",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "he-2016-soil-respiration:body:0023",
+                "scope": "body",
+                "section": "Body > Results > Soil respiration",
+                "offset": 0,
+                "length": 355,
+                "quoteSha256": "ff09a16b13c7f1774af66b217c09a59b61865f41a8cd2a336dd6bb82be600662",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "he-2016-soil-respiration:body:0024",
+                "scope": "body",
+                "section": "Body > Results > Soil respiration",
+                "offset": 0,
+                "length": 366,
+                "quoteSha256": "cce1b6e20aa4dccac4c14dc9d74aa15d664e09aedad43f37e4f7eca6db3777ba",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "beule-2021-agroforestry-bacteria",
+      "status": "evaluated",
+      "metadata": {
+        "doi": "10.1371/journal.pone.0246919",
+        "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+        "authors": ["Lukas Beule", "Petr Karlovsky"],
+        "years": ["2021"],
+        "licenses": [
+          {
+            "url": "http://creativecommons.org/licenses/by/4.0/",
+            "type": null,
+            "textSha256": "db6b08e715f8cabd693e0ee58fd429fa739dcb16b9307aeb550f1ba9e514d4ec"
+          }
+        ]
+      },
+      "provenance": {
+        "doi": "10.1371/journal.pone.0246919",
+        "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+        "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919&type=manuscript",
+        "retrievedAt": "2026-10-07T10:53:43.668Z",
+        "retrievalTimeSource": "download-completed-clock",
+        "contentSha256": "b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
+        "bytes": 140865,
+        "parserVersion": "plos-jats-sax@1",
+        "license": {
+          "name": "CC BY 4.0",
+          "url": "https://creativecommons.org/licenses/by/4.0/",
+          "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+          "excerpt": "provided the original author and source are credited",
+          "verifiedAt": "2026-10-07"
+        },
+        "fetch": {
+          "redirect": "manual-one-publisher-storage-hop",
+          "redirectCount": 1,
+          "resolvedOrigin": "https://storage.googleapis.com",
+          "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0246919/1/pone.0246919.xml",
+          "signedQuerySaved": false,
+          "timeoutMs": 20000,
+          "maxBytes": 8388608
+        }
+      },
+      "parsedContentSha256": "09222ce40ecf76ac8b431c2eabf53eac0b5e4465eea809b84ca379f30d2aca2e",
+      "parser": {
+        "version": "plos-jats-sax@1",
+        "library": "sax@1.6.1",
+        "normalization": "XML predefined/numeric entities decoded; inline text joined; whitespace collapsed to one space; no page coordinates",
+        "exclusions": [
+          "ref-list",
+          "ref",
+          "code",
+          "script",
+          "style",
+          "preformat",
+          "supplementary-material",
+          "media",
+          "graphic",
+          "inline-graphic",
+          "tex-math",
+          "inline-formula",
+          "disp-formula"
+        ],
+        "externalResourcesFetched": false
+      },
+      "counts": {
+        "abstract": 4,
+        "body": 42,
+        "paragraphs": 39,
+        "tables": 1,
+        "captions": 6
+      },
+      "questions": [
+        {
+          "id": "beule-replicate-plots",
+          "question": "How many replicate plots were established at every study site in the agroforestry and monoculture cropland systems?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "four replicate plots",
+              "scope": "body",
+              "heading": "Materials and methods > Study sites and experimental design",
+              "elementIds": ["beule-2021-agroforestry-bacteria:body:0007"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 3.580333999999766,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "beule-2021-agroforestry-bacteria",
+              "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
+              "queryText": "How many replicate plots were established at every study site in the agroforestry and monoculture cropland systems?",
+              "followUpTo": null,
+              "totalChunks": 65,
+              "selectedChunks": 8,
+              "contextCharacters": 7147,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0007",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 876,
+                "quoteSha256": "c4766dab0f4e7f572f935db5725d7ee83a05eef82b18bef0d15a321390320f69",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0004",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 948,
+                "quoteSha256": "4a80e98232ac581cee92484c9fc67c06a7cf4c4452f35d9139ba2c08e82b8acd",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0006",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 1000,
+                "quoteSha256": "df313fe9e48016cfaf58c0441edf92919c5e74787a2294b35283862054136545",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0005",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 439,
+                "quoteSha256": "c54e9eabb62296ee2355a0157adb175a705e87de8e76c127a356856b97c41a5c",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0038",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of agroforestry on the composition of soil bacterial community",
+                "offset": 0,
+                "length": 876,
+                "quoteSha256": "669a321ec804576e884f473129d6b1dd5c74c47f6cd2741791ac8071e90958de",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0040",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of agroforestry on the composition of soil bacterial community",
+                "offset": 0,
+                "length": 940,
+                "quoteSha256": "0628c6f5f55dfe57feea2056744abc45f1aa6f0fb631ef8205d2610af8e80756",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0029",
+                "scope": "body",
+                "section": "Body > Results > Relative abundance of taxonomic soil bacterial groups",
+                "offset": 0,
+                "length": 479,
+                "quoteSha256": "f20a5f1b7727b60fdada3148341296685379272eae501985fdddbc6da4b3bd92",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "beule-2021-agroforestry-bacteria:abstract:0002",
+                "scope": "abstract",
+                "section": "Abstract > Methods",
+                "offset": 0,
+                "length": 631,
+                "quoteSha256": "23069c419a24a55ea1f5776265fb3e547803733c2bf8879d29ecfc356f112406",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "beule-sampling-depth",
+          "question": "2019 年 soil samples 的采样深度是多少？请定位正文方法段。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "top 5-cm depth",
+              "scope": "body",
+              "heading": "Materials and methods > Soil collection and DNA extraction",
+              "elementIds": ["beule-2021-agroforestry-bacteria:body:0008"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 2.364165999999841,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "beule-2021-agroforestry-bacteria",
+              "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
+              "queryText": "2019 年 soil samples 的采样深度是多少？请定位正文方法段。",
+              "followUpTo": null,
+              "totalChunks": 65,
+              "selectedChunks": 8,
+              "contextCharacters": 6981,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0008",
+                "scope": "body",
+                "section": "Body > Materials and methods > Soil collection and DNA extraction",
+                "offset": 0,
+                "length": 921,
+                "quoteSha256": "e7c1aaf598e0addabfedeab74c69333caa73f3bf713871e6ae56da6039ec7960",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0006",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 1000,
+                "quoteSha256": "df313fe9e48016cfaf58c0441edf92919c5e74787a2294b35283862054136545",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0006",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 880,
+                "length": 429,
+                "quoteSha256": "6dc65facd45aab8bcbe40e851ca6fcc9d036b0723f04f603b9636f81046650df",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0037",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of agroforestry on the composition of soil bacterial community",
+                "offset": 819,
+                "length": 875,
+                "quoteSha256": "25ea432dfb33417a31580c29d3b209be623d876434d0a842a270071e224b8690",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0007",
+                "scope": "body",
+                "section": "Body > Materials and methods > Study sites and experimental design",
+                "offset": 0,
+                "length": 876,
+                "quoteSha256": "c4766dab0f4e7f572f935db5725d7ee83a05eef82b18bef0d15a321390320f69",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and methods > Library normalization",
+                "offset": 839,
+                "length": 402,
+                "quoteSha256": "dcc6ac3607123658323ce3512ef21e68b41bdbf8d7f6efde5de71273966f8309",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0010",
+                "scope": "body",
+                "section": "Body > Materials and methods > Library normalization",
+                "offset": 0,
+                "length": 587,
+                "quoteSha256": "6701d4c76c15c446beaef6de5c2b8627e8260db89fd1ef0e6059c333598b8526",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0011",
+                "scope": "body",
+                "section": "Body > Materials and methods > Library normalization",
+                "offset": 0,
+                "length": 959,
+                "quoteSha256": "8bb678a653f25d2194c37d35d41b57e26c34e30c52817c29adb33ff875f39f14",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "beule-chthoniobacter-result",
+          "question": "How did Chthoniobacter abundance in monoculture compare with the tree row across the three soil types?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "lower abundance of Chthoniobacter",
+              "scope": "body",
+              "heading": "Results > Relative abundance of taxonomic soil bacterial groups",
+              "elementIds": ["beule-2021-agroforestry-bacteria:body:0028"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 4.294209000000137,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "beule-2021-agroforestry-bacteria",
+              "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
+              "queryText": "How did Chthoniobacter abundance in monoculture compare with the tree row across the three soil types?",
+              "followUpTo": null,
+              "totalChunks": 65,
+              "selectedChunks": 8,
+              "contextCharacters": 7663,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0028",
+                "scope": "body",
+                "section": "Body > Results > Relative abundance of taxonomic soil bacterial groups",
+                "offset": 0,
+                "length": 919,
+                "quoteSha256": "0726e6ea72c7f8b24067509812a642f84b382a396ec9dcd461bca1f429f67118",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0030",
+                "scope": "body",
+                "section": "Body > Results > Relative abundance of taxonomic soil bacterial groups",
+                "offset": 0,
+                "length": 962,
+                "quoteSha256": "f5f963fe0662448c99e12244863f37720d2da72db1221cd85cac9833e3403f88",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0029",
+                "scope": "body",
+                "section": "Body > Results > Relative abundance of taxonomic soil bacterial groups",
+                "offset": 0,
+                "length": 479,
+                "quoteSha256": "f20a5f1b7727b60fdada3148341296685379272eae501985fdddbc6da4b3bd92",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0032",
+                "scope": "body",
+                "section": "Body > Results > Abundance of N fixation gene nifH in soil",
+                "offset": 0,
+                "length": 635,
+                "quoteSha256": "f6cbc9385923590d3fd7f4f4aa09eb183721d036a510ccf3d87b4a23362373b5",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0023",
+                "scope": "body",
+                "section": "Body > Results > Overall soil bacterial community",
+                "offset": 0,
+                "length": 847,
+                "quoteSha256": "2659d7ff4c6bfd78f976a5145c9695be530969cd63a57e8c6cf33f62b933a579",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0033",
+                "scope": "body",
+                "section": "Body > Discussion > Main impacts of temperate agroforestry on soil bacterial communities",
+                "offset": 0,
+                "length": 989,
+                "quoteSha256": "4cde4558954e14c46fbd99d8c2d1d24e163969cbb7034b9df6ca19bc0b0fe639",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0026",
+                "scope": "body",
+                "section": "Body > Results > Diversity and composition of soil bacterial communities",
+                "offset": 0,
+                "length": 973,
+                "quoteSha256": "a6385a61720db33044c0d58eb4058eb51cf60db65fd821ecc8916b6634e4aa17",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "beule-2021-agroforestry-bacteria:body:0027",
+                "scope": "body",
+                "section": "Body > Results > Diversity and composition of soil bacterial communities",
+                "offset": 0,
+                "length": 886,
+                "quoteSha256": "fe2b12f7ebe4378b977867eea125a52b0795b02805f6f6f2537dfae935f7a0ff",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "du-2014-plantation-carbon",
+      "status": "evaluated",
+      "metadata": {
+        "doi": "10.1371/journal.pone.0087975",
+        "title": "Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China",
+        "authors": ["Zhihong Du", "Wei Wang", "Wenjing Zeng", "Hui Zeng"],
+        "years": ["2014"],
+        "licenses": [
+          {
+            "url": "http://creativecommons.org/licenses/by/4.0/",
+            "type": null,
+            "textSha256": "0415a53ad94b185859f4daf2e2a9ef4fee103a74c51c635aa1564f6d47a0d601"
+          }
+        ]
+      },
+      "provenance": {
+        "doi": "10.1371/journal.pone.0087975",
+        "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+        "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0087975&type=manuscript",
+        "retrievedAt": "2026-10-07T10:53:44.673Z",
+        "retrievalTimeSource": "download-completed-clock",
+        "contentSha256": "4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
+        "bytes": 109478,
+        "parserVersion": "plos-jats-sax@1",
+        "license": {
+          "name": "CC BY 4.0",
+          "url": "https://creativecommons.org/licenses/by/4.0/",
+          "evidenceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+          "excerpt": "provided the original author and source are credited",
+          "verifiedAt": "2026-10-07"
+        },
+        "fetch": {
+          "redirect": "manual-one-publisher-storage-hop",
+          "redirectCount": 1,
+          "resolvedOrigin": "https://storage.googleapis.com",
+          "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0087975/1/pone.0087975.xml",
+          "signedQuerySaved": false,
+          "timeoutMs": 20000,
+          "maxBytes": 8388608
+        }
+      },
+      "parsedContentSha256": "41f1abba5726ff92ea7c20c02596de036a0e0b0a0f53ea01a1c37560923b3ff2",
+      "parser": {
+        "version": "plos-jats-sax@1",
+        "library": "sax@1.6.1",
+        "normalization": "XML predefined/numeric entities decoded; inline text joined; whitespace collapsed to one space; no page coordinates",
+        "exclusions": [
+          "ref-list",
+          "ref",
+          "code",
+          "script",
+          "style",
+          "preformat",
+          "supplementary-material",
+          "media",
+          "graphic",
+          "inline-graphic",
+          "tex-math",
+          "inline-formula",
+          "disp-formula"
+        ],
+        "externalResourcesFetched": false
+      },
+      "counts": {
+        "abstract": 1,
+        "body": 39,
+        "paragraphs": 32,
+        "tables": 1,
+        "captions": 7
+      },
+      "questions": [
+        {
+          "id": "du-random-allocation",
+          "question": "How were plots and treatments allocated in the nitrogen addition experiment?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "plots and treatments were randomly laid out",
+              "scope": "body",
+              "heading": "Materials and Methods > Experimental treatments",
+              "elementIds": ["du-2014-plantation-carbon:body:0008"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 2.2027079999998023,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "du-2014-plantation-carbon",
+              "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
+              "queryText": "How were plots and treatments allocated in the nitrogen addition experiment?",
+              "followUpTo": null,
+              "totalChunks": 56,
+              "selectedChunks": 8,
+              "contextCharacters": 4112,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "du-2014-plantation-carbon:body:0008",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Experimental treatments",
+                "offset": 0,
+                "length": 693,
+                "quoteSha256": "681c64d4e73a96fc37acd48809caac30e2467c66a384ae13123d1f12004893d6",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "du-2014-plantation-carbon:body:0024",
+                "scope": "body",
+                "section": "Body > Results > SR and its autotrophic and heterotrophic components",
+                "offset": 0,
+                "length": 275,
+                "quoteSha256": "569d79fb1ac06edadb1ed1c4827830c3043f97c4180fd0470cb1beb088b6d931",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "du-2014-plantation-carbon:body:0028",
+                "scope": "body",
+                "section": "Body > Results > Plant chemical parameters",
+                "offset": 0,
+                "length": 207,
+                "quoteSha256": "279f2626af41bd14facb7046f6558df43c3d192cb683675645dc5f937bd10e3d",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "du-2014-plantation-carbon:body:0030",
+                "scope": "body",
+                "section": "Body > Results > Soil chemical parameters",
+                "offset": 0,
+                "length": 377,
+                "quoteSha256": "8e7a154af69279d480734d1bd76fdb209034699c862e4ee52a78adc6db307cb2",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "du-2014-plantation-carbon:body:0021",
+                "scope": "body",
+                "section": "Body > Results > Biomass production and accumulation",
+                "offset": 0,
+                "length": 168,
+                "quoteSha256": "54a1f1226958f025a7c635fedc89a8164f4d3b054b2d67608dc64915abad7a6b",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "du-2014-plantation-carbon:body:0026",
+                "scope": "body",
+                "section": "Body > Results > Net ecosystem productivity (NEP)",
+                "offset": 0,
+                "length": 162,
+                "quoteSha256": "33f202bfb1b871e4b33d88e7f92b181373bfdfd132951cff62af744233e7f522",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "du-2014-plantation-carbon:body:0020",
+                "scope": "body",
+                "section": "Body > Results > Biomass production and accumulation",
+                "offset": 0,
+                "length": 523,
+                "quoteSha256": "d96ecad581e5ac0d9380324069deb3567c5b992bc29bb558176881b8aafa21c5",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "du-2014-plantation-carbon:body:0034",
+                "scope": "body",
+                "section": "Body > Discussion > SR and its autotrophic and heterotrophic components",
+                "offset": 0,
+                "length": 910,
+                "quoteSha256": "fc00d627db3ccaa3678213bb8e6eb59f64c826389666d7ead1752de0f8f6a5ce",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "du-nep-result",
+          "question": "How did net ecosystem productivity (NEP) change under fertilization when HR decreased and NPP increased?",
+          "language": "en",
+          "expected": [
+            {
+              "quote": "from 149 to 426.6",
+              "scope": "body",
+              "heading": "Results > Net ecosystem productivity (NEP)",
+              "elementIds": ["du-2014-plantation-carbon:body:0025"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 2.4749159999992116,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "du-2014-plantation-carbon",
+              "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
+              "queryText": "How did net ecosystem productivity (NEP) change under fertilization when HR decreased and NPP increased?",
+              "followUpTo": null,
+              "totalChunks": 56,
+              "selectedChunks": 8,
+              "contextCharacters": 5561,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "du-2014-plantation-carbon:body:0025",
+                "scope": "body",
+                "section": "Body > Results > Net ecosystem productivity (NEP)",
+                "offset": 0,
+                "length": 230,
+                "quoteSha256": "453f7f438e9b8ec9fd7e5b4d31952ccc8b7fa3a00d4c37fffcc05e89fc52ba24",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "du-2014-plantation-carbon:body:0010",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Field measurements > Biomass production and accumulation",
+                "offset": 771,
+                "length": 230,
+                "quoteSha256": "43a1a8ded5d6491f42f8090cf5fe62a82dfc0efd7b993b6d2cc1c628c5bec0c2",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "du-2014-plantation-carbon:body:0026",
+                "scope": "body",
+                "section": "Body > Results > Net ecosystem productivity (NEP)",
+                "offset": 0,
+                "length": 162,
+                "quoteSha256": "33f202bfb1b871e4b33d88e7f92b181373bfdfd132951cff62af744233e7f522",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "du-2014-plantation-carbon:abstract:0001",
+                "scope": "abstract",
+                "section": "Abstract",
+                "offset": 876,
+                "length": 975,
+                "quoteSha256": "19c7abd2341460bdfe2d9e176905bd2b7f2fdc991050683d1246bfabc1f0d140",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "du-2014-plantation-carbon:body:0035",
+                "scope": "body",
+                "section": "Body > Discussion > SR and its autotrophic and heterotrophic components",
+                "offset": 0,
+                "length": 927,
+                "quoteSha256": "97be50cc396530b489e487cee99e9323ce51a39aeac3e43ddb7bd67b7b8ae3e8",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "du-2014-plantation-carbon:body:0001",
+                "scope": "body",
+                "section": "Body > Introduction",
+                "offset": 0,
+                "length": 832,
+                "quoteSha256": "b3fd7be43d514c62184224a70a2f2a3d99c822c636b0531f32bf11ccde5d4a67",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "du-2014-plantation-carbon:body:0005",
+                "scope": "body",
+                "section": "Body > Introduction",
+                "offset": 1346,
+                "length": 647,
+                "quoteSha256": "9e9d02edfcea45bf1098c113f3b20f04afe106cf0d020e01c17ed4aad7ba8d32",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "du-2014-plantation-carbon:body:0038",
+                "scope": "body",
+                "section": "Body > Conclusion",
+                "offset": 0,
+                "length": 867,
+                "quoteSha256": "3174415d4798daabc814fe06bf0202463425a1a62839de04922d8bd3c4c2c3de",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "du-extrapolation-limit",
+          "question": "作者对将结果 extrapolating 到 long-term N inputs 的系统提出了什么提醒？请定位原文。",
+          "language": "zh",
+          "expected": [
+            {
+              "quote": "systems with long-term N inputs",
+              "scope": "body",
+              "heading": "Discussion > Effect of N fertilization on NEP",
+              "elementIds": ["du-2014-plantation-carbon:body:0037"]
+            }
+          ],
+          "status": "passed",
+          "errors": [],
+          "matchedExpectedQuotes": 1,
+          "latencyMs": 1.9104589999997188,
+          "actual": {
+            "retrieval": {
+              "strategy": "bm25-lexical@2",
+              "mode": "query",
+              "versionId": "du-2014-plantation-carbon",
+              "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
+              "queryText": "作者对将结果 extrapolating 到 long-term N inputs 的系统提出了什么提醒？请定位原文。",
+              "followUpTo": null,
+              "totalChunks": 56,
+              "selectedChunks": 8,
+              "contextCharacters": 4097,
+              "status": "matched",
+              "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。"
+            },
+            "sources": [
+              {
+                "id": "R1",
+                "elementId": "du-2014-plantation-carbon:body:0037",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of N fertilization on NEP",
+                "offset": 0,
+                "length": 886,
+                "quoteSha256": "61fbe8524aed6c519202cda8dd286e1af8a6f41463d36589f33e766dbe9d9188",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R2",
+                "elementId": "du-2014-plantation-carbon:body:0037",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of N fertilization on NEP",
+                "offset": 766,
+                "length": 242,
+                "quoteSha256": "9c3e483b09481bafc55306a5b68275b5d8ff392fe2c33b473b516ed6131579d3",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R3",
+                "elementId": "du-2014-plantation-carbon:abstract:0001",
+                "scope": "abstract",
+                "section": "Abstract",
+                "offset": 1731,
+                "length": 293,
+                "quoteSha256": "acd5054aec928baaeccdc6ee08151dbea105d13a42c26b83ec3df01fb398c48e",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R4",
+                "elementId": "du-2014-plantation-carbon:body:0036",
+                "scope": "body",
+                "section": "Body > Discussion > Effect of N fertilization on NEP",
+                "offset": 0,
+                "length": 620,
+                "quoteSha256": "de26ca6f2a9265f7fae3948702c80c6ae91a85c01fb591a9de28a73a73b4e6c6",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R5",
+                "elementId": "du-2014-plantation-carbon:body:0007",
+                "scope": "body",
+                "section": "Body > Materials and Methods > Site description",
+                "offset": 0,
+                "length": 793,
+                "quoteSha256": "d636d412c669e098115da885fd1ca65efe394e7a066c3f48bf65b41e75bd9606",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R6",
+                "elementId": "du-2014-plantation-carbon:body:0021",
+                "scope": "body",
+                "section": "Body > Results > Biomass production and accumulation",
+                "offset": 0,
+                "length": 168,
+                "quoteSha256": "54a1f1226958f025a7c635fedc89a8164f4d3b054b2d67608dc64915abad7a6b",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R7",
+                "elementId": "du-2014-plantation-carbon:body:0026",
+                "scope": "body",
+                "section": "Body > Results > Net ecosystem productivity (NEP)",
+                "offset": 0,
+                "length": 162,
+                "quoteSha256": "33f202bfb1b871e4b33d88e7f92b181373bfdfd132951cff62af744233e7f522",
+                "exactQuoteValid": true
+              },
+              {
+                "id": "R8",
+                "elementId": "du-2014-plantation-carbon:body:0028",
+                "scope": "body",
+                "section": "Body > Results > Plant chemical parameters",
+                "offset": 0,
+                "length": 207,
+                "quoteSha256": "279f2626af41bd14facb7046f6558df43c3d192cb683675645dc5f937bd10e3d",
+                "exactQuoteValid": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "少量开发者选择的开放论文与预设问题，不是代表性样本、专家金标准、独立盲评或学术审查准确率。",
+    "中文题保留英文术语属于混语词法检索，不验证纯跨语言能力；逐字召回不能证明模型答案或支持/反驳推断正确。",
+    "来源为基准专用出版商JATS XML解析，不验证应用PDF/DOCX/OCR上传解析完整性；摘要与正文分别标记，段落/表格/图注只提取可见文本并统一空白。锚点指向该规范化文本，不是原PDF页码。",
+    "未解析图像、数学公式、参考文献列表、代码块或补充附件；未命中不证明全文不存在。",
+    "完整XML只保留指定本地素材缓存；公开报告仅存短预设、位置、长度、哈希与校验结果，可用同一缓存离线复核。"
+  ]
+}

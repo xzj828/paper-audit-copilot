@@ -1,5 +1,7 @@
 # Windows 桌面版安装与发布
 
+2026-10-07 参赛开发仓库已 Fork 到 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)。Fork 保留代码、提交和标签，但不复制 [原项目 Releases](https://github.com/xzj828/paper-audit-copilot/releases) 中的安装包资产。当前未在新仓库发布或验证新的 Windows 安装包；本轮参赛交付仍为可运行的 Web 源码。以后从当前源码打包时，自动更新读取 `package.json` 中的新仓库地址，只有在该仓库发布完整安装与更新资产后才能工作。已安装的原项目版本仍按自身内置配置检查原项目更新，不会因 Fork 自动切换。
+
 ## 用户安装
 
 Windows x64 用户下载 `PaperAuditCopilot-Setup-<版本>.exe` 后双击安装。安装程序创建开始菜单项和桌面快捷方式；用户不需要另外安装 Node.js、数据库或浏览器运行时。
