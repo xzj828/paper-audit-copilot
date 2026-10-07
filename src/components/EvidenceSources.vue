@@ -19,6 +19,9 @@ defineEmits<{ locate: [anchor: Anchor] }>();
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
+    <p v-if="retrieval.followUpTo" class="retrieval-scope">
+      沿用上一轮问题检索：{{ retrieval.queryText }}
+    </p>
     <details v-if="sources?.length" class="retrieval-passages" open>
       <summary>查看本次提供的原文 · 引用编号匹配不代表结论已核验</summary>
       <button
@@ -66,6 +69,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   color: var(--muted);
   font-size: 11px;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 .retrieval-passages summary {
   cursor: pointer;
