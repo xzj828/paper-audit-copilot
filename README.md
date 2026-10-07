@@ -148,7 +148,7 @@ Windows 默认使用已安装的 Chrome，可通过 `CHROME_PATH` 指定浏览�
 
 GitHub Actions 模板保存在 [docs/github-actions.yml](docs/github-actions.yml)。当前本机 GitHub 令牌没有 `workflow` 权限，因此未启用远端 CI；获得该权限后，将模板放到 `.github/workflows/check.yml` 即可。模板会安装浏览器依赖并执行全部检查。
 
-浏览器测试覆盖桌面、390px 手机、批注、搜索、对话、报告导出、真实 PDF/DOCX 上传、解析、版本对比、刷新恢复和删除。截图保存在 `docs/screenshots/`。测试只使用程序生成的微型 PDF/DOCX，不使用真实研究资料。
+浏览器测试覆盖桌面、390px 手机、批注、搜索、对话、报告导出、实际 PDF/DOCX 上传、解析、版本对比、刷新恢复和删除。截图保存在 `docs/screenshots/`。材料包含程序生成的 PDF/DOCX、受控保存记录，以及保留署名与 CC BY 4.0 许可的出版商原始 DOCX/PDF；真实材料与控制结果分别登记，不代表专家审稿准确率。测试在独立空间运行，不自动读取用户的私有论文。
 
 API 测试使用独立临时数据库，浏览器测试使用独立端口与测试数据目录。`data/`、`test-results/`、本机环境文件、依赖和构建目录全部在 Git 忽略清单中。
 
