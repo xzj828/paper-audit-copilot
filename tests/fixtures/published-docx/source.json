@@ -1,0 +1,53 @@
+{
+  "id": "beule-2021-s1-table",
+  "filename": "beule-2021-s1-table.docx",
+  "materialType": "publisher-original-supplementary-docx",
+  "title": "S1 Table. Permutational multivariate analysis of variance (PERMANOVA) results.",
+  "articleTitle": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+  "authors": ["Lukas Beule", "Petr Karlovsky"],
+  "year": 2021,
+  "articleDOI": "10.1371/journal.pone.0246919",
+  "supplementDOI": "10.1371/journal.pone.0246919.s003",
+  "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+  "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919.s003&type=supplementary",
+  "resolvedURL": "https://storage.googleapis.com/plos-corpus-prod/10.1371/journal.pone.0246919/1/pone.0246919.s003.docx",
+  "license": {
+    "name": "CC BY 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "copyright": "© 2021 Beule, Karlovsky",
+    "evidenceURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+    "policyURL": "https://journals.plos.org/plosone/s/licenses-and-copyright",
+    "verifiedAt": "2026-10-07"
+  },
+  "retrievedAt": "2026-10-07",
+  "bytes": 14145,
+  "sha256": "30518b9cf54b6afd0ae82ff3716fb97e6f3eb7c476b694bcc592c853e2e3175a",
+  "modifications": "None: original downloaded DOCX bytes retained. Parser normalizes text; its preview is not the original Word layout.",
+  "expectedLabelOrigin": "Developer checked original OOXML cell text before registering expectations; not an expert gold standard.",
+  "expectedRows": [
+    ["source of variance", "df", "Sum Sq", "R2", "F", "p-value"],
+    ["soil typea", "2", "4.407", "0.288", "15.021", "0.001"],
+    ["sampling locationb", "4", "1.831", "0.120", "3.120", "0.001"],
+    ["soil typea × sampling locationb", "8", "2.476", "0.162", "2.110", "0.001"],
+    ["residuals", "45", "6.601", "0.431", "", ""],
+    ["total", "59", "15.315", "1.000", "", ""]
+  ],
+  "questions": [
+    {
+      "id": "soil-type-values",
+      "question": "soil type R2 F",
+      "expectedRow": 1
+    },
+    {
+      "id": "sampling-location-values",
+      "question": "sampling location variance",
+      "expectedRow": 2
+    },
+    {
+      "id": "interaction-values",
+      "question": "soil type sampling location interaction",
+      "expectedRow": 3
+    }
+  ],
+  "scope": "One published supplementary table. Checks parser geometry, exact source cells and retrieval slices. Does not assess PERMANOVA validity, scientific inference, original pagination or expert accuracy."
+}
