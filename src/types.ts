@@ -65,14 +65,32 @@ export interface Section {
     }[];
   };
 }
+export interface PdfPage {
+  page: number;
+  text: string;
+  width?: number;
+  height?: number;
+  textMap?: string;
+  unmappedTextItems?: number;
+  items?: {
+    text: string;
+    offset?: number;
+    end?: number;
+    bbox?: number[] | null;
+    transform?: number[];
+    width?: number;
+    height?: number;
+  }[];
+}
 export interface ParseArtifact {
   id: string;
   parser: string;
   coverage: string;
   characterCount: number;
   sections: Section[];
-  pages: { page: number; text: string }[];
+  pages: PdfPage[];
   warnings: string[];
+  normalization?: string;
   structure?: {
     tableCount: number;
     rowCount: number;

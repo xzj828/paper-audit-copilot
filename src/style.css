@@ -1838,6 +1838,9 @@ progress {
 }
 .pdf-reader {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
   justify-content: flex-start;
   min-width: max-content;
   background: #e9edf2;
@@ -1848,6 +1851,22 @@ progress {
   display: block;
   background: white;
   box-shadow: 0 2px 8px #0002;
+}
+.pdf-page-stage {
+  position: relative;
+  width: max-content;
+  flex-shrink: 0;
+}
+.pdf-quote-box {
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 1px solid #bd593b;
+  background: rgba(255, 208, 72, 0.28);
+}
+.pdf-evidence-status {
+  margin: 10px 20px;
+  max-width: min(680px, calc(100vw - 60px));
 }
 .document-wait {
   height: 100%;
@@ -2784,7 +2803,6 @@ progress {
     height: auto;
     gap: 1px;
   }
-  .zoom-control,
   .view-tools .toolbar-divider,
   .view-tools button[aria-label='收藏当前阅读位置'] {
     display: none;

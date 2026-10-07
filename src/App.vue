@@ -18,6 +18,7 @@ import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
+import { literalRange } from '../shared/text-highlight.js';
 import type {
   Project,
   Version,
@@ -28,6 +29,7 @@ import type {
   EvidenceSource,
   Retrieval,
   ReviewBudget,
+  Section,
 } from './types';
 
 const managementPage = ref('');
@@ -92,7 +94,7 @@ const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
 const evidenceQuote = ref('');
-const docxAnchor = ref<Anchor | null>(null);
+const textAnchor = ref<Anchor | null>(null);
 const configuration = ref<{
   packs: { id: string; name: string }[];
   templates: { id: string; name: string }[];
@@ -376,13 +378,31 @@ const filteredProjects = computed(() =>
     .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned))),
 );
 const searchResults = computed(() => {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query) return [];
+  if (!searchInput.value.trim()) return [];
   return (
     version.value?.parse?.sections
-      .filter((s) => `${s.title} ${s.text} ${s.after || ''}`.toLowerCase().includes(query))
+      .filter((section) => literalRange(section.text, searchInput.value))
       .slice(0, 60) || []
   );
+});
+function searchAnchor(section: Section): Anchor {
+  const range = literalRange(section.text, searchInput.value);
+  return {
+    elementId: section.id,
+    page: section.page,
+    section: section.title,
+    offset: range?.start,
+    quote: range ? section.text.slice(range.start, range.end) : '',
+  };
+}
+function searchPreview(section: Section) {
+  const start = Math.max(0, (literalRange(section.text, searchInput.value)?.start || 0) - 30);
+  return section.text.slice(start, start + 200);
+}
+watch(searchInput, () => {
+  textAnchor.value = null;
+  evidenceQuote.value = '';
+  visualAnchor.value = null;
 });
 const uploadUrl = computed(() =>
   project.value && version.value
@@ -482,7 +502,7 @@ function restoreView() {
   selectedReportId.value = '';
   searchInput.value = '';
   evidenceQuote.value = '';
-  docxAnchor.value = null;
+  textAnchor.value = null;
   visualAnchor.value = null;
 }
 async function initialize() {
@@ -804,7 +824,7 @@ function askCopilot() {
 }
 async function locate(anchor: Anchor, findingId?: string) {
   evidenceQuote.value = anchor.kind === 'visual' ? '' : anchor.quote;
-  docxAnchor.value = anchor.kind === 'visual' ? null : anchor;
+  textAnchor.value = anchor.kind === 'visual' ? null : anchor;
   visualAnchor.value = anchor.kind === 'visual' ? anchor : null;
   tab.value = 'annotations';
   page.value = anchor.page || 1;
@@ -1568,6 +1588,8 @@ onUnmounted(() => {
               :continuous="readingPreferences.layout === 'continuous'"
               :query="evidenceQuote || searchInput"
               :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
+              :text-anchor="textAnchor"
+              :parsed-page="version.parse?.pages.find((item) => item.page === page)"
               @pages="pageCount = $event" />
             <article
               v-else
@@ -1586,7 +1608,7 @@ onUnmounted(() => {
                 v-for="section in version.parse?.sections"
                 :key="section.id"
                 :section="section"
-                :anchor="docxAnchor"
+                :anchor="textAnchor"
               /></article
           ></template>
           <div v-else class="empty-state document-wait">
@@ -2422,24 +2444,11 @@ onUnmounted(() => {
           v-for="section in searchResults"
           :key="section.id"
           class="search-result"
-          @click="
-            locate({
-              elementId: section.id,
-              page: section.page,
-              section: section.title,
-              quote: section.text.slice(0, 100),
-            })
-          "
+          @click="locate(searchAnchor(section))"
         >
           <strong>{{ section.title }}</strong>
           <p>
-            {{
-              section.text.slice(
-                Math.max(0, section.text.toLowerCase().indexOf(searchInput.toLowerCase()) - 30),
-                Math.max(0, section.text.toLowerCase().indexOf(searchInput.toLowerCase()) - 30) +
-                  200,
-              )
-            }}
+            {{ searchPreview(section) }}
           </p>
           <small>定位到原文 <Icon name="arrow" :size="13" /></small>
         </button>
