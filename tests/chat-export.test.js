@@ -6,6 +6,7 @@ import path from 'node:path';
 import { chatSnapshot, exportChat } from '../server/chat-export.js';
 import { createPaperAuditApplication } from '../server/application.js';
 import { docxFixture } from './fixtures.js';
+import { PDF_TEXT_NORMALIZATION } from '../shared/pdf-text.js';
 
 const quote = 'Methods: sample size was 312. <img src="https://example.org/tracker"> ```';
 const source = {
@@ -118,6 +119,44 @@ test('table evidence export keeps focused offsets and the parser normalization c
   assert.equal(result.version.parseSchemaVersion, '1.1.0');
   assert.equal(result.version.textNormalization, 'cells TAB, rows LF');
   assert.match(exportChat(project, tableVersion, 'md'), /表格区块（非 Word 页码）/);
+});
+
+test('PDF export preserves physical page, repeated occurrence offset and text normalization', () => {
+  const text = 'Repeated sample 312\nRepeated sample 312';
+  const pdfVersion = {
+    ...version,
+    filename: 'controlled.pdf',
+    parse: {
+      id: 'pdf-parse',
+      parser: 'pdfjs-dist@6:text-map@1',
+      schemaVersion: '1.1.0',
+      normalization: PDF_TEXT_NORMALIZATION,
+      sections: [{ id: 'page-2', page: 2, text }],
+    },
+    messages: [
+      {
+        kind: 'assistant',
+        sources: [
+          {
+            id: 'R1',
+            anchor: {
+              elementId: 'page-2',
+              page: 2,
+              section: '第 2 页',
+              quote: 'Repeated sample 312',
+              offset: 20,
+            },
+          },
+        ],
+      },
+    ],
+  };
+  const result = JSON.parse(exportChat(project, pdfVersion, 'json'));
+  assert.equal(result.version.textNormalization, PDF_TEXT_NORMALIZATION);
+  assert.equal(result.messages[0].sources[0].anchor.offset, 20);
+  assert.equal(result.messages[0].sources[0].anchor.page, 2);
+  assert.equal(result.messages[0].sources[0].sourceMatch, 'exact_match');
+  assert.match(exportChat(project, pdfVersion, 'md'), /位置：第 2 页/);
 });
 
 test('conversation download isolates workspaces and exact versions after real upload and question', async () => {

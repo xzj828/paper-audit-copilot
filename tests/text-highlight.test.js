@@ -1,6 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { quoteRange, textSegments, focusAnchor } from '../shared/text-highlight.js';
+import { literalRange, quoteRange, textSegments, focusAnchor } from '../shared/text-highlight.js';
+
+test('literal search returns the source occurrence and escapes regex syntax without changing text coordinates', () => {
+  const text = 'first context; later Kvalue [a+b] and a.b';
+  for (const query of ['kVALUE', '[a+b]', 'a.b']) {
+    const range = literalRange(text, query);
+    assert.ok(range);
+    assert.equal(range.start, query === 'kVALUE' ? text.indexOf('Kvalue') : text.indexOf(query));
+    assert.equal(text.slice(range.start, range.end), query === 'kVALUE' ? 'Kvalue' : query);
+  }
+  assert.equal(literalRange(text, 'not present'), null);
+});
+
+test('empty search never creates an empty or guessed document anchor', () => {
+  for (const query of ['', '  ', null, undefined])
+    assert.equal(literalRange('actual text', query), null);
+});
 
 test('repeated table values highlight only the explicitly anchored occurrence', () => {
   const text = '高山样地\t312\n河岸样地\t312';
