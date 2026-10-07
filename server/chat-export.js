@@ -47,7 +47,8 @@ export function chatSnapshot(project, version, exportedAt = new Date().toISOStri
       parseId: version.parse?.id || null,
       parser: version.parse?.parser || null,
       parseSchemaVersion: version.parse?.schemaVersion || null,
-      textNormalization: version.parse?.structure?.normalization || null,
+      textNormalization:
+        version.parse?.normalization || version.parse?.structure?.normalization || null,
     },
     messages: (version.messages || [])
       .filter((message) => ['user', 'assistant'].includes(message.kind))

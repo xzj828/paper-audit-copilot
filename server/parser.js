@@ -2,6 +2,7 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { parseDocxStructure } from './docx-structure.js';
+import { buildPdfPage, PDF_TEXT_NORMALIZATION } from '../shared/pdf-text.js';
 
 async function parse() {
   const buffer = await readFile(workerData.path);
@@ -10,6 +11,7 @@ async function parse() {
   const pages = [];
   let parser;
   let structure;
+  let normalization;
   if (workerData.format === 'pdf') {
     const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const task = getDocument({ data: new Uint8Array(buffer), useSystemFonts: true });
@@ -19,29 +21,28 @@ async function parse() {
       const page = await document.getPage(p);
       const content = await page.getTextContent();
       const viewport = page.getViewport({ scale: 1 });
-      const items = content.items.filter((i) => typeof i.str === 'string');
-      const text = items
-        .map((i) => i.str + (i.hasEOL ? '\n' : ' '))
-        .join('')
-        .trim();
+      const mapped = buildPdfPage(content, viewport);
+      const { text } = mapped;
       pages.push({
         page: p,
         width: viewport.width,
         height: viewport.height,
-        text,
-        items: items.map((i) => ({
-          text: i.str,
-          transform: i.transform,
-          width: i.width,
-          height: i.height,
-        })),
+        ...mapped,
       });
       sections.push({ id: `page-${p}`, title: `第 ${p} 页`, text, page: p });
       if (text.length < 30) warnings.push(`第 ${p} 页文本较少，可能含扫描图像；未执行 OCR。`);
+      if (mapped.unmappedTextItems)
+        warnings.push(
+          `第 ${p} 页有 ${mapped.unmappedTextItems} 个文字块无法映射到可见坐标，相关引文仅跳转页码。`,
+        );
       parentPort.postMessage({ progress: Math.round((p / document.numPages) * 90) });
     }
     await task.destroy();
-    parser = 'pdfjs-dist@6';
+    parser = 'pdfjs-dist@6:text-map@1';
+    normalization = PDF_TEXT_NORMALIZATION;
+    warnings.push(
+      'PDF 文字按内嵌文本顺序提取；位置框覆盖文字块，可能包含相邻字。双栏阅读顺序、表格关系、图像与完整公式需人工核对；未执行 OCR。',
+    );
   } else {
     const result = await parseDocxStructure(buffer);
     sections.push(...result.sections);
@@ -54,10 +55,11 @@ async function parse() {
   return {
     id: randomUUID(),
     parser,
-    schemaVersion: structure ? '1.1.0' : '1.0.0',
+    schemaVersion: '1.1.0',
     sections,
     pages,
     ...(structure ? { structure } : {}),
+    ...(normalization ? { normalization } : {}),
     characterCount,
     coverage: warnings.length ? 'partial' : 'text-only',
     warnings,
