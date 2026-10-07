@@ -133,6 +133,36 @@ test('citation labels are checked against supplied evidence without claiming sem
   assert.match(checkCitations('Unsupported answer.', sources).warning, /未使用/);
 });
 
+test('explicit follow-ups retain the current version user topic and identify its source', () => {
+  const paper = latePaper();
+  paper.messages = [
+    { id: 'q1', kind: 'user', text: 'glacier variance' },
+    { id: 'a1', kind: 'assistant', text: 'quasars spacetime — fabricated model topic' },
+    { id: 'q2', kind: 'user', text: '为什么？' },
+  ];
+  const result = retrieveEvidence(paper, '请再详细解释');
+  assert.equal(result.retrieval.queryText, 'glacier variance');
+  assert.equal(result.retrieval.followUpTo, 'q1');
+  assert.equal(result.sources[0].anchor.page, 61);
+  assert.equal(retrieveEvidence(paper, 'quasars spacetime').retrieval.status, 'no_match');
+  assert.equal(retrieveEvidence(paper, 'quasars spacetime').retrieval.followUpTo, null);
+  assert.equal(retrieveEvidence(paper, '请概括论文').retrieval.mode, 'overview');
+  const freshVersion = version([{ id: 'different', text: 'unrelated background' }]);
+  assert.equal(retrieveEvidence(freshVersion, '为什么？').retrieval.status, 'no_match');
+  assert.equal(retrieveEvidence(freshVersion, '为什么？').retrieval.followUpTo, null);
+});
+
+test('follow-up topic lookup is bounded and does not resurrect an earlier unrelated question', () => {
+  const paper = latePaper();
+  paper.messages = [
+    { id: 'q1', kind: 'user', text: 'glacier variance' },
+    ...Array.from({ length: 3 }, (_, i) => ({ id: `follow-${i}`, kind: 'user', text: '继续解释' })),
+  ];
+  assert.equal(retrieveEvidence(paper, '为什么').sources.length, 0);
+  paper.messages = [{ id: 'q2', kind: 'user', text: 'quasars spacetime' }];
+  assert.equal(retrieveEvidence(paper, '为什么').sources.length, 0);
+});
+
 test('model RAG sends late evidence, emits retrieval before deltas, persists sources and warns about fake IDs', async (t) => {
   const directory = mkdtempSync(path.join(tmpdir(), 'rag-model-'));
   const db = new DatabaseSync(':memory:');
