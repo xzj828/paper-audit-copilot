@@ -1,6 +1,6 @@
 # Windows 桌面版安装与发布
 
-2026-10-07 参赛开发仓库已 Fork 到 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)。Fork 保留代码、提交和标签，但不复制 [原项目 Releases](https://github.com/xzj828/paper-audit-copilot/releases) 中的安装包资产。当前未在新仓库发布或验证新的 Windows 安装包；本轮参赛交付仍为可运行的 Web 源码。以后从当前源码打包时，自动更新读取 `package.json` 中的新仓库地址，只有在该仓库发布完整安装与更新资产后才能工作。已安装的原项目版本仍按自身内置配置检查原项目更新，不会因 Fork 自动切换。
+2026-10-07 参赛开发仓库复制到 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，之后按用户明确授权解除 Fork 关联并设为 Private。代码、完整提交和两个标签保留；[原项目 Releases](https://github.com/xzj828/paper-audit-copilot/releases) 中的安装包资产没有复制。当前未在新仓库发布或验证新的 Windows 安装包，参赛交付仍为可运行的 Web 源码。当前源码的更新目标读取 `package.json` 中的新仓库地址；私有仓库的匿名下载与自动更新链路尚未配置或验证，不能据此承诺已可自动更新。后续发布需另行确定获授权的安装资产访问与更新方案，不擅自公开仓库。已安装的原项目版本仍按自身内置配置检查原项目更新，不会因复制仓库自动切换。
 
 ## 用户安装
 

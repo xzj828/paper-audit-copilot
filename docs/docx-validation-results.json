@@ -1,0 +1,159 @@
+{
+  "schema": "published-docx-validation@1",
+  "status": "passed",
+  "evaluatedAt": "2026-10-07T12:10:08.247Z",
+  "labelOrigin": "Developer checked original OOXML cell text before registering expectations; not an expert gold standard.",
+  "scope": "One published supplementary table. Checks parser geometry, exact source cells and retrieval slices. Does not assess PERMANOVA validity, scientific inference, original pagination or expert accuracy.",
+  "source": {
+    "title": "S1 Table. Permutational multivariate analysis of variance (PERMANOVA) results.",
+    "authors": [
+      "Lukas Beule",
+      "Petr Karlovsky"
+    ],
+    "articleDOI": "10.1371/journal.pone.0246919",
+    "supplementDOI": "10.1371/journal.pone.0246919.s003",
+    "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919.s003&type=supplementary",
+    "license": "CC BY 4.0",
+    "licenseURL": "https://creativecommons.org/licenses/by/4.0/",
+    "sourceSHA256": "30518b9cf54b6afd0ae82ff3716fb97e6f3eb7c476b694bcc592c853e2e3175a",
+    "bytes": 14145,
+    "manifestSHA256": "a15f323577ca6ee1ff9fad9e0def2e17a61cb43852df8ba865f2d715ce5b5b26"
+  },
+  "parser": "mammoth@1:structured-tables@1",
+  "schemaVersion": "1.1.0",
+  "textNormalization": "docx-table-text@1: cells joined with TAB; rows with LF; merged values not repeated",
+  "parseTextSHA256": "b696e5c35a70cb141f7614c2809b89479e6eff0e98e240e0b014daada96eb77a",
+  "structure": {
+    "tableCount": 1,
+    "rowCount": 6,
+    "cellCount": 36,
+    "mergedCellCount": 0,
+    "imageCount": 0,
+    "nestedTableCount": 0,
+    "normalization": "docx-table-text@1: cells joined with TAB; rows with LF; merged values not repeated"
+  },
+  "rowsMatch": true,
+  "cellAnchors": {
+    "total": 36,
+    "exact": 36
+  },
+  "questions": [
+    {
+      "id": "soil-type-values",
+      "question": "soil type R2 F",
+      "expectedRow": 2,
+      "rowRetrieved": true,
+      "strategy": "bm25-lexical@2",
+      "slices": [
+        {
+          "elementId": "paragraph-4",
+          "offset": 0,
+          "length": 215,
+          "quoteSHA256": "29dd54fd38f22685ee676155fdabb26e27e74f3c7c62373fd6f49eaeaa0a7f73",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "table-1",
+          "offset": 0,
+          "length": 231,
+          "quoteSHA256": "b6408fbbbcf2c378855bc86cdccfcf2f3d941d322f355d60c9ca381d076680bc",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "paragraph-2",
+          "offset": 0,
+          "length": 243,
+          "quoteSHA256": "b422cb9e58911ab0e4925f8d95559bcb50c13dec8d6a5f66d4831dc964ce0917",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "paragraph-3",
+          "offset": 0,
+          "length": 76,
+          "quoteSHA256": "257cf7972ce62062cd56ff64bc2a098d4c0b9ce6115bb13f18f030d2f922e9f0",
+          "exact": true,
+          "focusExact": true
+        }
+      ]
+    },
+    {
+      "id": "sampling-location-values",
+      "question": "sampling location variance",
+      "expectedRow": 3,
+      "rowRetrieved": true,
+      "strategy": "bm25-lexical@2",
+      "slices": [
+        {
+          "elementId": "table-1",
+          "offset": 0,
+          "length": 231,
+          "quoteSHA256": "b6408fbbbcf2c378855bc86cdccfcf2f3d941d322f355d60c9ca381d076680bc",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "paragraph-1",
+          "offset": 0,
+          "length": 78,
+          "quoteSHA256": "f4afce4693aeabc55a005819bbac83c95264dc29e266bbe88580508b034f78a1",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "paragraph-4",
+          "offset": 0,
+          "length": 215,
+          "quoteSHA256": "29dd54fd38f22685ee676155fdabb26e27e74f3c7c62373fd6f49eaeaa0a7f73",
+          "exact": true,
+          "focusExact": true
+        }
+      ]
+    },
+    {
+      "id": "interaction-values",
+      "question": "soil type sampling location interaction",
+      "expectedRow": 4,
+      "rowRetrieved": true,
+      "strategy": "bm25-lexical@2",
+      "slices": [
+        {
+          "elementId": "paragraph-4",
+          "offset": 0,
+          "length": 215,
+          "quoteSHA256": "29dd54fd38f22685ee676155fdabb26e27e74f3c7c62373fd6f49eaeaa0a7f73",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "table-1",
+          "offset": 0,
+          "length": 231,
+          "quoteSHA256": "b6408fbbbcf2c378855bc86cdccfcf2f3d941d322f355d60c9ca381d076680bc",
+          "exact": true,
+          "focusExact": true
+        },
+        {
+          "elementId": "paragraph-3",
+          "offset": 0,
+          "length": 76,
+          "quoteSHA256": "257cf7972ce62062cd56ff64bc2a098d4c0b9ce6115bb13f18f030d2f922e9f0",
+          "exact": true,
+          "focusExact": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "registeredQueries": 3,
+    "expectedRowsRetrieved": 3,
+    "returnedSlices": 10,
+    "exactSlices": 10
+  },
+  "warnings": [
+    "DOCX 保留段落、表格行列与合并范围；不还原 Word 分页、原始排版、图像内容与公式，专业检查需确认解析覆盖。"
+  ],
+  "limits": "No network or model calls. One source with developer-defined expectations; not expert review accuracy or general DOCX/PDF coverage. This CLI uses the production parsing worker; browser upload and click navigation are checked separately by Playwright."
+}
