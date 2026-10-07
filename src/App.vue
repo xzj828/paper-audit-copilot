@@ -9,6 +9,9 @@ import MessageContent from './components/MessageContent.vue';
 import EvidenceSources from './components/EvidenceSources.vue';
 import { readSSE } from '../shared/sse.js';
 import ReviewControls from './components/ReviewControls.vue';
+import ReferenceAudit from './components/ReferenceAudit.vue';
+import DataAudit from './components/DataAudit.vue';
+import ToolSnapshots from './components/ToolSnapshots.vue';
 import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
@@ -22,6 +25,7 @@ import type {
   ModelConfig,
   EvidenceSource,
   Retrieval,
+  ReviewBudget,
 } from './types';
 
 const managementPage = ref('');
@@ -387,6 +391,27 @@ async function safe(task: () => Promise<void>) {
 async function refreshList() {
   projects.value = await api<Project[]>('/projects');
 }
+let toolUpdateSequence = 0;
+async function acceptToolUpdate(updated: Project) {
+  if (project.value?.id !== updated.id) return;
+  const activeVersionId = project.value.activeVersionId;
+  const sequence = ++toolUpdateSequence;
+  const navigation = requestSequence;
+  settingsRevision++;
+  await safe(async () => {
+    // Concurrent tools can finish in a different order from their responses.
+    // Read current storage instead of replacing it with an older POST snapshot.
+    const latest = await api<Project>(`/projects/${updated.id}`);
+    if (
+      sequence !== toolUpdateSequence ||
+      navigation !== requestSequence ||
+      project.value?.id !== updated.id ||
+      project.value.activeVersionId !== activeVersionId
+    )
+      return;
+    project.value = { ...latest, activeVersionId };
+  });
+}
 function persistView() {
   if (project.value && version.value)
     localStorage.setItem(
@@ -627,7 +652,7 @@ async function poll() {
     /* Preserve current data; a later poll retries. */
   }
 }
-async function startReview(retryId?: string) {
+async function startReview(retryId?: string, budget?: ReviewBudget) {
   if (!project.value || !version.value || busy.value || savingSettings.value) return;
   if (project.value.settings.articleType !== 'empirical') {
     reviewSettingsOpen.value = true;
@@ -649,7 +674,7 @@ async function startReview(retryId?: string) {
       if (project.value?.id === id) project.value = saved;
       const data = await api<Project>(
         `/projects/${id}/review`,
-        json('POST', { versionId, retryId }),
+        json('POST', { versionId, retryId, budget }),
       );
       if (project.value?.id === id) project.value = data;
       notify('评审已开始，分析结果将逐条显示在对话中');
@@ -800,6 +825,8 @@ async function generateReport() {
     if (project.value?.id === id && version.value?.id === versionId) {
       project.value = data;
       openReport();
+      selectedReportId.value =
+        data.versions.find((item) => item.id === versionId)?.reports.at(-1)?.id || '';
     }
     notify('报告已生成并保存');
   });
@@ -1374,6 +1401,7 @@ onUnmounted(() => {
             v-for="item in [
               { id: 'annotations', label: '论文批注' },
               { id: 'parse', label: '论文解析' },
+              { id: 'tools', label: '证据工具' },
               { id: 'report', label: '评审报告' },
             ]"
             :key="item.id"
@@ -1835,6 +1863,45 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <div
+        v-else-if="tab === 'tools'"
+        class="artifact-scroll"
+        tabindex="0"
+        aria-label="证据工具滚动区"
+      >
+        <div class="artifact-content evidence-tools">
+          <div class="artifact-title">
+            <div>
+              <h2>证据工具</h2>
+              <p>核对文献与数据，留下可复查的计算和来源。</p>
+            </div>
+            <span class="status-pill">当前版本 v{{ version.number }}</span>
+          </div>
+          <ReferenceAudit
+            v-if="project"
+            :key="`references-${version.id}`"
+            :project-id="project.id"
+            :version="version"
+            @updated="acceptToolUpdate"
+            @evidence="locate"
+          />
+          <DataAudit
+            v-if="project"
+            :key="`data-${version.id}`"
+            :project-id="project.id"
+            :version="version"
+            @updated="acceptToolUpdate"
+            @evidence="locate"
+          />
+          <p class="small muted">
+            工具结果与科学评审分开记录。完成核对后，可生成解析报告，保存当前工具快照并导出。
+          </p>
+          <button class="secondary-button" :disabled="busy" @click="generateReport">
+            保存工具快照到报告
+          </button>
+        </div>
+      </div>
+
       <div v-else class="artifact-scroll report-viewer" tabindex="0" aria-label="预览内容滚动区">
         <div v-if="report" class="report-toolbar" role="region" aria-label="报告操作">
           <select
@@ -1921,6 +1988,19 @@ onUnmounted(() => {
                 {{ report.usage.completionTokens.toLocaleString() }} token，缓存命中
                 {{ report.usage.cachedTokens.toLocaleString() }} token。
               </p>
+              <p v-if="report.wallMs !== undefined" class="small muted">
+                任务累计运行 {{ (report.wallMs / 60000).toFixed(2) }} 分钟，暂停等待不计时。
+                <template v-if="report.budget"
+                  >预算：调用 {{ report.budget.maxRequests ?? '不限' }} 次，运行
+                  {{ report.budget.maxMinutes ?? '不限' }} 分钟。</template
+                >
+              </p>
+              <ToolSnapshots
+                v-if="report.toolAudits"
+                :snapshots="report.toolAudits"
+                :parse-id="version.parse?.id"
+                @evidence="locate"
+              />
               <details v-if="report.visual" class="visual-coverage">
                 <summary>
                   逐页视觉核查 · {{ report.visual.renderedPages }}/{{ report.visual.pageCount }} 页

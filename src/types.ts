@@ -1,3 +1,10 @@
+import type { ReferenceAuditSnapshot } from './reference-types';
+import type { DataAuditSnapshot } from './data-audit-types';
+
+export interface ReviewBudget {
+  maxRequests: number | null;
+  maxMinutes: number | null;
+}
 export interface Anchor {
   offset?: number;
   bbox?: number[];
@@ -91,6 +98,13 @@ export interface VisualCoverage {
   }[];
 }
 export interface Report {
+  budget?: ReviewBudget | null;
+  budgetHistory?: { changedAt: string; maxRequests: number | null; maxMinutes: number | null }[];
+  wallMs?: number;
+  toolAudits?: {
+    data: DataAuditSnapshot | null;
+    references: ReferenceAuditSnapshot | null;
+  };
   visual?: VisualCoverage | null;
   usage?: {
     requests: number;
@@ -100,6 +114,7 @@ export interface Report {
     cachedTokens: number;
     imageInputs: number;
     reportedRequests: number;
+    wallMs?: number;
   } | null;
   templateSnapshot?: { title: string; introduction: string; sections: string[] };
   trial?: boolean;
@@ -162,6 +177,8 @@ export interface Report {
   warnings?: string[];
 }
 export interface Version {
+  dataAudits?: DataAuditSnapshot[];
+  referenceAudits?: ReferenceAuditSnapshot[];
   createdAt?: string;
   activityAt?: string;
   activityText?: string;
@@ -190,6 +207,20 @@ export interface LiteratureSearch {
   records: { id: string; title: string; url: string; year: number | null; accessLevel: string }[];
 }
 export interface ReviewRun {
+  budget?: ReviewBudget | null;
+  budgetHistory?: { changedAt: string; maxRequests: number | null; maxMinutes: number | null }[];
+  wallMs?: number;
+  usage?: {
+    requests: number;
+    failedRequests: number;
+    promptTokens: number;
+    completionTokens: number;
+    cachedTokens: number;
+    imageInputs: number;
+    reportedRequests: number;
+    elapsedMs: number;
+    wallMs?: number;
+  };
   note?: string;
   results?: {
     findingId: string;

@@ -832,11 +832,14 @@ kbd {
 }
 .workspace-tabs {
   display: flex;
+  min-width: 0;
+  overflow-x: auto;
   height: 100%;
   gap: 17px;
   white-space: nowrap;
 }
 .workspace-tabs button {
+  flex-shrink: 0;
   font-size: 14px;
   padding: 0 9px;
   border-bottom: 3px solid transparent;
