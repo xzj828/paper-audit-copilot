@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
 import { docxFixture } from '../fixtures.js';
 
 async function uploadPaper(page) {
@@ -43,6 +44,26 @@ test('real long DOCX retrieves late evidence, locates it, and preserves sources 
   await page.screenshot({ path: 'docs/screenshots/retrieval-desktop.png' });
   await page.reload();
   await expect(evidence).toContainText('312 independent samples');
+  await page.getByRole('textbox', { name: '询问 Copilot' }).fill('为什么？');
+  await page.getByRole('button', { name: '发送消息' }).click();
+  await expect(page.locator('.event-assistant').last()).toContainText('沿用上一轮问题检索');
+  await expect(page.locator('.event-assistant').last()).toContainText('312 independent samples');
+  await page.getByRole('button', { name: '项目操作', exact: true }).click();
+  await page.getByRole('button', { name: '导出对话与证据', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('4 条已保存问答记录');
+  const jsonDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: '下载 JSON 记录' }).click();
+  const downloaded = await jsonDownload;
+  expect(downloaded.suggestedFilename()).toMatch(/v1.json$/);
+  const snapshot = JSON.parse(await readFile(await downloaded.path(), 'utf8'));
+  expect(snapshot.messages).toHaveLength(4);
+  expect(snapshot.messages.at(-1).retrieval.followUpTo).toBe(snapshot.messages[0].id);
+  expect(snapshot.messages.at(-1).sources[0].sourceMatch).toBe('exact_match');
+  const mdDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: '下载 Markdown 笔记' }).click();
+  const notes = await mdDownload;
+  expect(await readFile(await notes.path(), 'utf8')).toContain('312 independent samples');
+  await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
   await page.getByRole('textbox', { name: '询问 Copilot' }).fill('quasars spacetime');
   await page.getByRole('button', { name: '发送消息' }).click();
   await expect(page.locator('.event-assistant').last()).toContainText('未找到匹配证据');
@@ -100,6 +121,18 @@ test('mobile model stream exposes evidence, validates references, and never call
       true,
     );
     await page.screenshot({ path: 'docs/screenshots/retrieval-mobile.png' });
+    await page.getByRole('button', { name: '项目操作', exact: true }).click();
+    await page.getByRole('button', { name: '导出对话与证据', exact: true }).click();
+    const exported = page.waitForEvent('download');
+    await page.getByRole('button', { name: '下载 JSON 记录' }).click();
+    const snapshot = JSON.parse(await readFile(await (await exported).path(), 'utf8'));
+    expect(snapshot.messages.at(-1).citationWarning).toContain('R999');
+    expect(snapshot.messages.at(-1).sources[0].cited).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({ path: 'docs/screenshots/conversation-export-mobile.png' });
+    await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
     await page.getByRole('button', { name: /定位证据 R1/ }).click();
     await expect(page.locator('.docx-paper mark')).toBeVisible();
     await page.getByRole('button', { name: '对话', exact: true }).click();
