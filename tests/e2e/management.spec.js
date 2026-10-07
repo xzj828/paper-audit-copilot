@@ -82,8 +82,8 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
   await row.locator('.document-name').click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page).toHaveURL(/#library$/);
-  await expect(page.locator('.pdf-reader > canvas')).toBeVisible();
-  const canvas = page.locator('.document-modal .pdf-reader > canvas');
+  await expect(page.locator('.pdf-page-stage > canvas')).toBeVisible();
+  const canvas = page.locator('.document-modal .pdf-page-stage > canvas');
   const initialWidth = await canvas.evaluate((c) => c.width);
   await page.getByRole('button', { name: '放大文档', exact: true }).click();
   await expect.poll(() => canvas.evaluate((c) => c.width)).toBeGreaterThan(initialWidth);
@@ -95,6 +95,9 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
   await expect
     .poll(() => page.locator('.pdf-continuous-page canvas').evaluate((c) => c.width))
     .toBeGreaterThan(600);
+  const firstBounds = await canvas.boundingBox();
+  const nextBounds = await page.locator('.pdf-continuous-page canvas').boundingBox();
+  expect(nextBounds.y).toBeGreaterThanOrEqual(firstBounds.y + firstBounds.height);
   await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
   await expect(page.locator('.library-heading h1')).toHaveText('全部文献');
 });
