@@ -22,6 +22,14 @@ export function textSegments(text, offset, range) {
   ].filter((part) => part.text);
 }
 
+export function literalRange(text, query) {
+  const literal = query?.trim();
+  if (!literal) return null;
+  const escaped = literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(escaped, 'iu').exec(text);
+  return match ? { start: match.index, end: match.index + match[0].length } : null;
+}
+
 // Excerpts have their own absolute offset, separate from the full RAG chunk.
 // Old saved messages derive it from the chunk; invalid excerpts retain the full
 // verified anchor rather than silently pointing to unrelated repeated text.

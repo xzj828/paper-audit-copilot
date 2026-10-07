@@ -13,3 +13,4 @@ export function textSegments(
   range: TextRange | null,
 ): { text: string; highlight: boolean }[];
 export function focusAnchor(source: EvidenceSource): Anchor;
+export function literalRange(text: string, query?: string | null): TextRange | null;
