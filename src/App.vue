@@ -6,13 +6,23 @@ import PdfReader from './components/PdfReader.vue';
 import ModelSettings from './components/ModelSettings.vue';
 import ModelPicker from './components/ModelPicker.vue';
 import MessageContent from './components/MessageContent.vue';
+import EvidenceSources from './components/EvidenceSources.vue';
 import { readSSE } from '../shared/sse.js';
 import ReviewControls from './components/ReviewControls.vue';
 import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
-import type { Project, Version, Finding, Anchor, Comparison, ModelConfig } from './types';
+import type {
+  Project,
+  Version,
+  Finding,
+  Anchor,
+  Comparison,
+  ModelConfig,
+  EvidenceSource,
+  Retrieval,
+} from './types';
 
 const managementPage = ref('');
 function syncManagementRoute() {
@@ -193,6 +203,8 @@ const pendingChat = ref<{
   question: string;
   answer: string;
   error: string;
+  sources?: EvidenceSource[];
+  retrieval?: Retrieval;
 } | null>(null);
 const activeChat = computed(() =>
   pendingChat.value?.projectId === project.value?.id &&
@@ -663,6 +675,10 @@ async function sendMessage() {
         const data = JSON.parse(frame);
         if (data.type === 'error') throw new Error(data.error);
         if (data.type === 'delta') pending.answer += data.text;
+        if (data.type === 'context') {
+          pending.sources = data.sources;
+          pending.retrieval = data.retrieval;
+        }
         if (data.type === 'done') {
           completed = true;
           if (project.value?.id === id && version.value?.id === versionId)
@@ -707,7 +723,10 @@ async function locate(anchor: Anchor, findingId?: string) {
   await nextTick();
   const target = document.getElementById(anchor.elementId);
   if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    (target.querySelector('mark') || target).scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
     target.classList.remove('locate-flash');
     void target.offsetWidth;
     target.classList.add('locate-flash');
@@ -990,8 +1009,8 @@ onUnmounted(() => {
           :class="{ active: timelineTab === 'all' }"
           @click="timelineTab = 'all'"
         >
-          全部记录</button
-        >
+          全部记录
+        </button>
       </div>
 
       <div ref="timeline" class="timeline" tabindex="0" aria-label="聊天记录滚动区">
@@ -1062,13 +1081,19 @@ onUnmounted(() => {
                 />
                 <template v-else>{{ item.text }}</template
                 ><button
-                  v-if="item.anchor"
+                  v-if="item.anchor && !item.sources?.length"
                   class="citation-link"
                   @click="locate(item.anchor!, item.findingId)"
                 >
                   <Icon name="pin" :size="14" />{{ item.anchor.section
                   }}<Icon name="arrow" :size="13" />
                 </button>
+                <EvidenceSources
+                  v-if="item.kind === 'assistant'"
+                  :sources="item.sources"
+                  :retrieval="item.retrieval"
+                  @locate="locate($event)"
+                />
               </div>
               <button v-if="item.kind === 'report'" class="artifact-button" @click="openReport">
                 <Icon name="file" :size="16" />查看已保存报告<Icon name="right" :size="15" />
@@ -1113,6 +1138,11 @@ onUnmounted(() => {
                   class="stream-cursor"
                   >▋</span
                 >
+                <EvidenceSources
+                  :sources="activeChat.sources"
+                  :retrieval="activeChat.retrieval"
+                  @locate="locate($event)"
+                />
               </div>
               <p v-if="activeChat.error" class="notice error-notice" role="alert">
                 {{ activeChat.error }}（本次回答未保存，可重新发送。）
@@ -1166,11 +1196,7 @@ onUnmounted(() => {
             <Icon name="down" :size="13" :class="{ 'is-open': reviewSettingsOpen }" />
           </button>
         </ReviewControls>
-        <div
-          v-if="project && reviewSettingsOpen"
-          id="review-settings"
-          class="review-context"
-        >
+        <div v-if="project && reviewSettingsOpen" id="review-settings" class="review-context">
           <button
             :class="{ active: managementPage === 'templates' }"
             :aria-current="managementPage === 'templates' ? 'page' : undefined"
@@ -1480,10 +1506,7 @@ onUnmounted(() => {
               重新解析
             </button>
           </div>
-          <div
-            v-if="version.format === 'pdf' && version.status === 'ready'"
-            class="page-controls"
-          >
+          <div v-if="version.format === 'pdf' && version.status === 'ready'" class="page-controls">
             <button class="icon-button" aria-label="上一页" :disabled="page <= 1" @click="page--">
               <Icon name="left" :size="17" /></button
             ><label
@@ -1572,8 +1595,7 @@ onUnmounted(() => {
                   <button class="location-button" @click="locate(finding.anchor, finding.id)">
                     <Icon name="pin" :size="18" /><span
                       >{{ finding.anchor.page ? `第 ${finding.anchor.page} 页` : '文本段落' }} ·
-                      {{ finding.anchor.section
-                      }}<small>{{ '相关原文片段' }}</small></span
+                      {{ finding.anchor.section }}<small>{{ '相关原文片段' }}</small></span
                     >
                   </button>
                 </section>
@@ -1813,8 +1835,7 @@ onUnmounted(() => {
           <header class="report-document-header">
             <h2>
               {{
-                report?.templateSnapshot?.title ||
-                (report?.trial ? '论文评审报告' : '论文解析报告')
+                report?.templateSnapshot?.title || (report?.trial ? '论文评审报告' : '论文解析报告')
               }}
             </h2>
             <div class="report-document-meta">
@@ -1843,14 +1864,9 @@ onUnmounted(() => {
             </button>
           </div>
           <template v-else>
-            <div
-              class="recommendation"
-              :data-recommendation="report.recommendation || 'pending'"
-            >
+            <div class="recommendation" :data-recommendation="report.recommendation || 'pending'">
               <div>
-                <small>{{
-                  report.trial ? '评审建议' : '专业评审状态'
-                }}</small>
+                <small>{{ report.trial ? '评审建议' : '专业评审状态' }}</small>
                 <h3>
                   {{ recommendationLabel(report.recommendation) }}
                 </h3>

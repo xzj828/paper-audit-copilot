@@ -1,4 +1,5 @@
 export interface Anchor {
+  offset?: number;
   bbox?: number[];
   kind?: string;
   visualId?: string;
@@ -50,6 +51,27 @@ export interface Message {
   at: string;
   anchor?: Anchor;
   findingId?: string;
+  sources?: EvidenceSource[];
+  retrieval?: Retrieval;
+  citationWarning?: string | null;
+}
+export interface EvidenceSource {
+  id: string;
+  excerpt?: string;
+  focusQuote?: string;
+  anchor: Anchor;
+  cited?: boolean;
+}
+export interface Retrieval {
+  strategy: string;
+  mode: string;
+  versionId: string;
+  parseId: string | null;
+  totalChunks: number;
+  selectedChunks: number;
+  contextCharacters: number;
+  status: string;
+  scope: string;
 }
 export interface VisualCoverage {
   pageCount: number;
