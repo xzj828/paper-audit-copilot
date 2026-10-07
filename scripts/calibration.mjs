@@ -10,7 +10,8 @@ export function evaluateCalibration(dataset) {
     accurate = 0,
     located = 0,
     actionable = 0,
-    severityCorrect = 0;
+    severityCorrect = 0,
+    severityComparable = 0;
   let cost = 0,
     durationMs = 0;
   const papers = new Set();
@@ -46,6 +47,7 @@ export function evaluateCalibration(dataset) {
       actionable += Number(p.actionable);
       if (p.accurate && p.goldId) {
         matchedIds.add(p.goldId);
+        severityComparable++;
         severityCorrect += Number(
           c.goldIssues.find((g) => g.id === p.goldId).severity === p.severity,
         );
@@ -73,7 +75,8 @@ export function evaluateCalibration(dataset) {
     falseAccusationRate: ratio(predictions - accurate, predictions),
     evidenceLocationAccuracy: ratio(located, predictions),
     actionableSuggestionRate: ratio(actionable, predictions),
-    severityAgreement: ratio(severityCorrect, accurate),
+    severityAgreement: ratio(severityCorrect, severityComparable),
+    severityComparablePredictions: severityComparable,
     cost,
     durationMs,
     releaseStatus: 'requires_domain_expert_signoff',
