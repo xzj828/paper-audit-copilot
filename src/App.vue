@@ -19,7 +19,8 @@ import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
-import { literalRange, quoteRange } from '../shared/text-highlight.js';
+import { quoteRange } from '../shared/text-highlight.js';
+import { searchRanges, type SearchRange } from '../shared/source-search.js';
 import type {
   Project,
   Version,
@@ -389,27 +390,34 @@ const filteredProjects = computed(() =>
     )
     .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned))),
 );
+interface SearchResult {
+  section: Section;
+  range: SearchRange;
+}
 const searchResults = computed(() => {
-  if (!searchInput.value.trim()) return [];
-  return (
-    version.value?.parse?.sections
-      .filter((section) => literalRange(section.text, searchInput.value))
-      .slice(0, 60) || []
-  );
+  const results: SearchResult[] = [];
+  if (!searchInput.value.trim()) return results;
+  for (const section of version.value?.parse?.sections || []) {
+    for (const range of searchRanges(section.text, searchInput.value, {
+      limit: 60 - results.length,
+    }))
+      results.push({ section, range });
+    if (results.length === 60) break;
+  }
+  return results;
 });
-function searchAnchor(section: Section): Anchor {
-  const range = literalRange(section.text, searchInput.value);
+function searchAnchor({ section, range }: SearchResult): Anchor {
   return {
     elementId: section.id,
     page: section.page,
     section: section.title,
-    offset: range?.start,
-    quote: range ? section.text.slice(range.start, range.end) : '',
+    offset: range.start,
+    quote: section.text.slice(range.start, range.end),
   };
 }
-function searchPreview(section: Section) {
-  const start = Math.max(0, (literalRange(section.text, searchInput.value)?.start || 0) - 30);
-  return section.text.slice(start, start + 200);
+function searchPreview({ section, range }: SearchResult) {
+  const start = Math.max(0, range.start - 30);
+  return section.text.slice(start, Math.max(start + 200, range.end));
 }
 watch(searchInput, () => {
   textAnchor.value = null;
@@ -2483,21 +2491,24 @@ onUnmounted(() => {
         <p class="small muted">
           {{
             searchInput
-              ? `找到 ${searchResults.length} 个文本区块（最多显示 60 个）`
-              : '搜索当前论文版本中的原文内容'
+              ? `显示 ${searchResults.length} 处匹配（最多 60 处，按原文顺序）`
+              : '搜索当前版本原文，可兼容空格与单次换行差异'
           }}
         </p>
         <button
-          v-for="section in searchResults"
-          :key="section.id"
+          v-for="result in searchResults"
+          :key="`${result.section.id}:${result.range.start}`"
           class="search-result"
-          @click="locate(searchAnchor(section))"
+          @click="locate(searchAnchor(result))"
         >
-          <strong>{{ section.title }}</strong>
+          <strong>{{ result.section.title }} · 原文位置 {{ result.range.start + 1 }}</strong>
           <p>
-            {{ searchPreview(section) }}
+            {{ searchPreview(result) }}
           </p>
-          <small>定位到原文 <Icon name="arrow" :size="13" /></small>
+          <small
+            >{{ result.range.matchKind === 'whitespace' ? '空格 / 换行兼容匹配 · ' : '' }}定位到原文
+            <Icon name="arrow" :size="13"
+          /></small>
         </button>
         <div v-if="searchInput && !searchResults.length" class="empty-state">
           <Icon name="search" :size="28" />
