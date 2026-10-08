@@ -1,0 +1,237 @@
+{
+  "strategy": "historical literalRange first occurrence",
+  "labelOrigin": "Fixed developer-authored controls; not expert evaluation, held-out accuracy or proof for all PDFs",
+  "registeredLocalCommit": "8f3fd13",
+  "fixture": "tests/fixtures/source-search-controls.json",
+  "fixtureSha256": "e5b361f2d6a8bf9eeb0df2217a6aaedb9b09ec7ed54e8265fabbaa35a7996730",
+  "implementationSha256": {
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f"
+  },
+  "total": 16,
+  "passed": 8,
+  "failed": 8,
+  "cases": [
+    {
+      "id": "literal",
+      "text": "alpha beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        }
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "line-wrap",
+      "text": "alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "spaces",
+      "text": "alpha   beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 12,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "crlf",
+      "text": "alpha\r\n  beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 13,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "repeated",
+      "text": "alpha beta; alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        },
+        {
+          "start": 12,
+          "end": 22,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "id": "tab-cell",
+      "text": "alpha\tbeta",
+      "query": "alpha beta",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "blank-line",
+      "text": "alpha\n\nbeta",
+      "query": "alpha beta",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "spaced-blank-line",
+      "text": "alpha\n \nbeta",
+      "query": "alpha beta",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "hyphen",
+      "text": "bio-\ndiversity",
+      "query": "biodiversity",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "regex",
+      "text": "x [a+b] and a.b",
+      "query": "[a+b]",
+      "expected": [
+        {
+          "start": 2,
+          "end": 7,
+          "matchKind": "literal"
+        }
+      ],
+      "actual": [
+        {
+          "start": 2,
+          "end": 7,
+          "matchKind": "literal"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "unicode-offset",
+      "text": "🌲 alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 3,
+          "end": 13,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "case-fold",
+      "text": "Kvalue\nbeta",
+      "query": "kVALUE beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 11,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "query-wrap",
+      "text": "alpha beta",
+      "query": "alpha\nbeta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "whitespace"
+        }
+      ],
+      "actual": [],
+      "passed": false
+    },
+    {
+      "id": "empty",
+      "text": "alpha",
+      "query": " ",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "overlap",
+      "text": "aaaa",
+      "query": "aaa",
+      "expected": [
+        {
+          "start": 0,
+          "end": 3,
+          "matchKind": "literal"
+        },
+        {
+          "start": 1,
+          "end": 4,
+          "matchKind": "literal"
+        }
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 3,
+          "matchKind": "literal"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "id": "not-found",
+      "text": "alpha beta",
+      "query": "gamma",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    }
+  ]
+}

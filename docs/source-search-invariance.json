@@ -1,0 +1,24 @@
+{
+  "schema": "source-search-invariance@1",
+  "scope": "One original licensed PDF; engineering invariance, not expert evaluation",
+  "baselineLocalCommit": "2b756872511ff778ca152cc72b2ec1d7012aaae3",
+  "sourceSha256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+  "sourceLicense": "CC BY 4.0",
+  "sourceDOI": "10.1371/journal.pone.0246919",
+  "pages": 20,
+  "baselineReportSha256": "e499c0e0b13c047df883280e0d9e64241e824b650348b38bc433f3392fe858bd",
+  "currentReportSha256": "860421d57fc024dd2247e1e29d2b4bd311ab144b2af0ebb952b11116e5f6463a",
+  "identicalAllFieldsExceptEvaluationTime": true,
+  "identicalParseRecord": true,
+  "identicalAllThreeQuestionAnd21SliceRecords": true,
+  "summary": {
+    "registeredQuestions": 3,
+    "retrievedQuestions": 3,
+    "expectedPhrasesMapped": 3,
+    "returnedSlices": 21,
+    "exactSlices": 21,
+    "exactFocusedSlices": 21,
+    "fullSlicesMapped": 21,
+    "focusedSlicesMapped": 21
+  }
+}
