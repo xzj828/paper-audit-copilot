@@ -6,6 +6,7 @@ import path from 'node:path';
 import { retrieveEvidence } from '../server/retrieval.js';
 import { pdfQuoteBoxes } from '../shared/pdf-text.js';
 import { focusAnchor } from '../shared/text-highlight.js';
+import { pdfDiagnosticsSnapshot, pdfDiagnosticsLines } from '../shared/pdf-diagnostics.js';
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 async function parsePdf(sourcePath) {
@@ -40,6 +41,7 @@ export async function evaluatePublishedPdf() {
   if (bytes.length !== source.bytes || sha256(bytes) !== source.sha256)
     throw new Error('Original PDF does not match the registered source bytes');
   const parse = await parsePdf(fileURLToPath(fixture));
+  const diagnostics = pdfDiagnosticsSnapshot(parse.pdfDiagnostics);
   const items = parse.pages.flatMap((page) => page.items);
   const itemOffsetsValid = parse.pages.every((page) =>
     page.items.every((item) => page.text.slice(item.offset, item.end) === item.text),
@@ -101,6 +103,7 @@ export async function evaluatePublishedPdf() {
   });
   const slices = questions.flatMap((question) => question.slices);
   const passed =
+    diagnostics?.pageCount === source.pageCount &&
     parse.pages.length === source.pageCount &&
     itemOffsetsValid &&
     questions.every(
@@ -110,7 +113,15 @@ export async function evaluatePublishedPdf() {
         question.expectedCoordinateStatus === 'matched',
     ) &&
     slices.every((slice) => slice.exact && slice.focusExact);
-  const codeFiles = ['server/parser.js', 'shared/pdf-text.js', 'server/retrieval.js'];
+  const codeFiles = [
+    'server/parser.js',
+    'shared/pdf-text.js',
+    'shared/pdf-diagnostics.js',
+    'shared/text-highlight.js',
+    'server/retrieval.js',
+    'server/retrieval-terms.js',
+    'scripts/evaluate-pdf.mjs',
+  ];
   const implementation = Object.fromEntries(
     await Promise.all(
       codeFiles.map(async (file) => [
@@ -140,6 +151,7 @@ export async function evaluatePublishedPdf() {
       sha256: sha256(bytes),
     },
     parse: {
+      pdfDiagnostics: diagnostics,
       parser: parse.parser,
       normalization: parse.normalization,
       pageCount: parse.pages.length,
@@ -199,6 +211,10 @@ export function pdfValidationMarkdown(result) {
     ),
     '',
     '范围：保持 PDF.js 内嵌文字顺序；坐标框覆盖整个文字块，可能包含相邻字，未量测逐字形精度。不重建双栏阅读顺序、PDF表格关系、图像或完整公式，不评判科学支持关系。失败、缺少坐标和总分母均保留在 JSON 中。',
+    '',
+    '## 本次逐页解析体检',
+    '',
+    ...pdfDiagnosticsLines(result.parse.pdfDiagnostics).flatMap((line) => [line, '']),
     '',
     `[原始论文与版权](https://journals.plos.org/plosone/article?id=${result.source.doi}) · [CC BY 4.0](${result.source.licenseURL})`,
     '',

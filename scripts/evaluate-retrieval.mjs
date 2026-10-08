@@ -1,8 +1,23 @@
 import { createHash } from 'node:crypto';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { retrieveEvidence } from '../server/retrieval.js';
+
+const implementation = Object.fromEntries(
+  [
+    'server/retrieval.js',
+    'server/retrieval-terms.js',
+    'shared/text-highlight.js',
+    'scripts/evaluate-retrieval.mjs',
+  ].map((file) => [
+    file,
+    createHash('sha256')
+      .update(readFileSync(new URL(`../${file}`, import.meta.url)))
+      .digest('hex'),
+  ]),
+);
 
 export const defaultFixturePath = fileURLToPath(
   new URL('../tests/fixtures/retrieval-benchmark.json', import.meta.url),
@@ -107,6 +122,15 @@ export function materializeBenchmark(dataset) {
     );
     const version = versions.get(item.versionId);
     const sections = new Map(version.parse.sections.map((section) => [section.id, section]));
+    if (item.forbiddenElementIds !== undefined)
+      check(
+        Array.isArray(item.forbiddenElementIds) &&
+          new Set(item.forbiddenElementIds).size === item.forbiddenElementIds.length &&
+          item.forbiddenElementIds.every(
+            (id) => sections.has(id) && !item.expectedElementIds.includes(id),
+          ),
+        `用例${item.id}禁止返回区块必须存在、唯一且不与目标重合`,
+      );
     check(
       item.expectedElementIds.every((id) => sections.has(id)),
       `用例${item.id}预设了本版本不存在的证据区块`,
@@ -307,6 +331,13 @@ export function evaluateRetrievalBenchmark(
       );
     if (sources.some((source) => !source.exactOriginalSlice))
       errors.push('返回引文或偏移不是当前版本的逐字原文切片');
+    const forbidden = sources.filter((source) =>
+      item.forbiddenElementIds?.includes(source.elementId),
+    );
+    if (forbidden.length)
+      errors.push(
+        `返回禁止返回区块：${[...new Set(forbidden.map((source) => source.elementId))].join('、')}`,
+      );
     if (!versionMetadataValid) errors.push('返回版本或解析身份不属于所选版本');
     if (!withinBudget) errors.push('返回结果超出预设片段或上下文预算');
     for (const [expectedKey, actualKey] of [
@@ -328,6 +359,7 @@ export function evaluateRetrievalBenchmark(
       expected: {
         noHit: item.expectedNoHit,
         elementIds: item.expectedElementIds,
+        forbiddenElementIds: item.forbiddenElementIds || [],
         quotes: item.expectedQuotes || [],
         ...(Object.hasOwn(item, 'expectedMode') ? { mode: item.expectedMode } : {}),
         ...(Object.hasOwn(item, 'expectedQueryText') ? { queryText: item.expectedQueryText } : {}),
@@ -337,6 +369,8 @@ export function evaluateRetrievalBenchmark(
       },
       actual: {
         strategy: result.retrieval.strategy,
+        terminologyVersion: result.retrieval.terminologyVersion || null,
+        termMappings: result.retrieval.termMappings || [],
         status: result.retrieval.status,
         mode: result.retrieval.mode,
         queryText: result.retrieval.queryText,
@@ -382,6 +416,7 @@ export function evaluateRetrievalBenchmark(
     materialType: 'synthetic',
     expectedLabelOrigin: material.expectedLabelOrigin,
     corpusSha256,
+    implementation: { ...implementation },
     hashDefinition: '按键排序后的展开合成材料及全部预设期望的SHA-256；不包含测量耗时与生成时间。',
     strategies: [...new Set(details.map((item) => item.actual.strategy))],
     runtime: { node: process.version, platform: process.platform, arch: process.arch },
@@ -423,6 +458,9 @@ export function benchmarkMarkdown(report) {
     '',
     `语料 SHA-256：${report.corpusSha256}`,
     `策略：${report.strategies.map(plain).join('、')}`,
+    ...Object.entries(report.implementation || {}).map(
+      ([file, hash]) => `实现 SHA-256：${plain(file)} = ${hash}`,
+    ),
     `测量时间：${report.evaluatedAt}；运行：${report.runtime.node} / ${report.runtime.platform} / ${report.runtime.arch}。`,
     `执行：${plain(report.execution)}；top-k=${report.parameters.k}，默认上下文预算 ${report.parameters.maxContextCharacters} 字符。`,
     '',
@@ -468,7 +506,16 @@ export function benchmarkMarkdown(report) {
       `版本${plain(item.versionId)}；模式${plain(item.actual.mode)}；状态${plain(item.actual.status)}；查询${plain(item.actual.queryText)}；继承用户问题${plain(item.actual.followUpTo || '无')}。`,
       `选中${item.actual.selectedChunks}/${item.actual.totalChunks}块，上下文${item.actual.contextCharacters}字符；${plain(item.actual.scope)}`,
       `版本身份${item.actual.versionMetadataValid ? '一致' : '错误'}；预算${item.actual.withinBudget ? '未超出' : '超出'}；跨版本引文${item.actual.versionLeakCount}条。`,
-      ...(item.knownGap ? [`保留缺口：${plain(item.knownGap)}`] : []),
+      ...(item.knownGap
+        ? [`材料预存的能力缺口说明（当前结果以上方为准）：${plain(item.knownGap)}`]
+        : []),
+      ...(item.expected.forbiddenElementIds?.length
+        ? [`禁止返回区块：${item.expected.forbiddenElementIds.map(plain).join('、')}`]
+        : []),
+      ...item.actual.termMappings.map(
+        (mapping) =>
+          `有限术语映射：${plain(mapping.matched)} → ${mapping.alternatives.map(plain).join('、')}；${plain(item.actual.terminologyVersion)}`,
+      ),
       ...(item.regressionOrigin ? [`边界发现：${plain(item.regressionOrigin)}`] : []),
       ...item.errors.map((error) => `失败：${plain(error)}`),
       '',
@@ -484,7 +531,7 @@ export function benchmarkMarkdown(report) {
       );
     }
   }
-  return lines.join('\n') + '\n';
+  return lines.join('\n').trimEnd() + '\n';
 }
 async function main(args) {
   let fixturePath = defaultFixturePath,

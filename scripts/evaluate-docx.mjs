@@ -91,10 +91,24 @@ export async function evaluatePublishedDocx() {
       (question) =>
         question.rowRetrieved && question.slices.every((slice) => slice.exact && slice.focusExact),
     );
+  const implementation = Object.fromEntries(
+    await Promise.all(
+      [
+        'server/parser.js',
+        'shared/pdf-diagnostics.js',
+        'server/docx-structure.js',
+        'server/retrieval.js',
+        'server/retrieval-terms.js',
+        'shared/text-highlight.js',
+        'scripts/evaluate-docx.mjs',
+      ].map(async (file) => [file, sha256(await readFile(new URL(`../${file}`, import.meta.url)))]),
+    ),
+  );
   return {
     schema: 'published-docx-validation@1',
     status: pass ? 'passed' : 'failed',
     evaluatedAt: new Date().toISOString(),
+    implementation,
     labelOrigin: source.expectedLabelOrigin,
     scope: source.scope,
     source: {
