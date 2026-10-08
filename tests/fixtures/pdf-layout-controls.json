@@ -1,0 +1,103 @@
+{
+  "schema": "paper-audit-pdf-layout-controls@1",
+  "labelOrigin": "Developer-fixed geometric controls registered before adding layout hints; no expert labels or held-out accuracy",
+  "scope": "Parallel text-region and cross-region extraction-order warnings only; tables, reading-order reconstruction, OCR and semantics are not evaluated",
+  "cases": [
+    {
+      "id": "layout-01",
+      "pattern": "column-first",
+      "expectedStatus": "parallel_regions",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-02",
+      "pattern": "row-interleaved",
+      "expectedStatus": "interleaved_regions",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-03",
+      "pattern": "right-first",
+      "expectedStatus": "parallel_regions",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-04",
+      "pattern": "wide-title",
+      "expectedStatus": "parallel_regions",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-05",
+      "pattern": "single-wide",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-06",
+      "pattern": "left-only",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-07",
+      "pattern": "separate-bands",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-08",
+      "pattern": "short-labels",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-09",
+      "pattern": "few-rows",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-10",
+      "pattern": "narrow-labels",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-11",
+      "pattern": "footer-only",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-12",
+      "pattern": "missing-box",
+      "expectedStatus": "unavailable",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-13",
+      "pattern": "corrupt-offset",
+      "expectedStatus": "unavailable",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-14",
+      "pattern": "vertical-regions",
+      "expectedStatus": "not_detected",
+      "expectedAttention": false
+    },
+    {
+      "id": "layout-15",
+      "pattern": "vector-only",
+      "expectedStatus": "no_text",
+      "expectedAttention": true
+    },
+    {
+      "id": "layout-16",
+      "pattern": "table-like",
+      "expectedStatus": "parallel_regions",
+      "expectedAttention": true
+    }
+  ]
+}
