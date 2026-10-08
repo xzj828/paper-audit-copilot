@@ -1,0 +1,1951 @@
+{
+  "schema": "review-contract-cases@1",
+  "id": "review-safety-controls@1",
+  "materialType": "synthetic",
+  "labelOrigin": "Developer-authored fixed engineering expectations registered before execution; not expert labels, independent blind review or a quality estimate",
+  "sources": {
+    "unique": [
+      {
+        "id": "s1",
+        "title": "方法",
+        "paragraph": 1,
+        "text": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+      }
+    ],
+    "repeated": [
+      {
+        "id": "s1",
+        "title": "结果",
+        "paragraph": 1,
+        "text": "先前观测：处理组土壤碳储量为 12.00。\n后续观测：处理组土壤碳储量为 12.00。"
+      }
+    ],
+    "typography": [
+      {
+        "id": "s1",
+        "title": "Methods",
+        "paragraph": 1,
+        "text": "前言：We studied three  independent\nforest plots and measured soil carbon."
+      }
+    ],
+    "claims": [
+      {
+        "id": "s1",
+        "title": "结论",
+        "paragraph": 1,
+        "text": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "unique-issue",
+      "category": "evidence",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0]
+      }
+    },
+    {
+      "id": "supported-source",
+      "category": "evidence",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "supported",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "none",
+            "level": 4,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 15,
+        "earned": 15,
+        "total": 100,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": []
+      }
+    },
+    {
+      "id": "repeated-no-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "处理组土壤碳储量为 12.00。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "repeated-second-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "处理组土壤碳储量为 12.00。",
+                "offset": 27
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [27]
+      }
+    },
+    {
+      "id": "repeated-wrong-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "处理组土壤碳储量为 12.00。",
+                "offset": 26
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "string-offset",
+      "category": "occurrence",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。",
+                "offset": "0"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "unknown-element",
+      "category": "evidence",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "foreign",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "invented-quotation",
+      "category": "evidence",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "原文完全不存在这一受控引文。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "unique-typography",
+      "category": "occurrence",
+      "sourceId": "typography",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "We studied three independent forest plots"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [3]
+      }
+    },
+    {
+      "id": "typography-explicit-mismatch",
+      "category": "occurrence",
+      "sourceId": "typography",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "We studied three independent forest plots",
+                "offset": 3
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "no-citation",
+      "category": "information",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": []
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "missing-material-claim",
+      "category": "information",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "missing",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "external-comparison-unavailable",
+      "category": "applicability",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E02",
+          "candidate": {
+            "checkId": "E02",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "visual-material-unavailable",
+      "category": "applicability",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E09",
+          "candidate": {
+            "checkId": "E09",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "verifier-rejects-reasoning",
+      "category": "verification",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": false,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "verifier-rejects-applicability",
+      "category": "applicability",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": false,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "invalid-supported-grade",
+      "category": "scoring",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "supported",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "none",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "invalid-issue-grade",
+      "category": "scoring",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 4,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "invalid-verifier-shape",
+      "category": "verification",
+      "sourceId": "unique",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "modules": [
+        {
+          "checkId": "E04",
+          "candidate": {
+            "checkId": "E04",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": "yes",
+            "reason": "开发者冻结的受控复核响应。",
+            "duplicateOf": null
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-valid",
+      "category": "atomicity",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0]
+      }
+    },
+    {
+      "id": "atomic-material-request",
+      "category": "information",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "critical",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": true,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "material_request",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "material_request",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-verifier-downgrade",
+      "category": "information",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "material_request",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-wrong-owner",
+      "category": "ownership",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "design_replication",
+                "title": "受控问题 design_replication",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-not-one-problem",
+      "category": "atomicity",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": false,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-verifier-not-covered",
+      "category": "verification",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": []
+          }
+        }
+      ],
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      }
+    },
+    {
+      "id": "atomic-real-duplicate",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              },
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I2",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              },
+              {
+                "issueId": "E07:I2",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": "E07:I1",
+                "sameClaim": true,
+                "sameDefect": true,
+                "sameEvidence": true
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0]
+      }
+    },
+    {
+      "id": "atomic-independent-categories",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              },
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "没有测定微生物却宣称证明微生物机制。"
+                  }
+                ],
+                "localId": "I2",
+                "category": "mechanism",
+                "title": "受控问题 mechanism",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              },
+              {
+                "issueId": "E07:I2",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": "E07:I1",
+                "sameClaim": true,
+                "sameDefect": true,
+                "sameEvidence": true
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0, 23]
+      }
+    },
+    {
+      "id": "atomic-self-duplicate",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": "E07:I1",
+                "sameClaim": true,
+                "sameDefect": true,
+                "sameEvidence": true
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0]
+      }
+    },
+    {
+      "id": "atomic-duplicate-without-shared-evidence",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              },
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "没有测定微生物却宣称证明微生物机制。"
+                  }
+                ],
+                "localId": "I2",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              },
+              {
+                "issueId": "E07:I2",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": "E07:I1",
+                "sameClaim": true,
+                "sameDefect": true,
+                "sameEvidence": true
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [0, 23]
+      }
+    },
+    {
+      "id": "atomic-mixed-valid-invalid-citation",
+      "category": "partial-coverage",
+      "sourceId": "claims",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "modules": [
+        {
+          "checkId": "E07",
+          "candidate": {
+            "checkId": "E07",
+            "assessment": "issue",
+            "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+            "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+            "severity": "major",
+            "level": 2,
+            "claimType": "explicit",
+            "claimPointer": "受控主张",
+            "severityRationale": "仅供工程边界测试。",
+            "resolutionTest": "按已登记的工程期望复查。",
+            "blocking": false,
+            "evidence": [
+              {
+                "elementId": "s1",
+                "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。没有测定微生物却宣称证明微生物机制。本站点结果被宣称适用于所有森林。"
+              }
+            ],
+            "issues": [
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。"
+                  }
+                ],
+                "localId": "I1",
+                "category": "stock_flux",
+                "title": "受控问题 stock_flux",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              },
+              {
+                "checkId": "E07",
+                "assessment": "issue",
+                "observation": "开发者冻结的受控候选，用于检查软件发布边界。",
+                "suggestion": "核对指定证据和约束；不代表真实模型或专家意见。",
+                "severity": "major",
+                "level": 1,
+                "claimType": "explicit",
+                "claimPointer": "受控主张",
+                "severityRationale": "仅供工程边界测试。",
+                "resolutionTest": "按已登记的工程期望复查。",
+                "blocking": false,
+                "evidence": [
+                  {
+                    "elementId": "s1",
+                    "quote": "完全捏造的原文引用不能成为证据。"
+                  }
+                ],
+                "localId": "I2",
+                "category": "mechanism",
+                "title": "受控问题 mechanism",
+                "kind": "scientific_defect",
+                "repairability": "new_data"
+              }
+            ]
+          },
+          "verifier": {
+            "applicable": true,
+            "supported": true,
+            "reason": "开发者冻结的逐条受控复核响应。",
+            "issues": [
+              {
+                "issueId": "E07:I1",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              },
+              {
+                "issueId": "E07:I2",
+                "applicable": true,
+                "supported": true,
+                "atomic": true,
+                "kind": "scientific_defect",
+                "reason": "仅核对受控协议边界。",
+                "duplicateOf": null,
+                "sameClaim": false,
+                "sameDefect": false,
+                "sameEvidence": false
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": [0]
+      }
+    }
+  ]
+}

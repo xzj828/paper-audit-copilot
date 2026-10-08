@@ -1,0 +1,763 @@
+{
+  "schemaVersion": 1,
+  "id": "ecology-phrase-controls@1",
+  "title": "生态学短语映射独立合成控制",
+  "materialType": "synthetic",
+  "expectedLabelOrigin": "developer-authored expected labels; not expert gold standard or real-paper accuracy",
+  "construction": "与旧38例分开编写的开发控制，运行前登记文本、期望和禁止返回区块；用于本轮开发，不是专家标注或未用于开发的盲测集。",
+  "versions": [
+    {
+      "id": "plant-en",
+      "parse": {
+        "id": "parse-plant-en",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "Chamber control",
+            "text": "Photosynthesis was recorded during the controlled chamber interval K47."
+          },
+          {
+            "id": "dna",
+            "title": "Preparation control",
+            "text": "DNA fragmentation was recorded during a preparation step."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "plant-cn",
+      "parse": {
+        "id": "parse-plant-cn",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "箱体控制",
+            "text": "光合作用在受控箱体时段K73被记录。"
+          },
+          {
+            "id": "noise",
+            "title": "准备控制",
+            "text": "样品的破碎程度由另一份控制记录描述。"
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "land-en",
+      "parse": {
+        "id": "parse-land-en",
+        "sections": [
+          {
+            "id": "land",
+            "title": "Patch control",
+            "text": "Habitat fragmentation was recorded as a synthetic patch indicator P61."
+          },
+          {
+            "id": "dna",
+            "title": "Preparation control",
+            "text": "DNA fragmentation was measured during sample preparation."
+          },
+          {
+            "id": "habitat",
+            "title": "Occupancy control",
+            "text": "Habitat occupancy was recorded for the synthetic site."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "land-cn",
+      "parse": {
+        "id": "parse-land-cn",
+        "sections": [
+          {
+            "id": "land",
+            "title": "斑块控制",
+            "text": "生境破碎化被记录为合成斑块指标P82。"
+          },
+          {
+            "id": "partial",
+            "title": "其他控制",
+            "text": "生境特征和样品破碎化在两个独立步骤中记录。"
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "land-dash",
+      "parse": {
+        "id": "parse-land-dash",
+        "sections": [
+          {
+            "id": "land",
+            "title": "Layout control",
+            "text": "HABITAT-\nFRAGMENTATION was recorded as synthetic indicator H64."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "wide-plant",
+      "parse": {
+        "id": "parse-wide-plant",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "Typography control",
+            "text": "🦋 Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. ｐｈｏｔｏｓｙｎｔｈｅｓｉｓ was recorded as synthetic condition W49."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "both",
+      "parse": {
+        "id": "parse-both",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "Chamber control",
+            "text": "Photosynthesis was recorded as synthetic condition Q41."
+          },
+          {
+            "id": "land",
+            "title": "Patch control",
+            "text": "Habitat fragmentation was recorded as synthetic condition Q52."
+          },
+          {
+            "id": "dna",
+            "title": "Preparation control",
+            "text": "DNA fragmentation is a different synthetic preparation record."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "follow",
+      "parse": {
+        "id": "parse-follow",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "Chamber control",
+            "text": "Photosynthesis was recorded as synthetic condition F86."
+          }
+        ]
+      },
+      "messages": [
+        {
+          "id": "mapped-topic",
+          "kind": "user",
+          "text": "光合作用"
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "late",
+      "parse": {
+        "id": "parse-late",
+        "sections": [
+          {
+            "id": "early-0",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-1",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-2",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-3",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-4",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-5",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-6",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-7",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-8",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-9",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-10",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-11",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-12",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-13",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-14",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-15",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-16",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-17",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-18",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "early-19",
+            "title": "Background control",
+            "text": "Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. Ordinary atmospheric background record. "
+          },
+          {
+            "id": "plant",
+            "title": "Late chamber control",
+            "text": "Photosynthesis was recorded in the final synthetic interval L91."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "selected-good",
+      "parse": {
+        "id": "parse-selected-good",
+        "sections": [
+          {
+            "id": "sample",
+            "title": "Occurrence control",
+            "text": "Repeated measured passage 718. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Second occurrence: Repeated measured passage 718."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": [
+        {
+          "id": "picked",
+          "anchor": {
+            "elementId": "sample",
+            "quote": "Repeated measured passage 718.",
+            "offset": 1730
+          }
+        }
+      ]
+    },
+    {
+      "id": "selected-bad",
+      "parse": {
+        "id": "parse-selected-bad",
+        "sections": [
+          {
+            "id": "sample",
+            "title": "Occurrence control",
+            "text": "Repeated measured passage 718. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Second occurrence: Repeated measured passage 718."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": [
+        {
+          "id": "picked",
+          "anchor": {
+            "elementId": "sample",
+            "quote": "Repeated measured passage 718.",
+            "offset": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "selected-legacy",
+      "parse": {
+        "id": "parse-selected-legacy",
+        "sections": [
+          {
+            "id": "sample",
+            "title": "Occurrence control",
+            "text": "Repeated measured passage 718. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Second occurrence: Repeated measured passage 718."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": [
+        {
+          "id": "picked",
+          "anchor": {
+            "elementId": "sample",
+            "quote": "Repeated measured passage 718."
+          }
+        }
+      ]
+    },
+    {
+      "id": "dna-only",
+      "parse": {
+        "id": "parse-dna-only",
+        "sections": [
+          {
+            "id": "dna",
+            "title": "Preparation control",
+            "text": "DNA fragmentation was recorded in the reconstruction protocol."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "habitat-only",
+      "parse": {
+        "id": "parse-habitat-only",
+        "sections": [
+          {
+            "id": "habitat",
+            "title": "Occupancy control",
+            "text": "Habitat occupancy was recorded in synthetic site B62."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "partial-cn",
+      "parse": {
+        "id": "parse-partial-cn",
+        "sections": [
+          {
+            "id": "partial",
+            "title": "Preparation control",
+            "text": "生境特征和样品破碎化分别在两个步骤中记录。"
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "split-label",
+      "parse": {
+        "id": "parse-split-label",
+        "sections": [
+          {
+            "id": "split",
+            "title": "Habitat",
+            "text": "fragmentation was recorded in synthetic sample preparation."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "prefix-only",
+      "parse": {
+        "id": "parse-prefix-only",
+        "sections": [
+          {
+            "id": "prefix",
+            "title": "Word boundary control",
+            "text": "A photosynthesist was named in this synthetic biography."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "negated",
+      "parse": {
+        "id": "parse-negated",
+        "sections": [
+          {
+            "id": "plant",
+            "title": "Unmeasured control",
+            "text": "Photosynthesis was not measured in this synthetic design."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "old",
+      "parse": {
+        "id": "parse-old",
+        "sections": [
+          {
+            "id": "shared",
+            "title": "Old control",
+            "text": "Photosynthesis was recorded in an older synthetic version."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    },
+    {
+      "id": "current",
+      "parse": {
+        "id": "parse-current",
+        "sections": [
+          {
+            "id": "shared",
+            "title": "Current control",
+            "text": "Only atmospheric humidity was recorded in this synthetic version."
+          }
+        ]
+      },
+      "messages": [],
+      "findings": []
+    }
+  ],
+  "cases": [
+    {
+      "id": "zh-photosynthesis",
+      "versionId": "plant-en",
+      "question": "光合作用",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": ["dna"]
+    },
+    {
+      "id": "en-photosynthesis",
+      "versionId": "plant-cn",
+      "question": "photosynthesis",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": ["noise"]
+    },
+    {
+      "id": "zh-habitat",
+      "versionId": "land-en",
+      "question": "生境破碎化",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["land"],
+      "forbiddenElementIds": ["dna", "habitat"]
+    },
+    {
+      "id": "en-habitat",
+      "versionId": "land-cn",
+      "question": "habitat fragmentation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["land"],
+      "forbiddenElementIds": ["partial"]
+    },
+    {
+      "id": "casefold-photosynthesis",
+      "versionId": "plant-cn",
+      "question": "PHOTOSYNTHESIS",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": ["noise"]
+    },
+    {
+      "id": "dash-line-layout",
+      "versionId": "land-dash",
+      "question": "生境破碎化",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["land"],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "query-phrase-whitespace",
+      "versionId": "land-cn",
+      "question": "HABITAT\nFRAGMENTATION",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["land"],
+      "forbiddenElementIds": ["partial"]
+    },
+    {
+      "id": "source-fullwidth",
+      "versionId": "wide-plant",
+      "question": "光合作用",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "two-mapped-topics",
+      "versionId": "both",
+      "question": "光合作用 生境破碎化",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant", "land"],
+      "forbiddenElementIds": ["dna"]
+    },
+    {
+      "id": "mapped-followup",
+      "versionId": "follow",
+      "question": "为什么？",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": [],
+      "expectedQueryText": "光合作用",
+      "expectedFollowUpTo": "mapped-topic"
+    },
+    {
+      "id": "late-mapped-source",
+      "versionId": "late",
+      "question": "光合作用",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": [],
+      "minimumPrefixCharacters": 24000,
+      "prefixBeforeElementId": "plant"
+    },
+    {
+      "id": "selected-second-occurrence",
+      "versionId": "selected-good",
+      "question": "quasars",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["sample"],
+      "forbiddenElementIds": [],
+      "findingId": "picked",
+      "limits": {
+        "maxSources": 1
+      }
+    },
+    {
+      "id": "selected-invalid-offset",
+      "versionId": "selected-bad",
+      "question": "quasars",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": [],
+      "findingId": "picked"
+    },
+    {
+      "id": "selected-ambiguous-legacy",
+      "versionId": "selected-legacy",
+      "question": "quasars",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": [],
+      "findingId": "picked"
+    },
+    {
+      "id": "english-dna-near-word",
+      "versionId": "dna-only",
+      "question": "habitat fragmentation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "english-habitat-only",
+      "versionId": "habitat-only",
+      "question": "habitat fragmentation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "chinese-disconnected-components",
+      "versionId": "partial-cn",
+      "question": "生境破碎化",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "title-body-do-not-form-phrase",
+      "versionId": "split-label",
+      "question": "habitat fragmentation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "english-prefix-boundary",
+      "versionId": "prefix-only",
+      "question": "photosynthesis",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "unlisted-carbon-phrase",
+      "versionId": "plant-cn",
+      "question": "carbon assimilation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "unlisted-discontinuous-phrase",
+      "versionId": "land-cn",
+      "question": "fragmentation of habitats",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": []
+    },
+    {
+      "id": "negative-mention-still-lexical",
+      "versionId": "negated",
+      "question": "光合作用",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": false,
+      "expectedElementIds": ["plant"],
+      "forbiddenElementIds": [],
+      "expectedQuotes": [
+        {
+          "elementId": "plant",
+          "contains": "was not measured"
+        }
+      ]
+    },
+    {
+      "id": "mapped-topic-version-isolation",
+      "versionId": "current",
+      "question": "光合作用",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": [],
+      "forbiddenVersionIds": ["old"]
+    },
+    {
+      "id": "mapped-topic-character-budget",
+      "versionId": "both",
+      "question": "光合作用 生境破碎化",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "category": "ecology-phrase-controls",
+      "expectedNoHit": true,
+      "expectedElementIds": [],
+      "forbiddenElementIds": [],
+      "limits": {
+        "maxCharacters": 10
+      }
+    }
+  ]
+}
