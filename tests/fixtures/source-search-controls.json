@@ -1,0 +1,172 @@
+{
+  "labelOrigin": "developer-authored fixed controls; not expert evaluation or held-out accuracy",
+  "scope": "one parsed section only; no semantic reconstruction",
+  "cases": [
+    {
+      "id": "literal",
+      "text": "alpha beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        }
+      ]
+    },
+    {
+      "id": "line-wrap",
+      "text": "alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "spaces",
+      "text": "alpha   beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 12,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "crlf",
+      "text": "alpha\r\n  beta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 13,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "repeated",
+      "text": "alpha beta; alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "literal"
+        },
+        {
+          "start": 12,
+          "end": 22,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "tab-cell",
+      "text": "alpha\tbeta",
+      "query": "alpha beta",
+      "expected": []
+    },
+    {
+      "id": "blank-line",
+      "text": "alpha\n\nbeta",
+      "query": "alpha beta",
+      "expected": []
+    },
+    {
+      "id": "spaced-blank-line",
+      "text": "alpha\n \nbeta",
+      "query": "alpha beta",
+      "expected": []
+    },
+    {
+      "id": "hyphen",
+      "text": "bio-\ndiversity",
+      "query": "biodiversity",
+      "expected": []
+    },
+    {
+      "id": "regex",
+      "text": "x [a+b] and a.b",
+      "query": "[a+b]",
+      "expected": [
+        {
+          "start": 2,
+          "end": 7,
+          "matchKind": "literal"
+        }
+      ]
+    },
+    {
+      "id": "unicode-offset",
+      "text": "🌲 alpha\nbeta",
+      "query": "alpha beta",
+      "expected": [
+        {
+          "start": 3,
+          "end": 13,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "case-fold",
+      "text": "Kvalue\nbeta",
+      "query": "kVALUE beta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 11,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "query-wrap",
+      "text": "alpha beta",
+      "query": "alpha\nbeta",
+      "expected": [
+        {
+          "start": 0,
+          "end": 10,
+          "matchKind": "whitespace"
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "text": "alpha",
+      "query": " ",
+      "expected": []
+    },
+    {
+      "id": "overlap",
+      "text": "aaaa",
+      "query": "aaa",
+      "expected": [
+        {
+          "start": 0,
+          "end": 3,
+          "matchKind": "literal"
+        },
+        {
+          "start": 1,
+          "end": 4,
+          "matchKind": "literal"
+        }
+      ]
+    },
+    {
+      "id": "not-found",
+      "text": "alpha beta",
+      "query": "gamma",
+      "expected": []
+    }
+  ]
+}
