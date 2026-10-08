@@ -20,6 +20,10 @@
 
 执行 `npm run evaluate:retrieval` 可复现[检索回归评测](docs/retrieval-benchmark.md)，输出命中、无结果、引文保真和耗时记录。固定案例由开发者编写，不能代替真实论文的专家盲评。
 
+新增[有限生态术语映射](docs/retrieval-terminology.md)：光合作用 / photosynthesis、生境破碎化 / habitat fragmentation 支持双向短语检索，证据卡片和对话导出保存映射与版本。完整短语不按孤立 fragmentation 回退，原文及偏移保持不变；这只扩展词法匹配。`npm run evaluate:terminology` 可复现另外24例正负控制，既有38例保留原预期和历史结果。
+
+新增[PDF 逐页解析体检](docs/pdf-inspection.md)：显示无文字、文字较少和坐标缺口页，筛选后可点击核对物理原页。JSON 下载保留文件与解析身份；新报告冻结体检，三种报告导出保留附录。少量文字不能据此认定扫描件，文字与坐标可用也不代表已理解图表；未执行 OCR。
+
 新增[公开真实论文检索验证](docs/real-paper-validation.md)：三篇 PLOS 生态学论文、九个预先登记的问题，校验来源身份、CC BY 4.0 许可、文件指纹和原文偏移。首次明确指定下载与本地缓存；此后可离线重跑，不调用模型。完整论文只存本地缓存，公开报告只保留定位、哈希和检查结果。该验证使用出版商 XML，不等同于 PDF/DOCX 上传或专家质量验收。
 
 ```sh
@@ -32,6 +36,10 @@ npm run evaluate:real-papers -- --materials /tmp/paper-audit-real-papers --outpu
 新增 [DOCX 表格与证据定位](docs/document-parsing.md)：保留行列、合并单元格和上下标等有限格式，表格参与全文检索，可按字符偏移定位到单元格；手机端可横向阅读。提供一份署名与许可清楚的出版商原始补充表格，实际上传与定位已验证。`npm run evaluate:docx` 可离线复现固定来源检查，结果属于开发者预设，不是专家审稿准确率。
 
 新增 [PDF 原文证据定位](docs/document-parsing.md#pdf-原文偏移与文字块定位)：按照已保存的引文偏移选择实际文字块，同页重复文字不会自动落到第一处。旋转与裁剪页按页面视口映射，缩放后仍对应原文；缺少坐标、旧记录歧义与引文失配均明确提示。原文搜索也跳转到实际命中位置，手机端提供缩放。`npm run evaluate:pdf` 使用一份未修改的 20 页 PLOS 原始 PDF，固定三题及返回引文可离线核对；[实际结果](docs/pdf-validation-results.md)保留分母与范围。坐标框是文字块近似范围，双栏顺序、PDF 表格关系、图像与完整公式仍需人工核对。
+
+引文位置校验现统一为 `exact-occurrence@2`：重复文字必须有逐字匹配的具体偏移，错误位置不能自动换成第一处。主张、CSV、修订和外部比较保存已核验位置；旧 DOCX 歧义引文显示提示。评审执行器 `4.1.0` 的部分失败报告保持“需要补充材料”，有效意见仍可查看；旧执行器任务需新建评审，历史报告保持冻结。
+
+`npm run evaluate:review-contracts` 可离线复现 [30 个证据与规则安全边界用例](docs/review-contracts.md)，执行实际服务、存储和报告链路，保留全部失败及材料、规则、实现指纹。固定候选与复核响应由开发者登记，外部模型调用为零；工程通过率不代表专家准确率或独立盲评。
 
 需要 **Node.js 24.12+**（后端使用 Node 自带 SQLite）。
 

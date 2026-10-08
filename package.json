@@ -19,11 +19,13 @@
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
     "evaluate:retrieval": "node scripts/evaluate-retrieval.mjs",
+    "evaluate:terminology": "node scripts/evaluate-retrieval.mjs --fixture tests/fixtures/retrieval-terminology-controls.json",
     "check": "npm run build && npm test && npm run test:e2e",
     "format": "prettier --write src server tests scripts *.json *.ts *.js",
     "evaluate:real-papers": "node scripts/evaluate-real-papers.mjs",
     "evaluate:docx": "node scripts/evaluate-docx.mjs",
-    "evaluate:pdf": "node scripts/evaluate-pdf.mjs"
+    "evaluate:pdf": "node scripts/evaluate-pdf.mjs",
+    "evaluate:review-contracts": "node scripts/evaluate-review-contracts.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",
