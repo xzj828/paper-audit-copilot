@@ -265,6 +265,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
         </div>
         <details class="source-details">
           <summary>附上论文原文引用（可选）</summary>
+          <p class="muted">如果同段中有相同引文，请增加连续上下文以唯一定位。</p>
           <label
             >当前版本原文段落<select v-model="elementId" :disabled="busy">
               <option value="">暂不附引用</option>

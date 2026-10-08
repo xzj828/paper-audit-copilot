@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import Modal from './Modal.vue';
 import Icon from './Icon.vue';
 import PdfReader from './PdfReader.vue';
+import PdfInspection from './PdfInspection.vue';
 import { api } from '../api';
 import type { Project, Section } from '../types';
 import type { Preferences } from '../workspace';
@@ -34,7 +35,10 @@ async function load() {
   }
 }
 function turnPage(value: number) {
-  page.value = Math.min(pages.value, Math.max(1, Number(value) || 1));
+  page.value = Math.min(
+    version.value?.parse?.pages.length || pages.value,
+    Math.max(1, Number(value) || 1),
+  );
   scroller.value?.scrollTo({ top: 0 });
 }
 function changeZoom(delta: number) {
@@ -122,6 +126,12 @@ onUnmounted(() => {
         {{ error }}<button @click="load">重试</button>
       </div>
       <template v-else-if="version">
+        <PdfInspection
+          v-if="version.format === 'pdf' && version.status === 'ready'"
+          :diagnostics="version.parse?.pdfDiagnostics"
+          :export-url="`/api/projects/${projectId}/versions/${versionId}/pdf-diagnostics/export`"
+          @page="turnPage"
+        />
         <details
           v-if="preferences.showOutline && version.parse?.sections.length"
           class="document-outline"

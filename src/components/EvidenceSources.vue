@@ -20,6 +20,13 @@ defineEmits<{ locate: [anchor: Anchor] }>();
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
+    <p v-if="retrieval.termMappings?.length" class="retrieval-scope retrieval-terms">
+      有限术语映射：
+      <span v-for="(mapping, index) in retrieval.termMappings" :key="mapping.id"
+        >{{ index ? '；' : '' }}{{ mapping.matched }} → {{ mapping.alternatives.join('、') }}</span
+      >
+      。这只扩展词法匹配，关系仍需核对。
+    </p>
     <p v-if="retrieval.followUpTo" class="retrieval-scope">
       沿用上一轮问题检索：{{ retrieval.queryText }}
     </p>
