@@ -82,7 +82,32 @@ export interface PdfPage {
     height?: number;
   }[];
 }
+export interface PdfPageDiagnostic {
+  page: number;
+  characters: number;
+  nonWhitespaceCharacters: number;
+  textStatus: 'empty' | 'sparse' | 'present';
+  coordinateStatus: 'available' | 'partial' | 'unavailable' | 'invalid' | 'unrecorded' | 'no_text';
+  textItems: number | null;
+  mappedTextItems: number | null;
+  unmappedTextItems: number | null;
+}
+export interface PdfDiagnostics {
+  version: string;
+  pageCount: number;
+  pages: PdfPageDiagnostic[];
+  summary: {
+    pagesWithText: number;
+    pagesWithoutText: number;
+    sparsePages: number;
+    coordinateGapPages: number;
+    unrecordedCoordinatePages: number;
+    attentionPages: number;
+  };
+  limits: string;
+}
 export interface ParseArtifact {
+  pdfDiagnostics?: PdfDiagnostics;
   id: string;
   parser: string;
   coverage: string;
@@ -125,6 +150,8 @@ export interface Retrieval {
   queryText?: string;
   followUpTo?: string | null;
   strategy: string;
+  terminologyVersion?: string;
+  termMappings?: { id: string; matched: string; alternatives: string[] }[];
   mode: string;
   versionId: string;
   parseId: string | null;
@@ -150,6 +177,8 @@ export interface VisualCoverage {
   }[];
 }
 export interface Report {
+  parseId?: string;
+  pdfDiagnostics?: PdfDiagnostics | null;
   budget?: ReviewBudget | null;
   budgetHistory?: { changedAt: string; maxRequests: number | null; maxMinutes: number | null }[];
   wallMs?: number;

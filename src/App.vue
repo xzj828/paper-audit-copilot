@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
+import PdfInspection from './components/PdfInspection.vue';
 import DocxSection from './components/DocxSection.vue';
 import ModelSettings from './components/ModelSettings.vue';
 import ModelPicker from './components/ModelPicker.vue';
@@ -18,7 +19,7 @@ import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
 import { api, json } from './api';
-import { literalRange } from '../shared/text-highlight.js';
+import { literalRange, quoteRange } from '../shared/text-highlight.js';
 import type {
   Project,
   Version,
@@ -95,6 +96,17 @@ const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
 const evidenceQuote = ref('');
 const textAnchor = ref<Anchor | null>(null);
+const docxEvidenceStatus = computed(() => {
+  const anchor = textAnchor.value;
+  if (!anchor || version.value?.format !== 'docx') return '';
+  const section = version.value.parse?.sections.find((item) => item.id === anchor.elementId);
+  if (!section) return '此引文不属于当前原文，未标亮文字。';
+  const source = `${section.text}${section.after ? ` ${section.after}` : ''}`;
+  if (quoteRange(source, anchor)) return '已定位到对应引文。';
+  if (anchor.offset === undefined && source.includes(anchor.quote))
+    return '这段引文在原文中出现多次，旧记录缺少具体位置；请重新核对。';
+  return '引文与当前原文位置不匹配，未标亮文字；请重新核对。';
+});
 const configuration = ref<{
   packs: { id: string; name: string }[];
   templates: { id: string; name: string }[];
@@ -846,6 +858,21 @@ async function locate(anchor: Anchor, findingId?: string) {
     void target.offsetWidth;
     target.classList.add('locate-flash');
   }
+}
+async function openPdfInspectionPage(target: number) {
+  if (version.value?.format !== 'pdf' || !version.value.parse?.pages.some((p) => p.page === target))
+    return;
+  evidenceQuote.value = '';
+  textAnchor.value = null;
+  visualAnchor.value = null;
+  searchInput.value = '';
+  inspector.value = false;
+  dialog.value = '';
+  page.value = target;
+  tab.value = 'annotations';
+  mobilePane.value = 'paper';
+  await nextTick();
+  paperScroll.value?.scrollTo({ top: 0 });
 }
 function chooseFinding(index: number) {
   selected.value = index;
@@ -1604,6 +1631,14 @@ onUnmounted(() => {
                 }}
                 · 不还原原始分页、图像内容与公式
               </div>
+              <p
+                v-if="docxEvidenceStatus"
+                class="docx-evidence-status"
+                role="status"
+                aria-live="polite"
+              >
+                {{ docxEvidenceStatus }}
+              </p>
               <DocxSection
                 v-for="section in version.parse?.sections"
                 :key="section.id"
@@ -1884,6 +1919,12 @@ onUnmounted(() => {
                 页码未映射。</span
               >
             </div>
+            <PdfInspection
+              v-if="version.format === 'pdf'"
+              :diagnostics="version.parse.pdfDiagnostics"
+              :export-url="`/api/projects/${project!.id}/versions/${version.id}/pdf-diagnostics/export`"
+              @page="openPdfInspectionPage"
+            />
             <div v-for="warning in version.parse.warnings" :key="warning" class="notice">
               <Icon name="info" :size="17" /><span>{{ warning }}</span>
             </div>
@@ -2054,6 +2095,12 @@ onUnmounted(() => {
             <div class="report-section">
               <h3>一、评审覆盖与能力边界</h3>
               <p>{{ report.coverage }}</p>
+              <PdfInspection
+                v-if="report.pdfDiagnostics"
+                :diagnostics="report.pdfDiagnostics"
+                :navigate="report.parseId === version.parse?.id"
+                @page="openPdfInspectionPage"
+              />
               <p v-if="report.usage" class="small muted">
                 本次调用 {{ report.usage.requests }} 次（失败
                 {{ report.usage.failedRequests }} 次），累计图片输入

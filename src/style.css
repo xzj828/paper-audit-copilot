@@ -1864,7 +1864,8 @@ progress {
   border: 1px solid #bd593b;
   background: rgba(255, 208, 72, 0.28);
 }
-.pdf-evidence-status {
+.pdf-evidence-status,
+.docx-evidence-status {
   margin: 10px 20px;
   max-width: min(680px, calc(100vw - 60px));
 }
