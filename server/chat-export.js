@@ -7,6 +7,37 @@ function pick(value, fields) {
   );
 }
 
+function retrievalSnapshot(value) {
+  const result = pick(value, [
+    'strategy',
+    'terminologyVersion',
+    'mode',
+    'versionId',
+    'parseId',
+    'queryText',
+    'followUpTo',
+    'totalChunks',
+    'selectedChunks',
+    'contextCharacters',
+    'status',
+    'scope',
+  ]);
+  if (Array.isArray(value.termMappings))
+    result.termMappings = value.termMappings
+      .filter(
+        (m) =>
+          typeof m?.id === 'string' &&
+          typeof m.matched === 'string' &&
+          Array.isArray(m.alternatives),
+      )
+      .map((m) => ({
+        id: m.id,
+        matched: m.matched,
+        alternatives: m.alternatives.filter((a) => typeof a === 'string'),
+      }));
+  return result;
+}
+
 function sourceSnapshot(source, parse) {
   const anchor = pick(source.anchor, [
     'elementId',
@@ -65,19 +96,7 @@ export function chatSnapshot(project, version, exportedAt = new Date().toISOStri
         ]),
         ...(message.retrieval
           ? {
-              retrieval: pick(message.retrieval, [
-                'strategy',
-                'mode',
-                'versionId',
-                'parseId',
-                'queryText',
-                'followUpTo',
-                'totalChunks',
-                'selectedChunks',
-                'contextCharacters',
-                'status',
-                'scope',
-              ]),
+              retrieval: retrievalSnapshot(message.retrieval),
             }
           : {}),
         sources: (message.sources || []).map((source) => sourceSnapshot(source, version.parse)),
@@ -148,6 +167,11 @@ export function exportChat(project, version, format) {
       );
       if (r.followUpTo)
         lines.push(`沿用的问题 ID：${inline(r.followUpTo)}`, '', literal(r.queryText), '');
+      for (const mapping of r.termMappings || [])
+        lines.push(
+          `有限术语映射：${inline(mapping.matched)} → ${mapping.alternatives.map(inline).join('、')} · ${inline(r.terminologyVersion)}`,
+          '',
+        );
     }
     for (const source of [
       ...message.sources,

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { parseDocxStructure } from './docx-structure.js';
 import { buildPdfPage, PDF_TEXT_NORMALIZATION } from '../shared/pdf-text.js';
+import { buildPdfDiagnostics } from '../shared/pdf-diagnostics.js';
 
 async function parse() {
   const buffer = await readFile(workerData.path);
@@ -12,6 +13,7 @@ async function parse() {
   let parser;
   let structure;
   let normalization;
+  let pdfDiagnostics;
   if (workerData.format === 'pdf') {
     const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const task = getDocument({ data: new Uint8Array(buffer), useSystemFonts: true });
@@ -30,7 +32,8 @@ async function parse() {
         ...mapped,
       });
       sections.push({ id: `page-${p}`, title: `第 ${p} 页`, text, page: p });
-      if (text.length < 30) warnings.push(`第 ${p} 页文本较少，可能含扫描图像；未执行 OCR。`);
+      if (text.replace(/\s/gu, '').length < 30)
+        warnings.push(`第 ${p} 页可检索文字较少，请核对原页；不能据此认定扫描件，未执行 OCR。`);
       if (mapped.unmappedTextItems)
         warnings.push(
           `第 ${p} 页有 ${mapped.unmappedTextItems} 个文字块无法映射到可见坐标，相关引文仅跳转页码。`,
@@ -38,7 +41,8 @@ async function parse() {
       parentPort.postMessage({ progress: Math.round((p / document.numPages) * 90) });
     }
     await task.destroy();
-    parser = 'pdfjs-dist@6:text-map@1';
+    pdfDiagnostics = buildPdfDiagnostics(pages);
+    parser = 'pdfjs-dist@6:text-map@1:diagnostics@1';
     normalization = PDF_TEXT_NORMALIZATION;
     warnings.push(
       'PDF 文字按内嵌文本顺序提取；位置框覆盖文字块，可能包含相邻字。双栏阅读顺序、表格关系、图像与完整公式需人工核对；未执行 OCR。',
@@ -60,6 +64,7 @@ async function parse() {
     pages,
     ...(structure ? { structure } : {}),
     ...(normalization ? { normalization } : {}),
+    ...(pdfDiagnostics ? { pdfDiagnostics } : {}),
     characterCount,
     coverage: warnings.length ? 'partial' : 'text-only',
     warnings,

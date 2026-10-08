@@ -20,6 +20,7 @@ import { exportChat } from './chat-export.js';
 import { mountReferenceAudit } from './reference-audit.js';
 import { mountDataAudit } from './data-audit.js';
 import { mountClaimAudit } from './claim-audit.js';
+import { pdfDiagnosticsSnapshot } from '../shared/pdf-diagnostics.js';
 
 export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
   const root = path.resolve(
@@ -441,6 +442,32 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       save(req, p);
     }
     res.json(p);
+  });
+  app.get('/api/projects/:id/versions/:versionId/pdf-diagnostics/export', (req, res) => {
+    const p = project(req, res);
+    if (!p) return;
+    const v = p.versions.find((item) => item.id === req.params.versionId);
+    if (!v) return res.status(404).json({ error: '版本不存在' });
+    const diagnostics = pdfDiagnosticsSnapshot(v.parse?.pdfDiagnostics);
+    if (v.format !== 'pdf' || v.status !== 'ready' || !diagnostics)
+      return res
+        .status(409)
+        .json({ error: '当前解析未记录可导出的PDF逐页体检；旧解析请在新项目重新上传原文件。' });
+    res.setHeader('Content-Disposition', `attachment; filename="pdf-inspection-v${v.number}.json"`);
+    res.json({
+      schema: 'paper-audit-pdf-inspection@1',
+      exportedAt: new Date().toISOString(),
+      project: { id: p.id, title: p.title },
+      version: {
+        id: v.id,
+        number: v.number,
+        filename: v.filename,
+        contentHash: v.contentHash,
+        parseId: v.parse.id,
+        parser: v.parse.parser,
+      },
+      diagnostics,
+    });
   });
   app.get('/api/projects/:id/versions/:versionId/conversation/export', (req, res) => {
     const p = project(req, res);

@@ -1,4 +1,12 @@
 // Version-scoped lexical RAG. Quotes are source slices; no model generates anchors.
+import { quoteRange } from '../shared/text-highlight.js';
+import {
+  mappedTerms,
+  mappedQuery,
+  conceptToken,
+  normalizedTextMap,
+  terminologyVersion,
+} from './retrieval-terms.js';
 const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
 // Keep standalone scientific notation without admitting every single-letter word.
 const scientificSymbols = new Set(['p', 'n', 'r', 't', 'f', 'α', 'β', 'χ']);
@@ -105,12 +113,21 @@ export function retrieveEvidence(
         .find((m) => !followUp.test(m.text.trim()))
     : null;
   const queryText = topic?.text || question;
-  const words = terms(queryText);
+  const mapped = mappedQuery(queryText);
+  const words = terms(mapped.remainder);
   const query = [
-    ...new Set(words.flatMap((word) => [word, ...(bilingualTerms[word] || [])])),
+    ...new Set([
+      ...mapped.tokens,
+      ...words.flatMap((word) => [word, ...(bilingualTerms[word] || [])]),
+    ]),
   ].slice(0, 80);
   const documents = chunks.map((chunk) => {
-    const words = terms(`${chunk.section} ${chunk.quote}`),
+    const words = [
+        ...terms(chunk.section || ''),
+        ...terms(chunk.quote),
+        ...mappedTerms(chunk.section).matches.map((match) => conceptToken(match.id)),
+        ...mappedTerms(chunk.quote).matches.map((match) => conceptToken(match.id)),
+      ],
       frequencies = new Map();
     for (const word of words) frequencies.set(word, (frequencies.get(word) || 0) + 1);
     return { chunk, frequencies, length: words.length, score: 0 };
@@ -132,14 +149,14 @@ export function retrieveEvidence(
   // Prioritize a selected finding only if its quote actually occurs in this version.
   if (finding?.anchor?.quote) {
     const source = version.parse?.sections.find((s) => s.id === finding.anchor.elementId);
-    const quote = finding.anchor.quote;
-    const start = source ? `${source.text || ''} ${source.after || ''}`.indexOf(quote) : -1;
+    const range =
+      source && quoteRange(`${source.text || ''} ${source.after || ''}`.trimEnd(), finding.anchor);
     const selected = documents.find(
       (doc) =>
-        start >= 0 &&
+        range &&
         doc.chunk.elementId === source.id &&
-        doc.chunk.offset <= start &&
-        doc.chunk.end > start,
+        doc.chunk.offset <= range.start &&
+        doc.chunk.end > range.start,
     );
     if (selected) selected.score += 1000;
   }
@@ -176,11 +193,18 @@ export function retrieveEvidence(
     const id = `R${sources.length + 1}`;
     const header = `[${id}] ${chunk.section} (${chunk.elementId})\n`;
     if (characters + header.length + chunk.quote.length + 2 > maxCharacters) continue;
-    const normalizedQuote = chunk.quote.normalize('NFKC').toLowerCase();
+    const { normalized: normalizedQuote, starts } = normalizedTextMap(chunk.quote);
     const matches = query
+      .filter((term) => !term.startsWith('@ecology/'))
       .map((term) => normalizedQuote.indexOf(term))
       .filter((index) => index >= 0);
-    const excerptStart = Math.max(0, (matches.length ? Math.min(...matches) : 0) - 60);
+    matches.push(
+      ...mappedTerms(chunk.quote)
+        .matches.filter((match) => mapped.tokens.includes(conceptToken(match.id)))
+        .map((match) => match.start),
+    );
+    const first = matches.length ? starts[Math.min(...matches)] : 0;
+    const excerptStart = Math.max(0, (first || 0) - 60);
     const excerptEnd = Math.min(chunk.quote.length, excerptStart + 220);
     sources.push({
       id,
@@ -199,7 +223,9 @@ export function retrieveEvidence(
     characters += header.length + chunk.quote.length + 2;
   }
   const retrieval = {
-    strategy: 'bm25-lexical@2',
+    strategy: 'bm25-lexical@3',
+    terminologyVersion,
+    termMappings: mapped.mappings,
     mode: overview ? 'overview' : 'query',
     versionId: version.id,
     parseId: version.parse?.id || null,

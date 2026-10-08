@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { retrieveEvidence } from './retrieval.js';
+import { quoteRange } from '../shared/text-highlight.js';
+import { pdfDiagnosticsSnapshot } from '../shared/pdf-diagnostics.js';
+export const anchorValidationVersion = 'exact-occurrence@2';
 
 export const registry = [
   {
@@ -13,13 +16,27 @@ export const registry = [
   },
 ];
 
-// Match typography only; return an actual source slice so navigation stays exact.
+const sectionText = (section) =>
+  typeof section?.text === 'string'
+    ? section.text + (typeof section.after === 'string' && section.after ? ` ${section.after}` : '')
+    : null;
+
+export function resolveExactTextAnchor(parse, anchor) {
+  const section = parse?.sections?.find((s) => s.id === anchor?.elementId);
+  const source = sectionText(section);
+  const range = quoteRange(source, anchor);
+  return range ? { quote: anchor.quote, offset: range.start, quality: 'exact' } : null;
+}
+
+// Match unique typography only; an explicit offset always requires exact text.
 export function resolveTextAnchor(parse, anchor) {
-  const section = parse.sections.find((s) => s.id === anchor?.elementId);
+  const section = parse?.sections?.find((s) => s.id === anchor?.elementId);
   if (!section || typeof anchor.quote !== 'string' || !anchor.quote.trim()) return null;
-  const source = `${section.text} ${section.after || ''}`;
-  const exact = source.indexOf(anchor.quote);
-  if (exact >= 0) return { quote: anchor.quote, offset: exact, quality: 'exact' };
+  const source = sectionText(section);
+  if (source === null) return null;
+  const exact = resolveExactTextAnchor(parse, anchor);
+  if (exact) return exact;
+  if (anchor.offset !== undefined || source.includes(anchor.quote)) return null;
   function canonical(value) {
     let text = '';
     const offsets = [];
@@ -52,10 +69,7 @@ export function resolveTextAnchor(parse, anchor) {
 }
 
 export function validateAnchor(parse, anchor) {
-  const section = parse.sections.find((s) => s.id === anchor.elementId);
-  return Boolean(
-    section && anchor.quote && `${section.text} ${section.after || ''}`.includes(anchor.quote),
-  );
+  return Boolean(resolveExactTextAnchor(parse, anchor));
 }
 
 export function makeStructureReport(version, settings) {
@@ -109,6 +123,7 @@ export function makeStructureReport(version, settings) {
       references: structuredClone(version.referenceAudits?.at(-1) || null),
       claims: structuredClone(version.claimAudits?.at(-1) || null),
     },
+    pdfDiagnostics: pdfDiagnosticsSnapshot(version.parse.pdfDiagnostics),
     coverage: '仅完成文本与结构提取。专业评审、语义分析、外部文献比较及 OCR 尚未执行。',
     warnings: [...version.parse.warnings],
   };

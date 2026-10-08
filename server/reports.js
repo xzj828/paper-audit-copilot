@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import { dataAuditSummary } from './data-audit.js';
 import { referenceAuditSummary } from './reference-audit.js';
 import { claimAuditSummary } from './claim-audit.js';
+import { pdfDiagnosticsLines } from '../shared/pdf-diagnostics.js';
 
 export const defaultTemplate = {
   id: 'review-report@1',
@@ -204,6 +205,11 @@ export function reportBlocks(report, projectTitle) {
     if (report.toolAudits?.references)
       add(referenceAuditSummary(report.toolAudits.references, { markdown: false }));
     if (report.toolAudits?.claims) add(claimAuditSummary(report.toolAudits.claims));
+  }
+  const diagnosticLines = pdfDiagnosticsLines(report.pdfDiagnostics);
+  if (diagnosticLines.length) {
+    blocks.push({ heading: 2, text: 'PDF逐页解析体检（生成报告时快照）' });
+    blocks.push(...diagnosticLines.map((text) => ({ text, literal: true })));
   }
   return blocks;
 }

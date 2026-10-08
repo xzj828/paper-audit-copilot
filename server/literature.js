@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { validateAnchor } from './engine.js';
+import { validateAnchor, resolveExactTextAnchor } from './engine.js';
 
 const plain = (value) =>
   String(value || '')
@@ -176,7 +176,11 @@ export function validateComparisons(raw, literature, parse) {
         ]),
       ),
       sourceId: source.id,
-      paperEvidence: item.paperEvidence.map((e) => ({ elementId: e.elementId, quote: e.quote })),
+      paperEvidence: item.paperEvidence.map((e) => ({
+        elementId: e.elementId,
+        quote: e.quote,
+        offset: resolveExactTextAnchor(parse, e).offset,
+      })),
       title: source.title,
       doi: source.doi,
       url: source.url,

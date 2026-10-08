@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import multer from 'multer';
-import { validateAnchor } from './engine.js';
+import { resolveExactTextAnchor, anchorValidationVersion } from './engine.js';
 
 export const dataAuditLimits = Object.freeze({
   fileBytes: 2 * 1024 * 1024,
@@ -133,19 +133,20 @@ function validateMapping(input, csv, version) {
   }
   let anchor = null;
   if (input.anchor?.elementId || input.anchor?.quote) {
+    const matched = resolveExactTextAnchor(version.parse, input.anchor);
     if (
       typeof input.anchor.elementId !== 'string' ||
       typeof input.anchor.quote !== 'string' ||
       input.anchor.quote.length > 2000 ||
-      !validateAnchor(version.parse, input.anchor)
+      !matched
     )
-      fail('论文引用必须逐字匹配当前版本的解析原文，且不超过 2000 字符');
+      fail('论文引用必须唯一逐字匹配当前版本原文，或提供正确偏移，且不超过 2000 字符');
     const section = version.parse.sections.find((item) => item.id === input.anchor.elementId);
     anchor = {
       elementId: section.id,
       section: section.title,
       quote: input.anchor.quote,
-      offset: `${section.text} ${section.after || ''}`.indexOf(input.anchor.quote),
+      offset: matched.offset,
       ...(section.page ? { page: section.page } : {}),
       ...(section.paragraph ? { paragraph: section.paragraph } : {}),
     };
@@ -276,6 +277,7 @@ export function auditData(
   return {
     id: randomUUID(),
     executor: 'csv-descriptive-audit@1',
+    anchorValidation: anchorValidationVersion,
     createdAt,
     versionId: version.id,
     parseId: version.parse.id,
