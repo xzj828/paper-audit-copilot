@@ -1,7 +1,16 @@
 {
   "schema": "published-docx-validation@1",
   "status": "passed",
-  "evaluatedAt": "2026-10-07T12:10:08.247Z",
+  "evaluatedAt": "2026-10-08T09:42:42.136Z",
+  "implementation": {
+    "server/parser.js": "6ad0606608a739484eaa8d266950a91d8bd9ac05c03b768b45d180d42797471a",
+    "shared/pdf-diagnostics.js": "498d5c54bffe2e7dc49dce95fc07553c3befee86d919f994afeb3378124ab2f9",
+    "server/docx-structure.js": "624f2eb1df36a1317879014045aa4b3faebe5e42a8c6fef6feefc43ea6f5910f",
+    "server/retrieval.js": "851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca",
+    "server/retrieval-terms.js": "b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "scripts/evaluate-docx.mjs": "7a51a8672fc55b31408dfb0fb110205ce778ba69805098050246e69caed522a8"
+  },
   "labelOrigin": "Developer checked original OOXML cell text before registering expectations; not an expert gold standard.",
   "scope": "One published supplementary table. Checks parser geometry, exact source cells and retrieval slices. Does not assess PERMANOVA validity, scientific inference, original pagination or expert accuracy.",
   "source": {
@@ -43,7 +52,7 @@
       "question": "soil type R2 F",
       "expectedRow": 2,
       "rowRetrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "elementId": "paragraph-4",
@@ -84,7 +93,7 @@
       "question": "sampling location variance",
       "expectedRow": 3,
       "rowRetrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "elementId": "table-1",
@@ -117,7 +126,7 @@
       "question": "soil type sampling location interaction",
       "expectedRow": 4,
       "rowRetrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "elementId": "paragraph-4",

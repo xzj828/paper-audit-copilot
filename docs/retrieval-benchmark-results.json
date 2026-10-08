@@ -2,13 +2,19 @@
   "schemaVersion": 1,
   "benchmarkId": "retrieval-regression-synthetic-v1",
   "title": "检索可靠性固定合成回归集",
-  "evaluatedAt": "2026-10-07T10:16:56.000Z",
+  "evaluatedAt": "2026-10-08T03:16:11.468Z",
   "materialType": "synthetic",
   "expectedLabelOrigin": "developer-authored expected labels; not expert gold standard or real-paper accuracy",
   "corpusSha256": "844a9e8e20e88a3fe739a0d4baf98d15d21dd5742fdef094ff373a40a3442d6e",
+  "implementation": {
+    "server/retrieval.js": "851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca",
+    "server/retrieval-terms.js": "b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "scripts/evaluate-retrieval.mjs": "73cddab9ab09234272a8f7fc64abd1e81178eb4c8153f9349ad900205947b3ff"
+  },
   "hashDefinition": "按键排序后的展开合成材料及全部预设期望的SHA-256；不包含测量耗时与生成时间。",
   "strategies": [
-    "bm25-lexical@2"
+    "bm25-lexical@3"
   ],
   "runtime": {
     "node": "v24.15.0",
@@ -23,28 +29,28 @@
   },
   "summary": {
     "cases": 38,
-    "passed": 36,
-    "failed": 2,
+    "passed": 38,
+    "failed": 0,
     "recallAtK": {
       "k": 8,
-      "matchedExpectedElements": 27,
+      "matchedExpectedElements": 29,
       "expectedElements": 29,
-      "value": 0.9310344827586207,
+      "value": 1,
       "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
     },
     "noHit": {
       "expected": 10,
-      "returned": 12,
+      "returned": 10,
       "trueNoHits": 10,
-      "falseRefusals": 2,
+      "falseRefusals": 0,
       "unexpectedMatches": 0,
-      "precision": 0.8333333333333334,
+      "precision": 1,
       "recall": 1,
       "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
     },
     "exactQuoteValidity": {
-      "checked": 36,
-      "valid": 36,
+      "checked": 38,
+      "valid": 38,
       "value": 1
     },
     "versionLeakCount": 0,
@@ -52,8 +58,8 @@
     "sourceBudgetViolations": 0,
     "latency": {
       "samples": 38,
-      "p50Ms": 0.030957999999998265,
-      "p95Ms": 2.8221670000000003,
+      "p50Ms": 0.10470899999999972,
+      "p95Ms": 6.651332999999994,
       "estimator": "nearest-rank",
       "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
     }
@@ -90,52 +96,52 @@
       "sourceBudgetViolations": 0,
       "latency": {
         "samples": 36,
-        "p50Ms": 0.032125000000000625,
-        "p95Ms": 2.8221670000000003,
+        "p50Ms": 0.10470899999999972,
+        "p95Ms": 6.651332999999994,
         "estimator": "nearest-rank",
         "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
       }
     },
     "exploratory": {
       "cases": 2,
-      "passed": 0,
-      "failed": 2,
+      "passed": 2,
+      "failed": 0,
       "recallAtK": {
         "k": 8,
-        "matchedExpectedElements": 0,
+        "matchedExpectedElements": 2,
         "expectedElements": 2,
-        "value": 0,
+        "value": 1,
         "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
       },
       "noHit": {
         "expected": 0,
-        "returned": 2,
+        "returned": 0,
         "trueNoHits": 0,
-        "falseRefusals": 2,
+        "falseRefusals": 0,
         "unexpectedMatches": 0,
-        "precision": 0,
+        "precision": null,
         "recall": null,
         "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
       },
       "exactQuoteValidity": {
-        "checked": 0,
-        "valid": 0,
-        "value": null
+        "checked": 2,
+        "valid": 2,
+        "value": 1
       },
       "versionLeakCount": 0,
       "versionMetadataMismatches": 0,
       "sourceBudgetViolations": 0,
       "latency": {
         "samples": 2,
-        "p50Ms": 0.01433399999999807,
-        "p95Ms": 0.015917000000001735,
+        "p50Ms": 0.03695899999999597,
+        "p95Ms": 0.11074999999999591,
         "estimator": "nearest-rank",
         "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
       }
     }
   },
   "integrityPassed": true,
-  "gate": "contract_passed_with_exploratory_gaps",
+  "gate": "all_fixed_cases_passed",
   "thresholdMeaning": "contract要求固定开发者期望全部通过；所有cohort返回的原文切片、版本与预算检查均须无错误。exploratory的召回缺口不作为当前能力承诺，失败仍完整显示。任何通过状态均不认证真实论文或模型质量。",
   "baselineObservations": [
     {
@@ -162,10 +168,13 @@
         "elementIds": [
           "design"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "请解释独立样地",
@@ -220,7 +229,7 @@
       "matchedElementIds": [
         "design"
       ],
-      "latencyMs": 1.1984160000000017,
+      "latencyMs": 16.584875,
       "passed": true,
       "errors": []
     },
@@ -236,10 +245,13 @@
         "elementIds": [
           "stats"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "线性混合模型如何使用",
@@ -274,7 +286,7 @@
       "matchedElementIds": [
         "stats"
       ],
-      "latencyMs": 0.22583399999999898,
+      "latencyMs": 0.4774579999999986,
       "passed": true,
       "errors": []
     },
@@ -290,10 +302,13 @@
         "elementIds": [
           "carbon"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "碳储量与年固碳通量",
@@ -328,7 +343,7 @@
       "matchedElementIds": [
         "carbon"
       ],
-      "latencyMs": 0.31725000000000136,
+      "latencyMs": 0.18487500000000523,
       "passed": true,
       "errors": []
     },
@@ -344,10 +359,13 @@
         "elementIds": [
           "quality"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "叶绿素测量质控",
@@ -392,7 +410,7 @@
       "matchedElementIds": [
         "quality"
       ],
-      "latencyMs": 0.1390410000000024,
+      "latencyMs": 0.16895899999999386,
       "passed": true,
       "errors": []
     },
@@ -408,10 +426,13 @@
         "elementIds": [
           "en-method"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "请说明样本量",
@@ -446,7 +467,7 @@
       "matchedElementIds": [
         "en-method"
       ],
-      "latencyMs": 0.07879199999999997,
+      "latencyMs": 0.28608399999999534,
       "passed": true,
       "errors": []
     },
@@ -462,10 +483,13 @@
         "elementIds": [
           "en-method"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "方法是什么",
@@ -500,7 +524,7 @@
       "matchedElementIds": [
         "en-method"
       ],
-      "latencyMs": 0.032125000000000625,
+      "latencyMs": 0.11975000000000335,
       "passed": true,
       "errors": []
     },
@@ -516,10 +540,13 @@
         "elementIds": [
           "en-results"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "请解释结果",
@@ -554,7 +581,7 @@
       "matchedElementIds": [
         "en-results"
       ],
-      "latencyMs": 0.03025000000000233,
+      "latencyMs": 0.20504200000000594,
       "passed": true,
       "errors": []
     },
@@ -570,10 +597,13 @@
         "elementIds": [
           "en-limits"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "请说明局限性",
@@ -608,7 +638,7 @@
       "matchedElementIds": [
         "en-limits"
       ],
-      "latencyMs": 0.02987500000000054,
+      "latencyMs": 0.10470899999999972,
       "passed": true,
       "errors": []
     },
@@ -624,10 +654,13 @@
         "elementIds": [
           "data"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "where are the data",
@@ -662,7 +695,7 @@
       "matchedElementIds": [
         "data"
       ],
-      "latencyMs": 0.11395800000000023,
+      "latencyMs": 0.17962500000000148,
       "passed": true,
       "errors": []
     },
@@ -678,10 +711,13 @@
         "elementIds": [
           "number-312"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "312",
@@ -716,7 +752,7 @@
       "matchedElementIds": [
         "number-312"
       ],
-      "latencyMs": 0.045249999999999346,
+      "latencyMs": 0.08100000000000307,
       "passed": true,
       "errors": []
     },
@@ -732,10 +768,13 @@
         "elementIds": [
           "number-decimal"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "0.031",
@@ -770,7 +809,7 @@
       "matchedElementIds": [
         "number-decimal"
       ],
-      "latencyMs": 0.03400000000000247,
+      "latencyMs": 0.07154199999999378,
       "passed": true,
       "errors": []
     },
@@ -786,10 +825,13 @@
         "elementIds": [
           "number-unit"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "kg",
@@ -824,7 +866,7 @@
       "matchedElementIds": [
         "number-unit"
       ],
-      "latencyMs": 0.03825000000000145,
+      "latencyMs": 0.067541999999996,
       "passed": true,
       "errors": []
     },
@@ -841,10 +883,13 @@
         "elementIds": [
           "group-2"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "第2组",
@@ -879,7 +924,7 @@
       "matchedElementIds": [
         "group-2"
       ],
-      "latencyMs": 0.06333399999999756,
+      "latencyMs": 0.3070410000000052,
       "passed": true,
       "errors": []
     },
@@ -896,10 +941,13 @@
         "elementIds": [
           "p-value"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "p",
@@ -934,7 +982,7 @@
       "matchedElementIds": [
         "p-value"
       ],
-      "latencyMs": 0.02791700000000219,
+      "latencyMs": 0.2691249999999954,
       "passed": true,
       "errors": []
     },
@@ -950,6 +998,7 @@
         "elementIds": [
           "late-method"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "late-method",
@@ -958,7 +1007,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "cryospectrometry",
@@ -993,7 +1044,7 @@
       "matchedElementIds": [
         "late-method"
       ],
-      "latencyMs": 3.1930000000000014,
+      "latencyMs": 5.419584,
       "passed": true,
       "errors": []
     },
@@ -1009,6 +1060,7 @@
         "elementIds": [
           "late-method"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "late-method",
@@ -1017,7 +1069,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "How was glacier variance measured?",
@@ -1052,7 +1106,7 @@
       "matchedElementIds": [
         "late-method"
       ],
-      "latencyMs": 2.8221670000000003,
+      "latencyMs": 6.651332999999994,
       "passed": true,
       "errors": []
     },
@@ -1068,6 +1122,7 @@
         "elementIds": [
           "continued"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "continued",
@@ -1076,7 +1131,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "glacier",
@@ -1111,7 +1168,7 @@
       "matchedElementIds": [
         "continued"
       ],
-      "latencyMs": 0.5806249999999977,
+      "latencyMs": 1.663375000000002,
       "passed": true,
       "errors": []
     },
@@ -1127,6 +1184,7 @@
         "elementIds": [
           "typography-fullwidth"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "typography-fullwidth",
@@ -1135,7 +1193,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "carbon",
@@ -1170,7 +1230,7 @@
       "matchedElementIds": [
         "typography-fullwidth"
       ],
-      "latencyMs": 0.04258400000000151,
+      "latencyMs": 0.43983300000000014,
       "passed": true,
       "errors": []
     },
@@ -1186,6 +1246,7 @@
         "elementIds": [
           "typography-newlines"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "typography-newlines",
@@ -1194,7 +1255,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "repeated measurement variance",
@@ -1229,7 +1292,7 @@
       "matchedElementIds": [
         "typography-newlines"
       ],
-      "latencyMs": 0.027833999999998582,
+      "latencyMs": 0.06099999999999994,
       "passed": true,
       "errors": []
     },
@@ -1245,6 +1308,7 @@
         "elementIds": [
           "typography-unicode"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "typography-unicode",
@@ -1253,7 +1317,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "遥感植被指数",
@@ -1288,7 +1354,7 @@
       "matchedElementIds": [
         "typography-unicode"
       ],
-      "latencyMs": 0.026832999999999885,
+      "latencyMs": 0.048875000000002444,
       "passed": true,
       "errors": []
     },
@@ -1302,10 +1368,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "quasars spacetime",
@@ -1327,7 +1396,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.08191699999999713,
+      "latencyMs": 0.13679099999999522,
       "passed": true,
       "errors": []
     },
@@ -1341,10 +1410,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "quantum teleportation",
@@ -1366,7 +1438,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.020915999999999713,
+      "latencyMs": 0.03404199999999946,
       "passed": true,
       "errors": []
     },
@@ -1380,10 +1452,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "glacier",
@@ -1405,7 +1480,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.006040999999999741,
+      "latencyMs": 0.008541999999998495,
       "passed": true,
       "errors": []
     },
@@ -1419,10 +1494,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "请总结火星探测器",
@@ -1444,7 +1522,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.07162500000000094,
+      "latencyMs": 0.09337500000000176,
       "passed": true,
       "errors": []
     },
@@ -1458,10 +1536,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "glacier",
@@ -1483,7 +1564,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.018958999999998838,
+      "latencyMs": 0.02258300000000446,
       "passed": true,
       "errors": []
     },
@@ -1497,12 +1578,15 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": [],
         "queryText": "为什么？",
         "followUpTo": null
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "为什么？",
@@ -1524,7 +1608,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.015541999999999945,
+      "latencyMs": 0.02025000000000432,
       "passed": true,
       "errors": []
     },
@@ -1540,6 +1624,7 @@
         "elementIds": [
           "shared-method"
         ],
+        "forbiddenElementIds": [],
         "quotes": [
           {
             "elementId": "shared-method",
@@ -1548,7 +1633,9 @@
         ]
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "栎树花粉",
@@ -1583,7 +1670,7 @@
       "matchedElementIds": [
         "shared-method"
       ],
-      "latencyMs": 0.015291000000001276,
+      "latencyMs": 0.052666999999999575,
       "passed": true,
       "errors": []
     },
@@ -1600,11 +1687,14 @@
           "overview-1",
           "overview-12"
         ],
+        "forbiddenElementIds": [],
         "quotes": [],
         "mode": "overview"
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "overview",
         "queryText": "请概括这篇论文",
@@ -1710,7 +1800,7 @@
         "overview-1",
         "overview-12"
       ],
-      "latencyMs": 0.137791,
+      "latencyMs": 0.34850000000000136,
       "passed": true,
       "errors": []
     },
@@ -1724,11 +1814,14 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": [],
         "mode": "overview"
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "overview",
         "queryText": "overview",
@@ -1750,7 +1843,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.021582999999999686,
+      "latencyMs": 0.03345799999999599,
       "passed": true,
       "errors": []
     },
@@ -1766,12 +1859,15 @@
         "elementIds": [
           "follow-glacier"
         ],
+        "forbiddenElementIds": [],
         "quotes": [],
         "queryText": "glacier variance",
         "followUpTo": "topic-glacier"
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "glacier variance",
@@ -1806,7 +1902,7 @@
       "matchedElementIds": [
         "follow-glacier"
       ],
-      "latencyMs": 0.030957999999998265,
+      "latencyMs": 0.06433400000000233,
       "passed": true,
       "errors": []
     },
@@ -1822,12 +1918,15 @@
         "elementIds": [
           "follow-glacier"
         ],
+        "forbiddenElementIds": [],
         "quotes": [],
         "queryText": "glacier variance",
         "followUpTo": "topic-glacier"
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "glacier variance",
@@ -1862,7 +1961,7 @@
       "matchedElementIds": [
         "follow-glacier"
       ],
-      "latencyMs": 0.017416000000000764,
+      "latencyMs": 0.0382499999999979,
       "passed": true,
       "errors": []
     },
@@ -1876,11 +1975,14 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": [],
         "followUpTo": null
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "为什么？",
@@ -1902,7 +2004,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.017500000000001847,
+      "latencyMs": 0.032709000000004096,
       "passed": true,
       "errors": []
     },
@@ -1916,11 +2018,14 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": [],
         "followUpTo": null
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "为何",
@@ -1942,7 +2047,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.017625000000002444,
+      "latencyMs": 0.025458000000000425,
       "passed": true,
       "errors": []
     },
@@ -1958,12 +2063,15 @@
         "elementIds": [
           "follow-birds"
         ],
+        "forbiddenElementIds": [],
         "quotes": [],
         "queryText": "城市鸟类",
         "followUpTo": null
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "城市鸟类",
@@ -1998,7 +2106,7 @@
       "matchedElementIds": [
         "follow-birds"
       ],
-      "latencyMs": 0.016875000000002416,
+      "latencyMs": 0.11062499999999886,
       "passed": true,
       "errors": []
     },
@@ -2014,10 +2122,13 @@
         "elementIds": [
           "finding-target"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "matched",
         "mode": "query",
         "queryText": "请解释这条意见",
@@ -2052,7 +2163,7 @@
       "matchedElementIds": [
         "finding-target"
       ],
-      "latencyMs": 0.0350830000000002,
+      "latencyMs": 0.1942500000000038,
       "passed": true,
       "errors": []
     },
@@ -2066,10 +2177,13 @@
       "expected": {
         "noHit": true,
         "elementIds": [],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
         "status": "no_match",
         "mode": "query",
         "queryText": "请解释这条意见",
@@ -2091,7 +2205,7 @@
         "versionLeakCount": 0
       },
       "matchedElementIds": [],
-      "latencyMs": 0.01754100000000136,
+      "latencyMs": 0.028249999999999886,
       "passed": true,
       "errors": []
     },
@@ -2108,37 +2222,58 @@
         "elementIds": [
           "photosynthesis"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
-        "status": "no_match",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
         "mode": "query",
         "queryText": "光合作用",
         "followUpTo": null,
         "versionId": "unsupported-translation",
         "parseId": "parse-unsupported-translation",
         "totalChunks": 2,
-        "selectedChunks": 0,
-        "contextCharacters": 0,
+        "selectedChunks": 1,
+        "contextCharacters": 93,
         "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
-        "noHit": true,
+        "noHit": false,
         "limits": {
           "maxSources": 8,
           "maxCharacters": 12000
         },
-        "sources": [],
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "photosynthesis",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was measured under controlled illumination.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
         "versionMetadataValid": true,
         "withinBudget": true,
         "versionLeakCount": 0
       },
-      "matchedElementIds": [],
-      "latencyMs": 0.01433399999999807,
-      "passed": false,
-      "errors": [
-        "预设应召回指定原文，实际未返回片段",
-        "未召回预设证据：photosynthesis"
-      ]
+      "matchedElementIds": [
+        "photosynthesis"
+      ],
+      "latencyMs": 0.11074999999999591,
+      "passed": true,
+      "errors": []
     },
     {
       "id": "unsupported-habitat",
@@ -2153,37 +2288,58 @@
         "elementIds": [
           "habitat"
         ],
+        "forbiddenElementIds": [],
         "quotes": []
       },
       "actual": {
-        "strategy": "bm25-lexical@2",
-        "status": "no_match",
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "matched",
         "mode": "query",
         "queryText": "生境破碎化",
         "followUpTo": null,
         "versionId": "unsupported-translation",
         "parseId": "parse-unsupported-translation",
         "totalChunks": 2,
-        "selectedChunks": 0,
-        "contextCharacters": 0,
+        "selectedChunks": 1,
+        "contextCharacters": 88,
         "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
-        "noHit": true,
+        "noHit": false,
         "limits": {
           "maxSources": 8,
           "maxCharacters": 12000
         },
-        "sources": [],
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "habitat",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Habitat fragmentation was quantified using landscape patches.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
         "versionMetadataValid": true,
         "withinBudget": true,
         "versionLeakCount": 0
       },
-      "matchedElementIds": [],
-      "latencyMs": 0.015917000000001735,
-      "passed": false,
-      "errors": [
-        "预设应召回指定原文，实际未返回片段",
-        "未召回预设证据：habitat"
-      ]
+      "matchedElementIds": [
+        "habitat"
+      ],
+      "latencyMs": 0.03695899999999597,
+      "passed": true,
+      "errors": []
     }
   ],
   "limitations": [

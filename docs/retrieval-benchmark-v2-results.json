@@ -1,0 +1,2196 @@
+{
+  "schemaVersion": 1,
+  "benchmarkId": "retrieval-regression-synthetic-v1",
+  "title": "检索可靠性固定合成回归集",
+  "evaluatedAt": "2026-10-07T10:16:56.000Z",
+  "materialType": "synthetic",
+  "expectedLabelOrigin": "developer-authored expected labels; not expert gold standard or real-paper accuracy",
+  "corpusSha256": "844a9e8e20e88a3fe739a0d4baf98d15d21dd5742fdef094ff373a40a3442d6e",
+  "hashDefinition": "按键排序后的展开合成材料及全部预设期望的SHA-256；不包含测量耗时与生成时间。",
+  "strategies": [
+    "bm25-lexical@2"
+  ],
+  "runtime": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": "offline-local-lexical-retrieval; no network requests or model calls",
+  "parameters": {
+    "k": 8,
+    "maxContextCharacters": 12000,
+    "perCaseLimitsIncluded": true
+  },
+  "summary": {
+    "cases": 38,
+    "passed": 36,
+    "failed": 2,
+    "recallAtK": {
+      "k": 8,
+      "matchedExpectedElements": 27,
+      "expectedElements": 29,
+      "value": 0.9310344827586207,
+      "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+    },
+    "noHit": {
+      "expected": 10,
+      "returned": 12,
+      "trueNoHits": 10,
+      "falseRefusals": 2,
+      "unexpectedMatches": 0,
+      "precision": 0.8333333333333334,
+      "recall": 1,
+      "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+    },
+    "exactQuoteValidity": {
+      "checked": 36,
+      "valid": 36,
+      "value": 1
+    },
+    "versionLeakCount": 0,
+    "versionMetadataMismatches": 0,
+    "sourceBudgetViolations": 0,
+    "latency": {
+      "samples": 38,
+      "p50Ms": 0.030957999999998265,
+      "p95Ms": 2.8221670000000003,
+      "estimator": "nearest-rank",
+      "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+    }
+  },
+  "cohorts": {
+    "contract": {
+      "cases": 36,
+      "passed": 36,
+      "failed": 0,
+      "recallAtK": {
+        "k": 8,
+        "matchedExpectedElements": 27,
+        "expectedElements": 27,
+        "value": 1,
+        "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+      },
+      "noHit": {
+        "expected": 10,
+        "returned": 10,
+        "trueNoHits": 10,
+        "falseRefusals": 0,
+        "unexpectedMatches": 0,
+        "precision": 1,
+        "recall": 1,
+        "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+      },
+      "exactQuoteValidity": {
+        "checked": 36,
+        "valid": 36,
+        "value": 1
+      },
+      "versionLeakCount": 0,
+      "versionMetadataMismatches": 0,
+      "sourceBudgetViolations": 0,
+      "latency": {
+        "samples": 36,
+        "p50Ms": 0.032125000000000625,
+        "p95Ms": 2.8221670000000003,
+        "estimator": "nearest-rank",
+        "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+      }
+    },
+    "exploratory": {
+      "cases": 2,
+      "passed": 0,
+      "failed": 2,
+      "recallAtK": {
+        "k": 8,
+        "matchedExpectedElements": 0,
+        "expectedElements": 2,
+        "value": 0,
+        "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+      },
+      "noHit": {
+        "expected": 0,
+        "returned": 2,
+        "trueNoHits": 0,
+        "falseRefusals": 2,
+        "unexpectedMatches": 0,
+        "precision": 0,
+        "recall": null,
+        "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+      },
+      "exactQuoteValidity": {
+        "checked": 0,
+        "valid": 0,
+        "value": null
+      },
+      "versionLeakCount": 0,
+      "versionMetadataMismatches": 0,
+      "sourceBudgetViolations": 0,
+      "latency": {
+        "samples": 2,
+        "p50Ms": 0.01433399999999807,
+        "p95Ms": 0.015917000000001735,
+        "estimator": "nearest-rank",
+        "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+      }
+    }
+  },
+  "integrityPassed": true,
+  "gate": "contract_passed_with_exploratory_gaps",
+  "thresholdMeaning": "contract要求固定开发者期望全部通过；所有cohort返回的原文切片、版本与预算检查均须无错误。exploratory的召回缺口不作为当前能力承诺，失败仍完整显示。任何通过状态均不认证真实论文或模型质量。",
+  "baselineObservations": [
+    {
+      "strategy": "bm25-lexical@1",
+      "caseId": "number-linked-han",
+      "status": "no_match"
+    },
+    {
+      "strategy": "bm25-lexical@1",
+      "caseId": "single-scientific-variable",
+      "status": "no_match"
+    }
+  ],
+  "cases": [
+    {
+      "id": "zh-independent-plots",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请解释独立样地",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "design"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "请解释独立样地",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 3,
+        "contextCharacters": 175,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "design",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "处理分配单位为样地，共30个独立样地，每处理15个；每样地采集10份土壤子样。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R2",
+            "elementId": "data",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "数据与代码位于机构仓库，原始观测表包含处理分配和样地编号。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R3",
+            "elementId": "stats",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "先将子样汇总为样地均值。以处理为固定效应、区组为随机截距拟合线性混合模型，报告95%置信区间。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "design"
+      ],
+      "latencyMs": 1.1984160000000017,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "zh-mixed-model",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "线性混合模型如何使用",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "stats"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "线性混合模型如何使用",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 67,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "stats",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "先将子样汇总为样地均值。以处理为固定效应、区组为随机截距拟合线性混合模型，报告95%置信区间。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "stats"
+      ],
+      "latencyMs": 0.22583399999999898,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "zh-stock-flux",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "碳储量与年固碳通量",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "carbon"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "碳储量与年固碳通量",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 55,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "carbon",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "同一天测得表层土壤碳储量4千克碳每平方米。本次储量测量不代表年固碳通量。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "carbon"
+      ],
+      "latencyMs": 0.31725000000000136,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "zh-quality",
+      "category": "scientific-tokenization",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "叶绿素测量质控",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "quality"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "叶绿素测量质控",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 2,
+        "contextCharacters": 102,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "quality",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "叶绿素测量包含每批空白与标准物质，仪器异常时复测。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R2",
+            "elementId": "carbon",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "同一天测得表层土壤碳储量4千克碳每平方米。本次储量测量不代表年固碳通量。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "quality"
+      ],
+      "latencyMs": 0.1390410000000024,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "bilingual-sample",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请说明样本量",
+      "versionId": "english-methods",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "en-method"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "请说明样本量",
+        "followUpTo": null,
+        "versionId": "english-methods",
+        "parseId": "parse-english-methods",
+        "totalChunks": 4,
+        "selectedChunks": 1,
+        "contextCharacters": 109,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "en-method",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Sample size was 312 independent plots. Methods included a randomized block design.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "en-method"
+      ],
+      "latencyMs": 0.07879199999999997,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "bilingual-method",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "方法是什么",
+      "versionId": "english-methods",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "en-method"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "方法是什么",
+        "followUpTo": null,
+        "versionId": "english-methods",
+        "parseId": "parse-english-methods",
+        "totalChunks": 4,
+        "selectedChunks": 1,
+        "contextCharacters": 109,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "en-method",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Sample size was 312 independent plots. Methods included a randomized block design.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "en-method"
+      ],
+      "latencyMs": 0.032125000000000625,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "bilingual-results",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请解释结果",
+      "versionId": "english-methods",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "en-results"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "请解释结果",
+        "followUpTo": null,
+        "versionId": "english-methods",
+        "parseId": "parse-english-methods",
+        "totalChunks": 4,
+        "selectedChunks": 1,
+        "contextCharacters": 82,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "en-results",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Results showed a bounded effect and broad uncertainty.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "en-results"
+      ],
+      "latencyMs": 0.03025000000000233,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "bilingual-limitations",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请说明局限性",
+      "versionId": "english-methods",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "en-limits"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "请说明局限性",
+        "followUpTo": null,
+        "versionId": "english-methods",
+        "parseId": "parse-english-methods",
+        "totalChunks": 4,
+        "selectedChunks": 1,
+        "contextCharacters": 80,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "en-limits",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Limitations included one location and one season.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "en-limits"
+      ],
+      "latencyMs": 0.02987500000000054,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "bilingual-en-to-zh-data",
+      "category": "bilingual",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "where are the data",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "data"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "where are the data",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 48,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "data",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "数据与代码位于机构仓库，原始观测表包含处理分配和样地编号。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "data"
+      ],
+      "latencyMs": 0.11395800000000023,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "number-count",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "312",
+      "versionId": "numbers",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "number-312"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "312",
+        "followUpTo": null,
+        "versionId": "numbers",
+        "parseId": "parse-numbers",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 82,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "number-312",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "The final sample included 312 independent observations.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "number-312"
+      ],
+      "latencyMs": 0.045249999999999346,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "number-decimal",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "0.031",
+      "versionId": "numbers",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "number-decimal"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "0.031",
+        "followUpTo": null,
+        "versionId": "numbers",
+        "parseId": "parse-numbers",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 119,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "number-decimal",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "The adjusted probability was p = 0.031 with confidence interval 0.12 to 0.35.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "number-decimal"
+      ],
+      "latencyMs": 0.03400000000000247,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "number-unit",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "kg",
+      "versionId": "numbers",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "number-unit"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "kg",
+        "followUpTo": null,
+        "versionId": "numbers",
+        "parseId": "parse-numbers",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 80,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "number-unit",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Estimated carbon density was 4.2 kg per square metre.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "number-unit"
+      ],
+      "latencyMs": 0.03825000000000145,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "number-linked-han",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "第2组",
+      "versionId": "numbers",
+      "regressionOrigin": "v1基线把数字相连汉字查询分成单字符，曾返回no_match；保留期望，不删除失败。",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "group-2"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "第2组",
+        "followUpTo": null,
+        "versionId": "numbers",
+        "parseId": "parse-numbers",
+        "totalChunks": 6,
+        "selectedChunks": 1,
+        "contextCharacters": 33,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "group-2",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第2组测得土壤碳含量。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "group-2"
+      ],
+      "latencyMs": 0.06333399999999756,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "single-scientific-variable",
+      "category": "scientific-numbers",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "p",
+      "versionId": "single-variable",
+      "regressionOrigin": "v1基线过滤单字母p，曾返回no_match；保留期望，不删除失败。",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "p-value"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "p",
+        "followUpTo": null,
+        "versionId": "single-variable",
+        "parseId": "parse-single-variable",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 45,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "p-value",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "检验报告 p = 0.03；未进行多重比较调整。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "p-value"
+      ],
+      "latencyMs": 0.02791700000000219,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "late-specific-protocol",
+      "category": "late-paper",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "cryospectrometry",
+      "versionId": "late-paper",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "late-method"
+        ],
+        "quotes": [
+          {
+            "elementId": "late-method",
+            "contains": "cryospectrometry"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "cryospectrometry",
+        "followUpTo": null,
+        "versionId": "late-paper",
+        "parseId": "parse-late-paper",
+        "totalChunks": 73,
+        "selectedChunks": 1,
+        "contextCharacters": 140,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "late-method",
+            "page": 37,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Glacier variance was measured using 312 independent samples; the detection protocol was cryospectrometry.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "late-method"
+      ],
+      "latencyMs": 3.1930000000000014,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "late-glacier-query",
+      "category": "late-paper",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "How was glacier variance measured?",
+      "versionId": "late-paper",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "late-method"
+        ],
+        "quotes": [
+          {
+            "elementId": "late-method",
+            "contains": "312 independent samples"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "How was glacier variance measured?",
+        "followUpTo": null,
+        "versionId": "late-paper",
+        "parseId": "parse-late-paper",
+        "totalChunks": 73,
+        "selectedChunks": 1,
+        "contextCharacters": 140,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "late-method",
+            "page": 37,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Glacier variance was measured using 312 independent samples; the detection protocol was cryospectrometry.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "late-method"
+      ],
+      "latencyMs": 2.8221670000000003,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "continued-fullwidth",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "glacier",
+      "versionId": "long-paragraph",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "continued"
+        ],
+        "quotes": [
+          {
+            "elementId": "continued",
+            "contains": "ｇｌａｃｉｅｒ"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "glacier",
+        "followUpTo": null,
+        "versionId": "long-paragraph",
+        "parseId": "parse-long-paragraph",
+        "totalChunks": 5,
+        "selectedChunks": 1,
+        "contextCharacters": 572,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "continued",
+            "page": null,
+            "paragraph": 7,
+            "offset": 2624,
+            "quote": "。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。常见监测记录。 最终结果：ｇｌａｃｉｅｒ 支持有限观察性结论。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "continued"
+      ],
+      "latencyMs": 0.5806249999999977,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "fullwidth-nfkc",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "carbon",
+      "versionId": "typography",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "typography-fullwidth"
+        ],
+        "quotes": [
+          {
+            "elementId": "typography-fullwidth",
+            "contains": "ＣＡＲＢＯＮ"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "carbon",
+        "followUpTo": null,
+        "versionId": "typography",
+        "parseId": "parse-typography",
+        "totalChunks": 3,
+        "selectedChunks": 1,
+        "contextCharacters": 57,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "typography-fullwidth",
+            "page": null,
+            "paragraph": 3,
+            "offset": 0,
+            "quote": "ＣＡＲＢＯＮ　采样记录与ｇｌａｃｉｅｒ观察。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "typography-fullwidth"
+      ],
+      "latencyMs": 0.04258400000000151,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "newlines-original",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "repeated measurement variance",
+      "versionId": "typography",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "typography-newlines"
+        ],
+        "quotes": [
+          {
+            "elementId": "typography-newlines",
+            "contains": "Repeated  measurement\nvariance"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "repeated measurement variance",
+        "followUpTo": null,
+        "versionId": "typography",
+        "parseId": "parse-typography",
+        "totalChunks": 3,
+        "selectedChunks": 1,
+        "contextCharacters": 121,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "typography-newlines",
+            "page": 4,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Repeated  measurement\nvariance was measured without omitting\nthe original whitespace.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "typography-newlines"
+      ],
+      "latencyMs": 0.027833999999998582,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "combining-mark-original",
+      "category": "exact-source",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "遥感植被指数",
+      "versionId": "typography",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "typography-unicode"
+        ],
+        "quotes": [
+          {
+            "elementId": "typography-unicode",
+            "contains": "é"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "遥感植被指数",
+        "followUpTo": null,
+        "versionId": "typography",
+        "parseId": "parse-typography",
+        "totalChunks": 3,
+        "selectedChunks": 1,
+        "contextCharacters": 63,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "typography-unicode",
+            "page": null,
+            "paragraph": 5,
+            "offset": 0,
+            "quote": "遥感植被指数记录含 é 重音，不改写原始 Unicode。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "typography-unicode"
+      ],
+      "latencyMs": 0.026832999999999885,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "nohit-quasars",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "quasars spacetime",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "quasars spacetime",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.08191699999999713,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "nohit-quantum",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "quantum teleportation",
+      "versionId": "english-methods",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "quantum teleportation",
+        "followUpTo": null,
+        "versionId": "english-methods",
+        "parseId": "parse-english-methods",
+        "totalChunks": 4,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.020915999999999713,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "nohit-empty",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "glacier",
+      "versionId": "empty",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "glacier",
+        "followUpTo": null,
+        "versionId": "empty",
+        "parseId": "parse-empty",
+        "totalChunks": 0,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.006040999999999741,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "nohit-unrelated-summary",
+      "category": "no-hit",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请总结火星探测器",
+      "versionId": "ecology-cn",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "请总结火星探测器",
+        "followUpTo": null,
+        "versionId": "ecology-cn",
+        "parseId": "parse-ecology-cn",
+        "totalChunks": 6,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.07162500000000094,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "version-old-topic-excluded",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "glacier",
+      "versionId": "current-version",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "glacier",
+        "followUpTo": null,
+        "versionId": "current-version",
+        "parseId": "parse-current-version",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.018958999999998838,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "version-old-conversation-excluded",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "为什么？",
+      "versionId": "current-version",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": [],
+        "queryText": "为什么？",
+        "followUpTo": null
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "为什么？",
+        "followUpTo": null,
+        "versionId": "current-version",
+        "parseId": "parse-current-version",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.015541999999999945,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "version-current-evidence",
+      "category": "version-isolation",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "栎树花粉",
+      "versionId": "current-version",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "shared-method"
+        ],
+        "quotes": [
+          {
+            "elementId": "shared-method",
+            "contains": "本版本测量栎树花粉"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "栎树花粉",
+        "followUpTo": null,
+        "versionId": "current-version",
+        "parseId": "parse-current-version",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 65,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "shared-method",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "本版本测量栎树花粉，采用显微镜计数，不含旧版冰川材料。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "shared-method"
+      ],
+      "latencyMs": 0.015291000000001276,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "overview-both-ends",
+      "category": "overview",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请概括这篇论文",
+      "versionId": "overview",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "overview-1",
+          "overview-12"
+        ],
+        "quotes": [],
+        "mode": "overview"
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "overview",
+        "queryText": "请概括这篇论文",
+        "followUpTo": null,
+        "versionId": "overview",
+        "parseId": "parse-overview",
+        "totalChunks": 12,
+        "selectedChunks": 8,
+        "contextCharacters": 358,
+        "scope": "全文均匀抽样，不能据此判断全文缺失；未检索图像和附件。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "overview-1",
+            "page": 1,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第1段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R2",
+            "elementId": "overview-3",
+            "page": 3,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第3段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R3",
+            "elementId": "overview-4",
+            "page": 4,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第4段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R4",
+            "elementId": "overview-6",
+            "page": 6,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第6段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R5",
+            "elementId": "overview-7",
+            "page": 7,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第7段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R6",
+            "elementId": "overview-9",
+            "page": 9,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第9段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R7",
+            "elementId": "overview-10",
+            "page": 10,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第10段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R8",
+            "elementId": "overview-12",
+            "page": 12,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "第12段合成观察记录，描述本地物种变化。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "overview-1",
+        "overview-12"
+      ],
+      "latencyMs": 0.137791,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "overview-empty",
+      "category": "overview",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "overview",
+      "versionId": "empty",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": [],
+        "mode": "overview"
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "overview",
+        "queryText": "overview",
+        "followUpTo": null,
+        "versionId": "empty",
+        "parseId": "parse-empty",
+        "totalChunks": 0,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "全文均匀抽样，不能据此判断全文缺失；未检索图像和附件。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.021582999999999686,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "follow-first-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "为什么？",
+      "versionId": "follow-one",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "follow-glacier"
+        ],
+        "quotes": [],
+        "queryText": "glacier variance",
+        "followUpTo": "topic-glacier"
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "glacier variance",
+        "followUpTo": "topic-glacier",
+        "versionId": "follow-one",
+        "parseId": "parse-follow-one",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 92,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "follow-glacier",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Glacier variance was measured using 312 independent samples.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "follow-glacier"
+      ],
+      "latencyMs": 0.030957999999998265,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "follow-repeat-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请再详细解释",
+      "versionId": "follow-repeat",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "follow-glacier"
+        ],
+        "quotes": [],
+        "queryText": "glacier variance",
+        "followUpTo": "topic-glacier"
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "glacier variance",
+        "followUpTo": "topic-glacier",
+        "versionId": "follow-repeat",
+        "parseId": "parse-follow-repeat",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 92,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "follow-glacier",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Glacier variance was measured using 312 independent samples.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "follow-glacier"
+      ],
+      "latencyMs": 0.017416000000000764,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "follow-expired-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "为什么？",
+      "versionId": "follow-expired",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": [],
+        "followUpTo": null
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "为什么？",
+        "followUpTo": null,
+        "versionId": "follow-expired",
+        "parseId": "parse-follow-expired",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.017500000000001847,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "follow-ignore-assistant",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "为何",
+      "versionId": "follow-assistant-only",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": [],
+        "followUpTo": null
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "为何",
+        "followUpTo": null,
+        "versionId": "follow-assistant-only",
+        "parseId": "parse-follow-assistant-only",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.017625000000002444,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "follow-new-topic",
+      "category": "follow-up",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "城市鸟类",
+      "versionId": "follow-one",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "follow-birds"
+        ],
+        "quotes": [],
+        "queryText": "城市鸟类",
+        "followUpTo": null
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "城市鸟类",
+        "followUpTo": null,
+        "versionId": "follow-one",
+        "parseId": "parse-follow-one",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 42,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "follow-birds",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "城市鸟类观察以街区为重复单位。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "follow-birds"
+      ],
+      "latencyMs": 0.016875000000002416,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "finding-authentic",
+      "category": "finding-anchor",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请解释这条意见",
+      "versionId": "finding-valid",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "finding-target"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "matched",
+        "mode": "query",
+        "queryText": "请解释这条意见",
+        "followUpTo": null,
+        "versionId": "finding-valid",
+        "parseId": "parse-finding-valid",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 46,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "finding-target",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "独立样地为处理单位，土样为子样本。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "finding-target"
+      ],
+      "latencyMs": 0.0350830000000002,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "finding-invented",
+      "category": "finding-anchor",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "请解释这条意见",
+      "versionId": "finding-fabricated",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "请解释这条意见",
+        "followUpTo": null,
+        "versionId": "finding-fabricated",
+        "parseId": "parse-finding-fabricated",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.01754100000000136,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "unsupported-photosynthesis",
+      "category": "exploratory-language",
+      "cohort": "exploratory",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "unsupported-translation",
+      "knownGap": "有限中英词表未覆盖光合作用与photosynthesis，不属于当前词法检索承诺。",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "photosynthesis"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "unsupported-translation",
+        "parseId": "parse-unsupported-translation",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.01433399999999807,
+      "passed": false,
+      "errors": [
+        "预设应召回指定原文，实际未返回片段",
+        "未召回预设证据：photosynthesis"
+      ]
+    },
+    {
+      "id": "unsupported-habitat",
+      "category": "exploratory-language",
+      "cohort": "exploratory",
+      "materialType": "synthetic",
+      "question": "生境破碎化",
+      "versionId": "unsupported-translation",
+      "knownGap": "有限中英词表未覆盖生境破碎化与habitat fragmentation；不据此宣称通用语义检索。",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "habitat"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@2",
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "生境破碎化",
+        "followUpTo": null,
+        "versionId": "unsupported-translation",
+        "parseId": "parse-unsupported-translation",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.015917000000001735,
+      "passed": false,
+      "errors": [
+        "预设应召回指定原文，实际未返回片段",
+        "未召回预设证据：habitat"
+      ]
+    }
+  ],
+  "limitations": [
+    "这些期望是开发者编写的合成回归标签，不是专家金标准、独立盲评或代表性真实论文样本。",
+    "词法命中和逐字切片不证明回答受证据支持；不评价支持/反驳关系、模型幻觉、审稿准确率或用户节省时间。",
+    "no_match仅说明本次固定检索未返回片段，不证明全文、图像或附件不存在相关材料。",
+    "版本检查仅覆盖传入版本及指定排除版本，不替代真实API与工作空间授权测试。",
+    "耗时仅来自本机逐例一次测量，环境与材料长度会改变结果；未计模型成本、付费调用或网络延迟。"
+  ]
+}

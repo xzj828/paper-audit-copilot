@@ -1,0 +1,2191 @@
+{
+  "schema": "review-contract-results@1",
+  "benchmarkId": "review-safety-controls@1",
+  "evaluatedAt": "2026-10-08T09:42:42.167Z",
+  "materialType": "synthetic",
+  "labelOrigin": "Developer-authored fixed engineering expectations registered before execution; not expert labels, independent blind review or a quality estimate",
+  "fixtureSha256": "c2e54d90c8145361eafb29d73695e56da6aef2f707586aec945f08f7d4e6864f",
+  "hashDefinition": "按键排序的全部固定源文本、受控候选、受控复核响应和预设期望；不含执行时间、随机运行ID或测量结果。",
+  "executorVersion": "4.1.0",
+  "anchorValidation": "exact-occurrence@2",
+  "implementation": {
+    "server/engine.js": "170a764e46494d6ff92dbe644bcb24e91bc88be3933a569bbf772d19ef2df00e",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "shared/pdf-diagnostics.js": "498d5c54bffe2e7dc49dce95fc07553c3befee86d919f994afeb3378124ab2f9",
+    "server/review.js": "ed6c6900c4ec9fb02e15e5708227befc2cb0ec473a395af43c1e274aa7b34cfd",
+    "server/atomic-review.js": "4dd8e495cdfb6b1abc828c9c30c02895450557e4a551a6e573939207fac3f52d",
+    "server/review-pack.js": "e35f11537b877ecde66c9b72e7f6ad507d9e40a33c4ba09d911578a05e65d04d",
+    "server/nature-rules.js": "1effe420c721a4e343e4b130eeace3b1d73f5b57c79bdc46e6521089abe2ccb8"
+  },
+  "execution": "Actual createReviewService, store, normalization, verification and report path with a frozen completion callback; temporary isolated SQLite; no external provider or paid calls",
+  "providerRequests": 0,
+  "summary": {
+    "cases": 30,
+    "passed": 30,
+    "failed": 0,
+    "callbackCount": 55,
+    "generatedFindings": 11,
+    "validFindingAnchors": 11
+  },
+  "gate": "all_engineering_contracts_passed",
+  "scope": "Known developer-authored synthetic boundary controls. Pass counts describe software gates, not reviewer expertise, semantic accuracy, real model performance or clinical/scientific validity. Per-case selected checks and partial weights are explicit; they are not full journal assessments.",
+  "cases": [
+    {
+      "id": "unique-issue",
+      "category": "evidence",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 2,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": [
+        {
+          "title": "E04 · 研究设计与采样",
+          "category": null,
+          "anchor": {
+            "elementId": "s1",
+            "quote": "三个独立样地分别记录了土壤碳储量，并明确列出实验单位。",
+            "section": "方法",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "cb8a3cea93355dea3064d4cba3a93632fb03198354040bce8824cc6d0e498b0a"
+        }
+      ]
+    },
+    {
+      "id": "supported-source",
+      "category": "evidence",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 15,
+        "earned": 15,
+        "total": 100,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 15,
+        "earned": 15,
+        "total": 100,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "supported",
+          "level": 4,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "repeated-no-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "sourceSha256": "e8e515cf51e4329f6cb34feaab4ac06ee683b446f22c52955b8c7bda20948d76",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "repeated-second-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "sourceSha256": "e8e515cf51e4329f6cb34feaab4ac06ee683b446f22c52955b8c7bda20948d76",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          27
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          27
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 2,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": [
+        {
+          "title": "E04 · 研究设计与采样",
+          "category": null,
+          "anchor": {
+            "elementId": "s1",
+            "quote": "处理组土壤碳储量为 12.00。",
+            "section": "结果",
+            "paragraph": 1,
+            "offset": 27,
+            "quality": "exact"
+          },
+          "quoteSha256": "3e8e9d0146854d01a5a3d66670b90945a70f20853066895890a8be161b59fe83"
+        }
+      ]
+    },
+    {
+      "id": "repeated-wrong-offset",
+      "category": "occurrence",
+      "sourceId": "repeated",
+      "sourceSha256": "e8e515cf51e4329f6cb34feaab4ac06ee683b446f22c52955b8c7bda20948d76",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "string-offset",
+      "category": "occurrence",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "unknown-element",
+      "category": "evidence",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "invented-quotation",
+      "category": "evidence",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "unique-typography",
+      "category": "occurrence",
+      "sourceId": "typography",
+      "sourceSha256": "42a9b71fb8f933368ffc56d42bc16fc4fb25ab5e99fa87342ce354b7ffb95a3c",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          3
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 15,
+        "earned": 7.5,
+        "total": 50,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          3
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 2,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": [
+        {
+          "title": "E04 · 研究设计与采样",
+          "category": null,
+          "anchor": {
+            "elementId": "s1",
+            "quote": "We studied three  independent\nforest plots",
+            "section": "Methods",
+            "paragraph": 1,
+            "offset": 3,
+            "quality": "typography-normalized"
+          },
+          "quoteSha256": "781738063b676e9bee92b91bb8ad164f8e5716512f68ec61ed739f551bd2f78b"
+        }
+      ]
+    },
+    {
+      "id": "typography-explicit-mismatch",
+      "category": "occurrence",
+      "sourceId": "typography",
+      "sourceSha256": "42a9b71fb8f933368ffc56d42bc16fc4fb25ab5e99fa87342ce354b7ffb95a3c",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "failed",
+            "applicability": "pending",
+            "reasoning": "pending",
+            "reason": "模型引用无法与原文匹配、无法唯一定位或偏移不符，以下分析仅供核对，不计分或生成正式批注。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "no-citation",
+      "category": "information",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "not_available",
+            "applicability": "pending",
+            "reasoning": "pending"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "missing-material-claim",
+      "category": "information",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "pending",
+            "reasoning": "pending"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "external-comparison-unavailable",
+      "category": "applicability",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E02"
+      ],
+      "packHash": "cfc82c28f04acf6d00eb06ce11bb6e2ace2b24e06a1fc548cb1eb6902d6ce06a",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E02"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E02",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "pending",
+            "reasoning": "pending"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "visual-material-unavailable",
+      "category": "applicability",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E09"
+      ],
+      "packHash": "d037f9db379a55487b34dcc306a029a0abf0fd81daef903a8f46b37e4c08ccee",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E09"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E09",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "pending",
+            "reasoning": "pending"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "verifier-rejects-reasoning",
+      "category": "verification",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "failed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "verifier-rejects-applicability",
+      "category": "applicability",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "failed",
+            "reasoning": "failed",
+            "reason": "开发者冻结的受控复核响应。"
+          },
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "invalid-supported-grade",
+      "category": "scoring",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "模型支持性判断与等级不一致，可重试",
+          "assessment": null,
+          "level": null,
+          "verification": null,
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "invalid-issue-grade",
+      "category": "scoring",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 1,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "问题等级与分项判断不一致，可重试",
+          "assessment": null,
+          "level": null,
+          "verification": null,
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "invalid-verifier-shape",
+      "category": "verification",
+      "sourceId": "unique",
+      "sourceSha256": "1da46cc87a72ce9aece8367b16aa5eb1feb1321def7319b69e64b21de70f8145",
+      "scheme": "stxb-precheck@0.1.0-trial",
+      "selectedChecks": [
+        "E04"
+      ],
+      "packHash": "39e704d5065e9901055b02b14576912728a1cdb66cce8206f873a8ee37b4b102",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E04"
+        },
+        {
+          "task": "verify",
+          "checkId": "E04"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E04",
+          "status": "failed",
+          "error": "复核输出格式无效，可重试",
+          "assessment": null,
+          "level": null,
+          "verification": null,
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-valid",
+      "category": "atomicity",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 1,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        }
+      ]
+    },
+    {
+      "id": "atomic-material-request",
+      "category": "information",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "material_request",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "information_request",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-verifier-downgrade",
+      "category": "information",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "material_request",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "information_request",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-wrong-owner",
+      "category": "ownership",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "design_replication",
+              "kind": "scientific_defect",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "failed",
+                "reasoning": "failed",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-not-one-problem",
+      "category": "atomicity",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "completed",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "unable_to_assess",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "failed",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-verifier-not-covered",
+      "category": "verification",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "actual": {
+        "findings": 0,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": []
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "failed",
+          "error": "模型逐条问题复核未逐一覆盖候选，可重试",
+          "assessment": null,
+          "level": null,
+          "verification": null,
+          "issues": []
+        }
+      ],
+      "findings": []
+    },
+    {
+      "id": "atomic-real-duplicate",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 1,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。"
+              }
+            },
+            {
+              "id": "E07:I2",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": "E07:I1",
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "duplicate",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        }
+      ]
+    },
+    {
+      "id": "atomic-independent-categories",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0,
+          23
+        ]
+      },
+      "actual": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0,
+          23
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 1,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。"
+              }
+            },
+            {
+              "id": "E07:I2",
+              "category": "mechanism",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。 去重依据或主问题编号无效；保留此独立意见供人工核对。",
+                "duplicateRejected": true
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        },
+        {
+          "title": "E07 · 受控问题 mechanism",
+          "category": "mechanism",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "没有测定微生物却宣称证明微生物机制。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 23,
+            "quality": "exact"
+          },
+          "quoteSha256": "c4efccddc754a5d0971a7a14441b21a69e72e81f24b5d734d23df61243cc6247"
+        }
+      ]
+    },
+    {
+      "id": "atomic-self-duplicate",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 1,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。 去重依据或主问题编号无效；保留此独立意见供人工核对。",
+                "duplicateRejected": true
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        }
+      ]
+    },
+    {
+      "id": "atomic-duplicate-without-shared-evidence",
+      "category": "deduplication",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0,
+          23
+        ]
+      },
+      "actual": {
+        "findings": 2,
+        "assessedMaximum": 10,
+        "earned": 2.5,
+        "total": 25,
+        "status": "completed",
+        "assessmentStatus": "provisional",
+        "offsets": [
+          0,
+          23
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 2,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "completed",
+          "error": null,
+          "assessment": "issue",
+          "level": 1,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。"
+              }
+            },
+            {
+              "id": "E07:I2",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。 去重依据或主问题编号无效；保留此独立意见供人工核对。",
+                "duplicateRejected": true
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        },
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "没有测定微生物却宣称证明微生物机制。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 23,
+            "quality": "exact"
+          },
+          "quoteSha256": "c4efccddc754a5d0971a7a14441b21a69e72e81f24b5d734d23df61243cc6247"
+        }
+      ]
+    },
+    {
+      "id": "atomic-mixed-valid-invalid-citation",
+      "category": "partial-coverage",
+      "sourceId": "claims",
+      "sourceSha256": "8cc24f4175f0ac6fe990a32049f50c7b9055ce7e7de664ffd5a7bc0f7d4ef624",
+      "scheme": "stxb-precheck@0.3.0-trial",
+      "selectedChecks": [
+        "E07"
+      ],
+      "packHash": "c2ec809e0ee4d128a0e6f31e86cfd2ee1070a9a3a8a869f784b76073a1b59b32",
+      "expected": {
+        "findings": 1,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": [
+          0
+        ]
+      },
+      "actual": {
+        "findings": 1,
+        "assessedMaximum": 0,
+        "earned": 0,
+        "total": null,
+        "status": "partial",
+        "assessmentStatus": "needs_information",
+        "offsets": [
+          0
+        ]
+      },
+      "passed": true,
+      "errors": [],
+      "anchorsValid": true,
+      "callbackCount": 3,
+      "callbacks": [
+        {
+          "task": "review",
+          "checkId": "E07"
+        },
+        {
+          "task": "repair_evidence",
+          "checkId": null
+        },
+        {
+          "task": "verify_atomic",
+          "checkId": "E07"
+        }
+      ],
+      "results": [
+        {
+          "checkId": "E07",
+          "status": "failed",
+          "error": "引文定位未通过，分析已保留，可重试此项",
+          "assessment": "issue",
+          "level": null,
+          "verification": {
+            "citation": "passed",
+            "applicability": "passed",
+            "reasoning": "passed",
+            "reason": "开发者冻结的逐条受控复核响应。"
+          },
+          "issues": [
+            {
+              "id": "E07:I1",
+              "category": "stock_flux",
+              "kind": "scientific_defect",
+              "assessment": "issue",
+              "level": 1,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "passed",
+                "applicability": "passed",
+                "reasoning": "passed",
+                "reason": "仅核对受控协议边界。"
+              }
+            },
+            {
+              "id": "E07:I2",
+              "category": "mechanism",
+              "kind": "scientific_defect",
+              "assessment": "unable_to_assess",
+              "level": null,
+              "duplicateOf": null,
+              "verification": {
+                "citation": "failed",
+                "applicability": "passed",
+                "reasoning": "failed",
+                "reason": "仅核对受控协议边界。"
+              }
+            }
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "title": "E07 · 受控问题 stock_flux",
+          "category": "stock_flux",
+          "anchor": {
+            "elementId": "s1",
+            "quote": "只测量一次土壤碳储量，却声称每年固碳通量增加。",
+            "section": "结论",
+            "paragraph": 1,
+            "offset": 0,
+            "quality": "exact"
+          },
+          "quoteSha256": "3c623c9a6cdcc93f5903be2527ce499dd5e578602c770dcd22abb8c0a0fd1ba0"
+        }
+      ]
+    }
+  ]
+}

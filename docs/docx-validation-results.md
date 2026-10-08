@@ -1,6 +1,6 @@
 # 原始 DOCX 表格验证记录
 
-2026-10-07T12:10:08.247Z · passed
+2026-10-08T09:42:42.136Z · passed
 
 材料：S1 Table. Permutational multivariate analysis of variance (PERMANOVA) results. — Lukas Beule, Petr Karlovsky (2021)，[原始附件](https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919.s003&type=supplementary)，CC BY 4.0。
 

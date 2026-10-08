@@ -3,19 +3,23 @@
 材料：developer-authored expected labels; not expert gold standard or real-paper accuracy。
 
 语料 SHA-256：844a9e8e20e88a3fe739a0d4baf98d15d21dd5742fdef094ff373a40a3442d6e
-策略：bm25-lexical@2
-测量时间：2026-10-07T10:16:56.000Z；运行：v24.15.0 / darwin / arm64。
+策略：bm25-lexical@3
+实现 SHA-256：server/retrieval.js = 851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca
+实现 SHA-256：server/retrieval-terms.js = b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445
+实现 SHA-256：shared/text-highlight.js = 4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f
+实现 SHA-256：scripts/evaluate-retrieval.mjs = 73cddab9ab09234272a8f7fc64abd1e81178eb4c8153f9349ad900205947b3ff
+测量时间：2026-10-08T03:16:11.468Z；运行：v24.15.0 / darwin / arm64。
 执行：offline-local-lexical-retrieval; no network requests or model calls；top-k=8，默认上下文预算 12000 字符。
 
 | 范围 | 用例通过 | 预设证据召回@k | 无命中精确率 | 无命中召回率 | 原文切片有效 | 发现跨版本引文 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 全部固定用例 | 36/38 | 93.10% | 83.33% | 100.00% | 36/36 | 0 |
+| 全部固定用例 | 38/38 | 100.00% | 100.00% | 100.00% | 38/38 | 0 |
 | contract：当前回归约定 | 36/36 | 100.00% | 100.00% | 100.00% | 36/36 | 0 |
-| exploratory：保留能力缺口 | 0/2 | 0.00% | 0.00% | 不可计算 | 0/0 | 0 |
+| exploratory：保留能力缺口 | 2/2 | 100.00% | 不可计算 | 不可计算 | 2/2 | 0 |
 
-回归门槛状态：contract_passed_with_exploratory_gaps。contract要求固定开发者期望全部通过；所有cohort返回的原文切片、版本与预算检查均须无错误。exploratory的召回缺口不作为当前能力承诺，失败仍完整显示。任何通过状态均不认证真实论文或模型质量。
+回归门槛状态：all_fixed_cases_passed。contract要求固定开发者期望全部通过；所有cohort返回的原文切片、版本与预算检查均须无错误。exploratory的召回缺口不作为当前能力承诺，失败仍完整显示。任何通过状态均不认证真实论文或模型质量。
 
-本机单次检索耗时：p50=0.031 ms，p95=2.822 ms，使用 nearest-rank。当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。
+本机单次检索耗时：p50=0.105 ms，p95=6.651 ms，使用 nearest-rank。当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。
 
 ## 边界与历史发现
 
@@ -31,44 +35,44 @@
 
 | ID | 类别/约定 | 问题 | 预设证据 | 实际证据 | 结果 | 耗时(ms) |
 | --- | --- | --- | --- | --- | --- | --- |
-| zh-independent-plots | scientific-tokenization/contract | 请解释独立样地 | design | design、data、stats | 通过 | 1.198 |
-| zh-mixed-model | scientific-tokenization/contract | 线性混合模型如何使用 | stats | stats | 通过 | 0.226 |
-| zh-stock-flux | scientific-tokenization/contract | 碳储量与年固碳通量 | carbon | carbon | 通过 | 0.317 |
-| zh-quality | scientific-tokenization/contract | 叶绿素测量质控 | quality | quality、carbon | 通过 | 0.139 |
-| bilingual-sample | bilingual/contract | 请说明样本量 | en-method | en-method | 通过 | 0.079 |
-| bilingual-method | bilingual/contract | 方法是什么 | en-method | en-method | 通过 | 0.032 |
-| bilingual-results | bilingual/contract | 请解释结果 | en-results | en-results | 通过 | 0.030 |
-| bilingual-limitations | bilingual/contract | 请说明局限性 | en-limits | en-limits | 通过 | 0.030 |
-| bilingual-en-to-zh-data | bilingual/contract | where are the data | data | data | 通过 | 0.114 |
-| number-count | scientific-numbers/contract | 312 | number-312 | number-312 | 通过 | 0.045 |
-| number-decimal | scientific-numbers/contract | 0.031 | number-decimal | number-decimal | 通过 | 0.034 |
-| number-unit | scientific-numbers/contract | kg | number-unit | number-unit | 通过 | 0.038 |
-| number-linked-han | scientific-numbers/contract | 第2组 | group-2 | group-2 | 通过 | 0.063 |
-| single-scientific-variable | scientific-numbers/contract | p | p-value | p-value | 通过 | 0.028 |
-| late-specific-protocol | late-paper/contract | cryospectrometry | late-method | late-method | 通过 | 3.193 |
-| late-glacier-query | late-paper/contract | How was glacier variance measured? | late-method | late-method | 通过 | 2.822 |
-| continued-fullwidth | exact-source/contract | glacier | continued | continued | 通过 | 0.581 |
-| fullwidth-nfkc | exact-source/contract | carbon | typography-fullwidth | typography-fullwidth | 通过 | 0.043 |
-| newlines-original | exact-source/contract | repeated measurement variance | typography-newlines | typography-newlines | 通过 | 0.028 |
-| combining-mark-original | exact-source/contract | 遥感植被指数 | typography-unicode | typography-unicode | 通过 | 0.027 |
-| nohit-quasars | no-hit/contract | quasars spacetime | 预设无命中 | 未返回片段 | 通过 | 0.082 |
-| nohit-quantum | no-hit/contract | quantum teleportation | 预设无命中 | 未返回片段 | 通过 | 0.021 |
-| nohit-empty | no-hit/contract | glacier | 预设无命中 | 未返回片段 | 通过 | 0.006 |
-| nohit-unrelated-summary | no-hit/contract | 请总结火星探测器 | 预设无命中 | 未返回片段 | 通过 | 0.072 |
-| version-old-topic-excluded | version-isolation/contract | glacier | 预设无命中 | 未返回片段 | 通过 | 0.019 |
-| version-old-conversation-excluded | version-isolation/contract | 为什么？ | 预设无命中 | 未返回片段 | 通过 | 0.016 |
-| version-current-evidence | version-isolation/contract | 栎树花粉 | shared-method | shared-method | 通过 | 0.015 |
-| overview-both-ends | overview/contract | 请概括这篇论文 | overview-1、overview-12 | overview-1、overview-3、overview-4、overview-6、overview-7、overview-9、overview-10、overview-12 | 通过 | 0.138 |
-| overview-empty | overview/contract | overview | 预设无命中 | 未返回片段 | 通过 | 0.022 |
-| follow-first-topic | follow-up/contract | 为什么？ | follow-glacier | follow-glacier | 通过 | 0.031 |
-| follow-repeat-topic | follow-up/contract | 请再详细解释 | follow-glacier | follow-glacier | 通过 | 0.017 |
-| follow-expired-topic | follow-up/contract | 为什么？ | 预设无命中 | 未返回片段 | 通过 | 0.018 |
-| follow-ignore-assistant | follow-up/contract | 为何 | 预设无命中 | 未返回片段 | 通过 | 0.018 |
-| follow-new-topic | follow-up/contract | 城市鸟类 | follow-birds | follow-birds | 通过 | 0.017 |
-| finding-authentic | finding-anchor/contract | 请解释这条意见 | finding-target | finding-target | 通过 | 0.035 |
-| finding-invented | finding-anchor/contract | 请解释这条意见 | 预设无命中 | 未返回片段 | 通过 | 0.018 |
-| unsupported-photosynthesis | exploratory-language/exploratory | 光合作用 | photosynthesis | 未返回片段 | 预设应召回指定原文，实际未返回片段；未召回预设证据：photosynthesis | 0.014 |
-| unsupported-habitat | exploratory-language/exploratory | 生境破碎化 | habitat | 未返回片段 | 预设应召回指定原文，实际未返回片段；未召回预设证据：habitat | 0.016 |
+| zh-independent-plots | scientific-tokenization/contract | 请解释独立样地 | design | design、data、stats | 通过 | 16.585 |
+| zh-mixed-model | scientific-tokenization/contract | 线性混合模型如何使用 | stats | stats | 通过 | 0.477 |
+| zh-stock-flux | scientific-tokenization/contract | 碳储量与年固碳通量 | carbon | carbon | 通过 | 0.185 |
+| zh-quality | scientific-tokenization/contract | 叶绿素测量质控 | quality | quality、carbon | 通过 | 0.169 |
+| bilingual-sample | bilingual/contract | 请说明样本量 | en-method | en-method | 通过 | 0.286 |
+| bilingual-method | bilingual/contract | 方法是什么 | en-method | en-method | 通过 | 0.120 |
+| bilingual-results | bilingual/contract | 请解释结果 | en-results | en-results | 通过 | 0.205 |
+| bilingual-limitations | bilingual/contract | 请说明局限性 | en-limits | en-limits | 通过 | 0.105 |
+| bilingual-en-to-zh-data | bilingual/contract | where are the data | data | data | 通过 | 0.180 |
+| number-count | scientific-numbers/contract | 312 | number-312 | number-312 | 通过 | 0.081 |
+| number-decimal | scientific-numbers/contract | 0.031 | number-decimal | number-decimal | 通过 | 0.072 |
+| number-unit | scientific-numbers/contract | kg | number-unit | number-unit | 通过 | 0.068 |
+| number-linked-han | scientific-numbers/contract | 第2组 | group-2 | group-2 | 通过 | 0.307 |
+| single-scientific-variable | scientific-numbers/contract | p | p-value | p-value | 通过 | 0.269 |
+| late-specific-protocol | late-paper/contract | cryospectrometry | late-method | late-method | 通过 | 5.420 |
+| late-glacier-query | late-paper/contract | How was glacier variance measured? | late-method | late-method | 通过 | 6.651 |
+| continued-fullwidth | exact-source/contract | glacier | continued | continued | 通过 | 1.663 |
+| fullwidth-nfkc | exact-source/contract | carbon | typography-fullwidth | typography-fullwidth | 通过 | 0.440 |
+| newlines-original | exact-source/contract | repeated measurement variance | typography-newlines | typography-newlines | 通过 | 0.061 |
+| combining-mark-original | exact-source/contract | 遥感植被指数 | typography-unicode | typography-unicode | 通过 | 0.049 |
+| nohit-quasars | no-hit/contract | quasars spacetime | 预设无命中 | 未返回片段 | 通过 | 0.137 |
+| nohit-quantum | no-hit/contract | quantum teleportation | 预设无命中 | 未返回片段 | 通过 | 0.034 |
+| nohit-empty | no-hit/contract | glacier | 预设无命中 | 未返回片段 | 通过 | 0.009 |
+| nohit-unrelated-summary | no-hit/contract | 请总结火星探测器 | 预设无命中 | 未返回片段 | 通过 | 0.093 |
+| version-old-topic-excluded | version-isolation/contract | glacier | 预设无命中 | 未返回片段 | 通过 | 0.023 |
+| version-old-conversation-excluded | version-isolation/contract | 为什么？ | 预设无命中 | 未返回片段 | 通过 | 0.020 |
+| version-current-evidence | version-isolation/contract | 栎树花粉 | shared-method | shared-method | 通过 | 0.053 |
+| overview-both-ends | overview/contract | 请概括这篇论文 | overview-1、overview-12 | overview-1、overview-3、overview-4、overview-6、overview-7、overview-9、overview-10、overview-12 | 通过 | 0.349 |
+| overview-empty | overview/contract | overview | 预设无命中 | 未返回片段 | 通过 | 0.033 |
+| follow-first-topic | follow-up/contract | 为什么？ | follow-glacier | follow-glacier | 通过 | 0.064 |
+| follow-repeat-topic | follow-up/contract | 请再详细解释 | follow-glacier | follow-glacier | 通过 | 0.038 |
+| follow-expired-topic | follow-up/contract | 为什么？ | 预设无命中 | 未返回片段 | 通过 | 0.033 |
+| follow-ignore-assistant | follow-up/contract | 为何 | 预设无命中 | 未返回片段 | 通过 | 0.025 |
+| follow-new-topic | follow-up/contract | 城市鸟类 | follow-birds | follow-birds | 通过 | 0.111 |
+| finding-authentic | finding-anchor/contract | 请解释这条意见 | finding-target | finding-target | 通过 | 0.194 |
+| finding-invented | finding-anchor/contract | 请解释这条意见 | 预设无命中 | 未返回片段 | 通过 | 0.028 |
+| unsupported-photosynthesis | exploratory-language/exploratory | 光合作用 | photosynthesis | photosynthesis | 通过 | 0.111 |
+| unsupported-habitat | exploratory-language/exploratory | 生境破碎化 | habitat | habitat | 通过 | 0.037 |
 
 ## 逐例完整引文与检查
 
@@ -438,19 +442,24 @@ R1：区块finding-target，页无，段落无，偏移0；逐字原文切片有
 
 ### unsupported-photosynthesis
 
-版本unsupported-translation；模式query；状态no\_match；查询光合作用；继承用户问题无。
-选中0/2块，上下文0字符；在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。
+版本unsupported-translation；模式query；状态matched；查询光合作用；继承用户问题无。
+选中1/2块，上下文93字符；在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。
 版本身份一致；预算未超出；跨版本引文0条。
-保留缺口：有限中英词表未覆盖光合作用与photosynthesis，不属于当前词法检索承诺。
-失败：预设应召回指定原文，实际未返回片段
-失败：未召回预设证据：photosynthesis
+材料预存的能力缺口说明（当前结果以上方为准）：有限中英词表未覆盖光合作用与photosynthesis，不属于当前词法检索承诺。
+有限术语映射：光合作用 → photosynthesis；ecology-term-map@1
+
+R1：区块photosynthesis，页无，段落无，偏移0；逐字原文切片有效。
+
+> Photosynthesis was measured under controlled illumination.
 
 ### unsupported-habitat
 
-版本unsupported-translation；模式query；状态no\_match；查询生境破碎化；继承用户问题无。
-选中0/2块，上下文0字符；在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。
+版本unsupported-translation；模式query；状态matched；查询生境破碎化；继承用户问题无。
+选中1/2块，上下文88字符；在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。
 版本身份一致；预算未超出；跨版本引文0条。
-保留缺口：有限中英词表未覆盖生境破碎化与habitat fragmentation；不据此宣称通用语义检索。
-失败：预设应召回指定原文，实际未返回片段
-失败：未召回预设证据：habitat
+材料预存的能力缺口说明（当前结果以上方为准）：有限中英词表未覆盖生境破碎化与habitat fragmentation；不据此宣称通用语义检索。
+有限术语映射：生境破碎化 → habitat fragmentation；ecology-term-map@1
 
+R1：区块habitat，页无，段落无，偏移0；逐字原文切片有效。
+
+> Habitat fragmentation was quantified using landscape patches.

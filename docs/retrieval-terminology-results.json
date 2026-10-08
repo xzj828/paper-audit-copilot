@@ -1,0 +1,1559 @@
+{
+  "schemaVersion": 1,
+  "benchmarkId": "ecology-phrase-controls@1",
+  "title": "生态学短语映射独立合成控制",
+  "evaluatedAt": "2026-10-08T03:16:11.522Z",
+  "materialType": "synthetic",
+  "expectedLabelOrigin": "developer-authored expected labels; not expert gold standard or real-paper accuracy",
+  "corpusSha256": "caaac785d44e13a7d8e301917154230a167d6d5f0123ca74c5a2c835a98f950f",
+  "implementation": {
+    "server/retrieval.js": "851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca",
+    "server/retrieval-terms.js": "b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "scripts/evaluate-retrieval.mjs": "73cddab9ab09234272a8f7fc64abd1e81178eb4c8153f9349ad900205947b3ff"
+  },
+  "hashDefinition": "按键排序后的展开合成材料及全部预设期望的SHA-256；不包含测量耗时与生成时间。",
+  "strategies": [
+    "bm25-lexical@3"
+  ],
+  "runtime": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": "offline-local-lexical-retrieval; no network requests or model calls",
+  "parameters": {
+    "k": 8,
+    "maxContextCharacters": 12000,
+    "perCaseLimitsIncluded": true
+  },
+  "summary": {
+    "cases": 24,
+    "passed": 24,
+    "failed": 0,
+    "recallAtK": {
+      "k": 8,
+      "matchedExpectedElements": 14,
+      "expectedElements": 14,
+      "value": 1,
+      "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+    },
+    "noHit": {
+      "expected": 11,
+      "returned": 11,
+      "trueNoHits": 11,
+      "falseRefusals": 0,
+      "unexpectedMatches": 0,
+      "precision": 1,
+      "recall": 1,
+      "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+    },
+    "exactQuoteValidity": {
+      "checked": 14,
+      "valid": 14,
+      "value": 1
+    },
+    "versionLeakCount": 0,
+    "versionMetadataMismatches": 0,
+    "sourceBudgetViolations": 0,
+    "latency": {
+      "samples": 24,
+      "p50Ms": 0.07545900000000216,
+      "p95Ms": 1.8537500000000051,
+      "estimator": "nearest-rank",
+      "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+    }
+  },
+  "cohorts": {
+    "contract": {
+      "cases": 24,
+      "passed": 24,
+      "failed": 0,
+      "recallAtK": {
+        "k": 8,
+        "matchedExpectedElements": 14,
+        "expectedElements": 14,
+        "value": 1,
+        "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+      },
+      "noHit": {
+        "expected": 11,
+        "returned": 11,
+        "trueNoHits": 11,
+        "falseRefusals": 0,
+        "unexpectedMatches": 0,
+        "precision": 1,
+        "recall": 1,
+        "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+      },
+      "exactQuoteValidity": {
+        "checked": 14,
+        "valid": 14,
+        "value": 1
+      },
+      "versionLeakCount": 0,
+      "versionMetadataMismatches": 0,
+      "sourceBudgetViolations": 0,
+      "latency": {
+        "samples": 24,
+        "p50Ms": 0.07545900000000216,
+        "p95Ms": 1.8537500000000051,
+        "estimator": "nearest-rank",
+        "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+      }
+    },
+    "exploratory": {
+      "cases": 0,
+      "passed": 0,
+      "failed": 0,
+      "recallAtK": {
+        "k": 8,
+        "matchedExpectedElements": 0,
+        "expectedElements": 0,
+        "value": null,
+        "definition": "开发者预设区块ID的微平均召回；有预设原文短句时，还须检索片段含该短句。不是专家或真实论文准确率。"
+      },
+      "noHit": {
+        "expected": 0,
+        "returned": 0,
+        "trueNoHits": 0,
+        "falseRefusals": 0,
+        "unexpectedMatches": 0,
+        "precision": null,
+        "recall": null,
+        "definition": "仅对固定预设无命中行为分类，不证明全文不存在该内容，也不评价模型拒答。"
+      },
+      "exactQuoteValidity": {
+        "checked": 0,
+        "valid": 0,
+        "value": null
+      },
+      "versionLeakCount": 0,
+      "versionMetadataMismatches": 0,
+      "sourceBudgetViolations": 0,
+      "latency": {
+        "samples": 0,
+        "p50Ms": null,
+        "p95Ms": null,
+        "estimator": "nearest-rank",
+        "notice": "当前机器单次逐例本地检索耗时，不含文件读取、网络、模型生成或用户等待；不是线上服务SLA。"
+      }
+    }
+  },
+  "integrityPassed": true,
+  "gate": "all_fixed_cases_passed",
+  "thresholdMeaning": "contract要求固定开发者期望全部通过；所有cohort返回的原文切片、版本与预算检查均须无错误。exploratory的召回缺口不作为当前能力承诺，失败仍完整显示。任何通过状态均不认证真实论文或模型质量。",
+  "baselineObservations": [],
+  "cases": [
+    {
+      "id": "zh-photosynthesis",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "plant-en",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [
+          "dna"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "plant-en",
+        "parseId": "parse-plant-en",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 102,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was recorded during the controlled chamber interval K47.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 2.127917,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "en-photosynthesis",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "photosynthesis",
+      "versionId": "plant-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [
+          "noise"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "photosynthesis",
+            "alternatives": [
+              "光合作用"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "photosynthesis",
+        "followUpTo": null,
+        "versionId": "plant-cn",
+        "parseId": "parse-plant-cn",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 38,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "光合作用在受控箱体时段K73被记录。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 0.6130829999999996,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "zh-habitat",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "生境破碎化",
+      "versionId": "land-en",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "land"
+        ],
+        "forbiddenElementIds": [
+          "dna",
+          "habitat"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "生境破碎化",
+        "followUpTo": null,
+        "versionId": "land-en",
+        "parseId": "parse-land-en",
+        "totalChunks": 3,
+        "selectedChunks": 1,
+        "contextCharacters": 98,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "land",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Habitat fragmentation was recorded as a synthetic patch indicator P61.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "land"
+      ],
+      "latencyMs": 0.16483399999999904,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "en-habitat",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "habitat fragmentation",
+      "versionId": "land-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "land"
+        ],
+        "forbiddenElementIds": [
+          "partial"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "habitat fragmentation",
+            "alternatives": [
+              "生境破碎化"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "habitat fragmentation",
+        "followUpTo": null,
+        "versionId": "land-cn",
+        "parseId": "parse-land-cn",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 38,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "land",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "生境破碎化被记录为合成斑块指标P82。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "land"
+      ],
+      "latencyMs": 0.09908400000000128,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "casefold-photosynthesis",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "PHOTOSYNTHESIS",
+      "versionId": "plant-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [
+          "noise"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "photosynthesis",
+            "alternatives": [
+              "光合作用"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "PHOTOSYNTHESIS",
+        "followUpTo": null,
+        "versionId": "plant-cn",
+        "parseId": "parse-plant-cn",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 38,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "光合作用在受控箱体时段K73被记录。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 0.10662500000000108,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "dash-line-layout",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "生境破碎化",
+      "versionId": "land-dash",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "land"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "生境破碎化",
+        "followUpTo": null,
+        "versionId": "land-dash",
+        "parseId": "parse-land-dash",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 92,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "land",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "HABITAT-\nFRAGMENTATION was recorded as synthetic indicator H64.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "land"
+      ],
+      "latencyMs": 0.1285419999999995,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "query-phrase-whitespace",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "HABITAT\nFRAGMENTATION",
+      "versionId": "land-cn",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "land"
+        ],
+        "forbiddenElementIds": [
+          "partial"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "habitat fragmentation",
+            "alternatives": [
+              "生境破碎化"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "HABITAT\nFRAGMENTATION",
+        "followUpTo": null,
+        "versionId": "land-cn",
+        "parseId": "parse-land-cn",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 38,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "land",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "生境破碎化被记录为合成斑块指标P82。",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "land"
+      ],
+      "latencyMs": 0.07545900000000216,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "source-fullwidth",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "wide-plant",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "wide-plant",
+        "parseId": "parse-wide-plant",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 700,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "🦋 Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. Ordinary baseline. ｐｈｏｔｏｓｙｎｔｈｅｓｉｓ was recorded as synthetic condition W49.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 0.14795900000000017,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "two-mapped-topics",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用 生境破碎化",
+      "versionId": "both",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant",
+          "land"
+        ],
+        "forbiddenElementIds": [
+          "dna"
+        ],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          },
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用 生境破碎化",
+        "followUpTo": null,
+        "versionId": "both",
+        "parseId": "parse-both",
+        "totalChunks": 3,
+        "selectedChunks": 2,
+        "contextCharacters": 176,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was recorded as synthetic condition Q41.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          },
+          {
+            "id": "R2",
+            "elementId": "land",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Habitat fragmentation was recorded as synthetic condition Q52.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant",
+        "land"
+      ],
+      "latencyMs": 0.10720799999999997,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "mapped-followup",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "为什么？",
+      "versionId": "follow",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": [],
+        "queryText": "光合作用",
+        "followUpTo": "mapped-topic"
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": "mapped-topic",
+        "versionId": "follow",
+        "parseId": "parse-follow",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 86,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was recorded as synthetic condition F86.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 0.04595799999999883,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "late-mapped-source",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "late",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "late",
+        "parseId": "parse-late",
+        "totalChunks": 41,
+        "selectedChunks": 1,
+        "contextCharacters": 100,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was recorded in the final synthetic interval L91.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 1.8537500000000051,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "selected-second-occurrence",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "quasars",
+      "versionId": "selected-good",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "sample"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "quasars",
+        "followUpTo": null,
+        "versionId": "selected-good",
+        "parseId": "parse-selected-good",
+        "totalChunks": 2,
+        "selectedChunks": 1,
+        "contextCharacters": 918,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 1,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "sample",
+            "page": null,
+            "paragraph": null,
+            "offset": 877,
+            "quote": "ry background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Ordinary background. Second occurrence: Repeated measured passage 718.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "sample"
+      ],
+      "latencyMs": 0.327458,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "selected-invalid-offset",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "quasars",
+      "versionId": "selected-bad",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "quasars",
+        "followUpTo": null,
+        "versionId": "selected-bad",
+        "parseId": "parse-selected-bad",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.08200000000000074,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "selected-ambiguous-legacy",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "quasars",
+      "versionId": "selected-legacy",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "quasars",
+        "followUpTo": null,
+        "versionId": "selected-legacy",
+        "parseId": "parse-selected-legacy",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.08691699999999969,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "english-dna-near-word",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "habitat fragmentation",
+      "versionId": "dna-only",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "habitat fragmentation",
+            "alternatives": [
+              "生境破碎化"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "habitat fragmentation",
+        "followUpTo": null,
+        "versionId": "dna-only",
+        "parseId": "parse-dna-only",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.01979199999999537,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "english-habitat-only",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "habitat fragmentation",
+      "versionId": "habitat-only",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "habitat fragmentation",
+            "alternatives": [
+              "生境破碎化"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "habitat fragmentation",
+        "followUpTo": null,
+        "versionId": "habitat-only",
+        "parseId": "parse-habitat-only",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.014541999999998723,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "chinese-disconnected-components",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "生境破碎化",
+      "versionId": "partial-cn",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "生境破碎化",
+        "followUpTo": null,
+        "versionId": "partial-cn",
+        "parseId": "parse-partial-cn",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.03516700000000128,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "title-body-do-not-form-phrase",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "habitat fragmentation",
+      "versionId": "split-label",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "habitat-fragmentation",
+            "matched": "habitat fragmentation",
+            "alternatives": [
+              "生境破碎化"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "habitat fragmentation",
+        "followUpTo": null,
+        "versionId": "split-label",
+        "parseId": "parse-split-label",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.01345799999999997,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "english-prefix-boundary",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "photosynthesis",
+      "versionId": "prefix-only",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "photosynthesis",
+            "alternatives": [
+              "光合作用"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "photosynthesis",
+        "followUpTo": null,
+        "versionId": "prefix-only",
+        "parseId": "parse-prefix-only",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.01520800000000122,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "unlisted-carbon-phrase",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "carbon assimilation",
+      "versionId": "plant-cn",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "carbon assimilation",
+        "followUpTo": null,
+        "versionId": "plant-cn",
+        "parseId": "parse-plant-cn",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.0379999999999967,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "unlisted-discontinuous-phrase",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "fragmentation of habitats",
+      "versionId": "land-cn",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "fragmentation of habitats",
+        "followUpTo": null,
+        "versionId": "land-cn",
+        "parseId": "parse-land-cn",
+        "totalChunks": 2,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.03625000000000256,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "negative-mention-still-lexical",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "negated",
+      "expected": {
+        "noHit": false,
+        "elementIds": [
+          "plant"
+        ],
+        "forbiddenElementIds": [],
+        "quotes": [
+          {
+            "elementId": "plant",
+            "contains": "was not measured"
+          }
+        ]
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "matched",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "negated",
+        "parseId": "parse-negated",
+        "totalChunks": 1,
+        "selectedChunks": 1,
+        "contextCharacters": 91,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": false,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [
+          {
+            "id": "R1",
+            "elementId": "plant",
+            "page": null,
+            "paragraph": null,
+            "offset": 0,
+            "quote": "Photosynthesis was not measured in this synthetic design.",
+            "exactOriginalSlice": true,
+            "versionLeak": false
+          }
+        ],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [
+        "plant"
+      ],
+      "latencyMs": 0.026665999999998746,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "mapped-topic-version-isolation",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用",
+      "versionId": "current",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "光合作用",
+        "followUpTo": null,
+        "versionId": "current",
+        "parseId": "parse-current",
+        "totalChunks": 1,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 12000
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.0171670000000006,
+      "passed": true,
+      "errors": []
+    },
+    {
+      "id": "mapped-topic-character-budget",
+      "category": "ecology-phrase-controls",
+      "cohort": "contract",
+      "materialType": "synthetic",
+      "question": "光合作用 生境破碎化",
+      "versionId": "both",
+      "expected": {
+        "noHit": true,
+        "elementIds": [],
+        "forbiddenElementIds": [],
+        "quotes": []
+      },
+      "actual": {
+        "strategy": "bm25-lexical@3",
+        "terminologyVersion": "ecology-term-map@1",
+        "termMappings": [
+          {
+            "id": "photosynthesis",
+            "matched": "光合作用",
+            "alternatives": [
+              "photosynthesis"
+            ]
+          },
+          {
+            "id": "habitat-fragmentation",
+            "matched": "生境破碎化",
+            "alternatives": [
+              "habitat fragmentation"
+            ]
+          }
+        ],
+        "status": "no_match",
+        "mode": "query",
+        "queryText": "光合作用 生境破碎化",
+        "followUpTo": null,
+        "versionId": "both",
+        "parseId": "parse-both",
+        "totalChunks": 3,
+        "selectedChunks": 0,
+        "contextCharacters": 0,
+        "scope": "在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。",
+        "noHit": true,
+        "limits": {
+          "maxSources": 8,
+          "maxCharacters": 10
+        },
+        "sources": [],
+        "versionMetadataValid": true,
+        "withinBudget": true,
+        "versionLeakCount": 0
+      },
+      "matchedElementIds": [],
+      "latencyMs": 0.037584000000002504,
+      "passed": true,
+      "errors": []
+    }
+  ],
+  "limitations": [
+    "这些期望是开发者编写的合成回归标签，不是专家金标准、独立盲评或代表性真实论文样本。",
+    "词法命中和逐字切片不证明回答受证据支持；不评价支持/反驳关系、模型幻觉、审稿准确率或用户节省时间。",
+    "no_match仅说明本次固定检索未返回片段，不证明全文、图像或附件不存在相关材料。",
+    "版本检查仅覆盖传入版本及指定排除版本，不替代真实API与工作空间授权测试。",
+    "耗时仅来自本机逐例一次测量，环境与材料长度会改变结果；未计模型成本、付费调用或网络延迟。"
+  ]
+}

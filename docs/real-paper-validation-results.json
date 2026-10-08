@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "title": "公开真实论文的固定词法检索验证",
-  "evaluatedAt": "2026-10-07T10:53:44.687Z",
+  "evaluatedAt": "2026-10-08T02:56:55.754Z",
   "expectedLabelOrigin": "developer-authored expected quotes; not expert gold standard",
   "datasetNotice": "Developer-authored expected labels, not an expert gold standard. This pilot checks retrieval of predefined source phrases, not scientific review accuracy or whether evidence supports a generated answer. Chinese questions retain English source terms and do not establish general cross-language retrieval. No expected-no-hit cases are claimed.",
   "fixtureSha256": "0a2d608eafaf30f543b90602a7dcc9472647c5a67fa8ad5d657f98c172955925",
@@ -50,8 +50,15 @@
       "metadata": {
         "doi": "10.1371/journal.pone.0155881",
         "title": "Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest",
-        "authors": ["Tongxin He", "Qingkui Wang", "Silong Wang", "Fangyue Zhang"],
-        "years": ["2016"],
+        "authors": [
+          "Tongxin He",
+          "Qingkui Wang",
+          "Silong Wang",
+          "Fangyue Zhang"
+        ],
+        "years": [
+          "2016"
+        ],
         "licenses": [
           {
             "url": "http://creativecommons.org/licenses/by/4.0/",
@@ -64,8 +71,8 @@
         "doi": "10.1371/journal.pone.0155881",
         "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
         "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0155881&type=manuscript",
-        "retrievedAt": "2026-10-07T10:53:42.717Z",
-        "retrievalTimeSource": "download-completed-clock",
+        "retrievedAt": "2026-10-07T10:45:43.949Z",
+        "retrievalTimeSource": "observed-retrieval-completion-file-mtime",
         "contentSha256": "4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
         "bytes": 116403,
         "parserVersion": "plos-jats-sax@1",
@@ -82,8 +89,9 @@
           "resolvedOrigin": "https://storage.googleapis.com",
           "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0155881/1/pone.0155881.xml",
           "signedQuerySaved": false,
-          "timeoutMs": 20000,
-          "maxBytes": 8388608
+          "transport": "system-curl-with-TLS-verification",
+          "timeoutMs": null,
+          "maxBytes": null
         }
       },
       "parsedContentSha256": "673a0f38ff3d4b19446103488e5f8b795e8507b8adb4a3b75559548a9c83f59e",
@@ -125,16 +133,18 @@
               "quote": "plots were 30–40 m apart",
               "scope": "body",
               "heading": "Materials and Methods > Experimental design",
-              "elementIds": ["he-2016-soil-respiration:body:0008"]
+              "elementIds": [
+                "he-2016-soil-respiration:body:0008"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 4.031417000000147,
+          "latencyMs": 4.8046660000000045,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "he-2016-soil-respiration",
               "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
@@ -239,16 +249,18 @@
               "quote": "fumigation extraction method",
               "scope": "body",
               "heading": "Materials and Methods > Soil sampling and analysis",
-              "elementIds": ["he-2016-soil-respiration:body:0011"]
+              "elementIds": [
+                "he-2016-soil-respiration:body:0011"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 2.499416999999994,
+          "latencyMs": 2.4001250000000027,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "he-2016-soil-respiration",
               "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
@@ -353,16 +365,18 @@
               "quote": "pH were unchanged by girdling or N addition",
               "scope": "body",
               "heading": "Results > Soil environmental conditions",
-              "elementIds": ["he-2016-soil-respiration:body:0015"]
+              "elementIds": [
+                "he-2016-soil-respiration:body:0015"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 3.126875000000382,
+          "latencyMs": 2.5511669999999995,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "he-2016-soil-respiration",
               "parseId": "plos-jats-sax@1:4b6982e78421c84201aca11aa697d9941920df7aacecd3fd854b969f31fc352f",
@@ -466,8 +480,13 @@
       "metadata": {
         "doi": "10.1371/journal.pone.0246919",
         "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
-        "authors": ["Lukas Beule", "Petr Karlovsky"],
-        "years": ["2021"],
+        "authors": [
+          "Lukas Beule",
+          "Petr Karlovsky"
+        ],
+        "years": [
+          "2021"
+        ],
         "licenses": [
           {
             "url": "http://creativecommons.org/licenses/by/4.0/",
@@ -480,8 +499,8 @@
         "doi": "10.1371/journal.pone.0246919",
         "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
         "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919&type=manuscript",
-        "retrievedAt": "2026-10-07T10:53:43.668Z",
-        "retrievalTimeSource": "download-completed-clock",
+        "retrievedAt": "2026-10-07T10:45:43.905Z",
+        "retrievalTimeSource": "observed-retrieval-completion-file-mtime",
         "contentSha256": "b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
         "bytes": 140865,
         "parserVersion": "plos-jats-sax@1",
@@ -498,8 +517,9 @@
           "resolvedOrigin": "https://storage.googleapis.com",
           "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0246919/1/pone.0246919.xml",
           "signedQuerySaved": false,
-          "timeoutMs": 20000,
-          "maxBytes": 8388608
+          "transport": "system-curl-with-TLS-verification",
+          "timeoutMs": null,
+          "maxBytes": null
         }
       },
       "parsedContentSha256": "09222ce40ecf76ac8b431c2eabf53eac0b5e4465eea809b84ca379f30d2aca2e",
@@ -541,16 +561,18 @@
               "quote": "four replicate plots",
               "scope": "body",
               "heading": "Materials and methods > Study sites and experimental design",
-              "elementIds": ["beule-2021-agroforestry-bacteria:body:0007"]
+              "elementIds": [
+                "beule-2021-agroforestry-bacteria:body:0007"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 3.580333999999766,
+          "latencyMs": 2.958333000000003,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "beule-2021-agroforestry-bacteria",
               "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
@@ -655,16 +677,18 @@
               "quote": "top 5-cm depth",
               "scope": "body",
               "heading": "Materials and methods > Soil collection and DNA extraction",
-              "elementIds": ["beule-2021-agroforestry-bacteria:body:0008"]
+              "elementIds": [
+                "beule-2021-agroforestry-bacteria:body:0008"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 2.364165999999841,
+          "latencyMs": 2.908915999999998,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "beule-2021-agroforestry-bacteria",
               "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
@@ -769,16 +793,18 @@
               "quote": "lower abundance of Chthoniobacter",
               "scope": "body",
               "heading": "Results > Relative abundance of taxonomic soil bacterial groups",
-              "elementIds": ["beule-2021-agroforestry-bacteria:body:0028"]
+              "elementIds": [
+                "beule-2021-agroforestry-bacteria:body:0028"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 4.294209000000137,
+          "latencyMs": 2.9506250000000023,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "beule-2021-agroforestry-bacteria",
               "parseId": "plos-jats-sax@1:b5aa5452a4f442a9f7bb3f7a3d9996e3d10ec2791f4467efb256ad2d4d8f7970",
@@ -882,8 +908,15 @@
       "metadata": {
         "doi": "10.1371/journal.pone.0087975",
         "title": "Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China",
-        "authors": ["Zhihong Du", "Wei Wang", "Wenjing Zeng", "Hui Zeng"],
-        "years": ["2014"],
+        "authors": [
+          "Zhihong Du",
+          "Wei Wang",
+          "Wenjing Zeng",
+          "Hui Zeng"
+        ],
+        "years": [
+          "2014"
+        ],
         "licenses": [
           {
             "url": "http://creativecommons.org/licenses/by/4.0/",
@@ -896,8 +929,8 @@
         "doi": "10.1371/journal.pone.0087975",
         "sourceUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
         "fullTextUrl": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0087975&type=manuscript",
-        "retrievedAt": "2026-10-07T10:53:44.673Z",
-        "retrievalTimeSource": "download-completed-clock",
+        "retrievedAt": "2026-10-07T10:45:43.818Z",
+        "retrievalTimeSource": "observed-retrieval-completion-file-mtime",
         "contentSha256": "4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
         "bytes": 109478,
         "parserVersion": "plos-jats-sax@1",
@@ -914,8 +947,9 @@
           "resolvedOrigin": "https://storage.googleapis.com",
           "resolvedPath": "/plos-corpus-prod/10.1371/journal.pone.0087975/1/pone.0087975.xml",
           "signedQuerySaved": false,
-          "timeoutMs": 20000,
-          "maxBytes": 8388608
+          "transport": "system-curl-with-TLS-verification",
+          "timeoutMs": null,
+          "maxBytes": null
         }
       },
       "parsedContentSha256": "41f1abba5726ff92ea7c20c02596de036a0e0b0a0f53ea01a1c37560923b3ff2",
@@ -957,16 +991,18 @@
               "quote": "plots and treatments were randomly laid out",
               "scope": "body",
               "heading": "Materials and Methods > Experimental treatments",
-              "elementIds": ["du-2014-plantation-carbon:body:0008"]
+              "elementIds": [
+                "du-2014-plantation-carbon:body:0008"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 2.2027079999998023,
+          "latencyMs": 2.06329199999999,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "du-2014-plantation-carbon",
               "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
@@ -1071,16 +1107,18 @@
               "quote": "from 149 to 426.6",
               "scope": "body",
               "heading": "Results > Net ecosystem productivity (NEP)",
-              "elementIds": ["du-2014-plantation-carbon:body:0025"]
+              "elementIds": [
+                "du-2014-plantation-carbon:body:0025"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 2.4749159999992116,
+          "latencyMs": 2.3354160000000093,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "du-2014-plantation-carbon",
               "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",
@@ -1185,16 +1223,18 @@
               "quote": "systems with long-term N inputs",
               "scope": "body",
               "heading": "Discussion > Effect of N fertilization on NEP",
-              "elementIds": ["du-2014-plantation-carbon:body:0037"]
+              "elementIds": [
+                "du-2014-plantation-carbon:body:0037"
+              ]
             }
           ],
           "status": "passed",
           "errors": [],
           "matchedExpectedQuotes": 1,
-          "latencyMs": 1.9104589999997188,
+          "latencyMs": 1.8845409999999987,
           "actual": {
             "retrieval": {
-              "strategy": "bm25-lexical@2",
+              "strategy": "bm25-lexical@3",
               "mode": "query",
               "versionId": "du-2014-plantation-carbon",
               "parseId": "plos-jats-sax@1:4daf6b50dcdb8dbe9e87e0ea912eed31cb21c6da399d9f9ca1e407a8dbbe2a7e",

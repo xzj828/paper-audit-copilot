@@ -1,14 +1,18 @@
 {
   "schema": "published-pdf-validation@1",
   "status": "passed",
-  "evaluatedAt": "2026-10-07T13:33:06.440Z",
+  "evaluatedAt": "2026-10-08T09:42:42.343Z",
   "labelOrigin": "Developer-fixed short phrases and physical pages checked using independent pypdf extraction and original rendered pages before running retrieval; not expert labels",
   "scope": "One original licensed publisher PDF; text extraction, fixed lexical retrieval and text-item coordinate mapping. Not all PDFs, layout reconstruction, glyph-level accuracy, semantic support or expert review accuracy.",
   "manifestSHA256": "e65e1b199a746aa55b0ae467e72addacee70f60da2021e448a09bcdaeb36c035",
   "implementation": {
-    "server/parser.js": "39cdf6dc34aa146a19d56b8136d43741b8f098c31f651b86ba7b37ee6fe32915",
-    "shared/pdf-text.js": "94aaf7e79cd4003dedd6898344060c3d4f63dce4065c51e3f245d50cdd1da971",
-    "server/retrieval.js": "3702c6216a9ef04210ec1d11fb7c8e3479b124a63e487bd62e1be48cc971d8ba"
+    "server/parser.js": "6ad0606608a739484eaa8d266950a91d8bd9ac05c03b768b45d180d42797471a",
+    "shared/pdf-text.js": "66d0813ff591162211bfd195bebf3509a5656aea44c019c4381deb50733d2cd5",
+    "shared/pdf-diagnostics.js": "498d5c54bffe2e7dc49dce95fc07553c3befee86d919f994afeb3378124ab2f9",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "server/retrieval.js": "851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca",
+    "server/retrieval-terms.js": "b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445",
+    "scripts/evaluate-pdf.mjs": "466a04f813d6394d1b5e9721d8a2bc60b02a5f78e2da86fd6b0c4f1aadd59f40"
   },
   "source": {
     "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
@@ -26,7 +30,222 @@
     "sha256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92"
   },
   "parse": {
-    "parser": "pdfjs-dist@6:text-map@1",
+    "pdfDiagnostics": {
+      "version": "pdf-extraction-diagnostics@1",
+      "pageCount": 20,
+      "summary": {
+        "pagesWithText": 20,
+        "pagesWithoutText": 0,
+        "sparsePages": 0,
+        "coordinateGapPages": 0,
+        "unrecordedCoordinatePages": 0,
+        "attentionPages": 0
+      },
+      "pages": [
+        {
+          "page": 1,
+          "characters": 3377,
+          "nonWhitespaceCharacters": 2864,
+          "textStatus": "present",
+          "textItems": 88,
+          "mappedTextItems": 88,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 2,
+          "characters": 4311,
+          "nonWhitespaceCharacters": 3701,
+          "textStatus": "present",
+          "textItems": 65,
+          "mappedTextItems": 65,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 3,
+          "characters": 2126,
+          "nonWhitespaceCharacters": 1802,
+          "textStatus": "present",
+          "textItems": 34,
+          "mappedTextItems": 34,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 4,
+          "characters": 4043,
+          "nonWhitespaceCharacters": 3326,
+          "textStatus": "present",
+          "textItems": 127,
+          "mappedTextItems": 127,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 5,
+          "characters": 4141,
+          "nonWhitespaceCharacters": 3389,
+          "textStatus": "present",
+          "textItems": 107,
+          "mappedTextItems": 107,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 6,
+          "characters": 4137,
+          "nonWhitespaceCharacters": 3448,
+          "textStatus": "present",
+          "textItems": 83,
+          "mappedTextItems": 83,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 7,
+          "characters": 3932,
+          "nonWhitespaceCharacters": 3283,
+          "textStatus": "present",
+          "textItems": 90,
+          "mappedTextItems": 90,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 8,
+          "characters": 1561,
+          "nonWhitespaceCharacters": 1305,
+          "textStatus": "present",
+          "textItems": 37,
+          "mappedTextItems": 37,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 9,
+          "characters": 2915,
+          "nonWhitespaceCharacters": 2425,
+          "textStatus": "present",
+          "textItems": 65,
+          "mappedTextItems": 65,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 10,
+          "characters": 1742,
+          "nonWhitespaceCharacters": 1444,
+          "textStatus": "present",
+          "textItems": 54,
+          "mappedTextItems": 54,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 11,
+          "characters": 2334,
+          "nonWhitespaceCharacters": 1909,
+          "textStatus": "present",
+          "textItems": 68,
+          "mappedTextItems": 68,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 12,
+          "characters": 3961,
+          "nonWhitespaceCharacters": 3207,
+          "textStatus": "present",
+          "textItems": 112,
+          "mappedTextItems": 112,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 13,
+          "characters": 1362,
+          "nonWhitespaceCharacters": 1139,
+          "textStatus": "present",
+          "textItems": 24,
+          "mappedTextItems": 24,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 14,
+          "characters": 4294,
+          "nonWhitespaceCharacters": 3613,
+          "textStatus": "present",
+          "textItems": 71,
+          "mappedTextItems": 71,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 15,
+          "characters": 4397,
+          "nonWhitespaceCharacters": 3725,
+          "textStatus": "present",
+          "textItems": 52,
+          "mappedTextItems": 52,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 16,
+          "characters": 3697,
+          "nonWhitespaceCharacters": 3067,
+          "textStatus": "present",
+          "textItems": 86,
+          "mappedTextItems": 86,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 17,
+          "characters": 3285,
+          "nonWhitespaceCharacters": 2783,
+          "textStatus": "present",
+          "textItems": 76,
+          "mappedTextItems": 76,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 18,
+          "characters": 5033,
+          "nonWhitespaceCharacters": 4334,
+          "textStatus": "present",
+          "textItems": 84,
+          "mappedTextItems": 84,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 19,
+          "characters": 4727,
+          "nonWhitespaceCharacters": 4039,
+          "textStatus": "present",
+          "textItems": 86,
+          "mappedTextItems": 86,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        },
+        {
+          "page": 20,
+          "characters": 5129,
+          "nonWhitespaceCharacters": 4386,
+          "textStatus": "present",
+          "textItems": 87,
+          "mappedTextItems": 87,
+          "unmappedTextItems": 0,
+          "coordinateStatus": "available"
+        }
+      ],
+      "limits": "体检只统计已提取文字与文字块坐标，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。未执行OCR；双栏阅读顺序、表格关系、图像与完整公式仍需人工核对。"
+    },
+    "parser": "pdfjs-dist@6:text-map@1:diagnostics@1",
     "normalization": "pdf-text-map@1: PDF.js item order; EOL joined with LF, other items with SPACE; outer whitespace trimmed; UTF-16 offsets",
     "pageCount": 20,
     "characterCount": 70504,
@@ -57,7 +276,7 @@
       "expectedPhrasePresent": true,
       "expectedCoordinateStatus": "matched",
       "retrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "page": 4,
@@ -189,7 +408,7 @@
       "expectedPhrasePresent": true,
       "expectedCoordinateStatus": "matched",
       "retrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "page": 7,
@@ -276,7 +495,7 @@
       "expectedPhrasePresent": true,
       "expectedCoordinateStatus": "matched",
       "retrieved": true,
-      "strategy": "bm25-lexical@2",
+      "strategy": "bm25-lexical@3",
       "slices": [
         {
           "page": 16,
