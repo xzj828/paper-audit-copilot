@@ -124,10 +124,17 @@ export function pdfQuoteBoxes(page, anchor) {
   const result = (status, boxes = []) => ({ status, boxes });
   if (!page || !anchor || anchor.page !== page.page || anchor.elementId !== `page-${page.page}`)
     return result('mismatch');
+  if (
+    anchor.offset === undefined &&
+    typeof page.text === 'string' &&
+    typeof anchor.quote === 'string' &&
+    anchor.quote.trim()
+  ) {
+    const first = page.text.indexOf(anchor.quote);
+    if (first >= 0 && page.text.indexOf(anchor.quote, first + 1) >= 0) return result('ambiguous');
+  }
   const range = quoteRange(page.text, anchor);
   if (!range) return result('mismatch');
-  if (anchor.offset === undefined && page.text.indexOf(anchor.quote, range.start + 1) >= 0)
-    return result('ambiguous');
   if (page.textMap !== PDF_TEXT_MAP || !Array.isArray(page.items)) return result('unavailable');
   const boxes = [];
   let covered = range.start;

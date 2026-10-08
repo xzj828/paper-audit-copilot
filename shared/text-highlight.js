@@ -1,5 +1,6 @@
 export function quoteRange(text, anchor) {
-  if (!anchor?.quote) return null;
+  if (typeof text !== 'string' || typeof anchor?.quote !== 'string' || !anchor.quote.trim())
+    return null;
   const start = anchor.offset === undefined ? text.indexOf(anchor.quote) : anchor.offset;
   if (
     !Number.isSafeInteger(start) ||
@@ -7,6 +8,9 @@ export function quoteRange(text, anchor) {
     text.slice(start, start + anchor.quote.length) !== anchor.quote
   )
     return null;
+  // A legacy quote has no occurrence identity. Never manufacture one by taking
+  // the first match, including overlapping matches such as aaa in aaaa.
+  if (anchor.offset === undefined && text.indexOf(anchor.quote, start + 1) >= 0) return null;
   return { start, end: start + anchor.quote.length };
 }
 
@@ -36,17 +40,14 @@ export function literalRange(text, query) {
 export function focusAnchor(source) {
   const { anchor, focusQuote, focusOffset } = source;
   if (!focusQuote) return anchor;
-  const relative =
-    focusOffset === undefined ? anchor.quote.indexOf(focusQuote) : focusOffset - anchor.offset;
-  if (
-    !Number.isSafeInteger(relative) ||
-    relative < 0 ||
-    anchor.quote.slice(relative, relative + focusQuote.length) !== focusQuote
-  )
-    return anchor;
+  const range = quoteRange(anchor.quote, {
+    quote: focusQuote,
+    offset: focusOffset === undefined ? undefined : focusOffset - anchor.offset,
+  });
+  if (!range) return anchor;
   return {
     ...anchor,
     quote: focusQuote,
-    offset: anchor.offset === undefined ? undefined : anchor.offset + relative,
+    offset: anchor.offset === undefined ? undefined : anchor.offset + range.start,
   };
 }
