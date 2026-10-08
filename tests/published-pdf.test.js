@@ -14,6 +14,11 @@ test(
     assert.equal(result.source.changed, false);
     assert.equal(result.source.license, 'CC BY 4.0');
     assert.equal(result.parse.pageCount, 20);
+    assert.equal(result.parse.pdfDiagnostics.pageCount, 20);
+    assert.equal(result.parse.pdfDiagnostics.summary.pagesWithText, 20);
+    assert.equal(result.parse.pdfDiagnostics.summary.pagesWithoutText, 0);
+    assert.equal(result.parse.pdfDiagnostics.summary.coordinateGapPages, 0);
+    assert.equal(result.parse.pdfDiagnostics.summary.unrecordedCoordinatePages, 0);
     assert.equal(result.parse.itemOffsetsValid, true);
     assert.equal(result.status, 'passed');
     assert.equal(result.summary.registeredQuestions, 3);

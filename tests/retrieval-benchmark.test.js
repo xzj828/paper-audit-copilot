@@ -23,7 +23,7 @@ const oneCase = (id) => ({
 const script = fileURLToPath(new URL('../scripts/evaluate-retrieval.mjs', import.meta.url));
 const execute = promisify(execFile);
 
-test('fixed offline benchmark exercises known contracts while retaining unsupported-language misses', (t) => {
+test('fixed offline benchmark keeps its original expectations when bounded terminology resolves the two historical misses', (t) => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = () => {
     throw new Error('offline benchmark must not contact a model or network');
@@ -34,11 +34,17 @@ test('fixed offline benchmark exercises known contracts while retaining unsuppor
   const report = evaluateRetrievalBenchmark(fixture);
   assert.ok(report.summary.cases >= 24);
   assert.equal(report.cohorts.contract.failed, 0);
-  assert.equal(report.gate, 'contract_passed_with_exploratory_gaps');
-  assert.equal(report.cohorts.exploratory.failed, 2);
-  assert.equal(report.summary.failed, 2, 'unsupported cases remain in the overall denominator');
+  assert.equal(report.gate, 'all_fixed_cases_passed');
+  assert.equal(report.cohorts.exploratory.failed, 0);
+  assert.equal(report.cohorts.exploratory.cases, 2, 'historical cohorts remain unchanged');
+  assert.equal(report.summary.failed, 0);
   assert.equal(report.summary.recallAtK.expectedElements, 29);
-  assert.equal(report.summary.recallAtK.matchedExpectedElements, 27);
+  assert.equal(report.summary.recallAtK.matchedExpectedElements, 29);
+  assert.equal(
+    report.corpusSha256,
+    '844a9e8e20e88a3fe739a0d4baf98d15d21dd5742fdef094ff373a40a3442d6e',
+  );
+  assert.match(report.implementation['server/retrieval-terms.js'], /^[a-f0-9]{64}$/);
   assert.equal(report.summary.exactQuoteValidity.value, 1);
   assert.equal(report.summary.versionLeakCount, 0);
   assert.equal(report.summary.versionMetadataMismatches, 0);

@@ -45,7 +45,8 @@ test('invalid or mismatched absolute offsets never fall back to a different occu
   for (const offset of [-1, 1.5, 2, 99])
     assert.equal(quoteRange('312 and 312', { quote: '312', offset }), null);
   assert.equal(quoteRange('text', { quote: '' }), null);
-  assert.deepEqual(quoteRange('text text', { quote: 'text' }), { start: 0, end: 4 });
+  assert.equal(quoteRange('text text', { quote: 'text' }), null);
+  assert.deepEqual(quoteRange('text text', { quote: 'text', offset: 5 }), { start: 5, end: 9 });
 });
 
 test('focused source carries its own absolute offset even when excerpt text repeats', () => {

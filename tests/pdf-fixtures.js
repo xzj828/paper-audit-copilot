@@ -1,6 +1,6 @@
 // Developer-authored PDF controls. Text positions are independently specified
 // here rather than derived from the application's parser or highlight output.
-export function positionedPdfFixture({ rotated = false, blank = false } = {}) {
+export function positionedPdfFixture({ rotated = false, blank = false, extraBlank = false } = {}) {
   const repeat = 'Repeated sample 312';
   const streams = blank
     ? ['0.9 g 40 40 200 100 re f']
@@ -14,6 +14,8 @@ export function positionedPdfFixture({ rotated = false, blank = false } = {}) {
         ].join('\n'),
         'BT /F1 12 Tf 50 690 Td (Rotated target 128) Tj ET',
       ];
+  // A vector-only blank page is a textless control, not a real scanned paper.
+  if (extraBlank) streams.push('0.9 g 40 40 200 100 re f');
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     `<< /Type /Pages /Kids [${streams.map((_, i) => `${4 + i * 2} 0 R`).join(' ')}] /Count ${streams.length} >>`,

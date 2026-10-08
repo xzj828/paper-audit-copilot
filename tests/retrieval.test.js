@@ -100,7 +100,7 @@ test('scientific symbols and Chinese numerical labels are searchable without rew
     const result = retrieveEvidence(paper, query);
     assert.equal(result.sources[0].anchor.elementId, id);
     assert.ok(validateAnchor(paper.parse, result.sources[0].anchor));
-    assert.equal(result.retrieval.strategy, 'bm25-lexical@2');
+    assert.equal(result.retrieval.strategy, 'bm25-lexical@3');
   }
   assert.equal(retrieveEvidence(paper, 'a').retrieval.status, 'no_match');
   assert.equal(retrieveEvidence(paper, 'x').retrieval.status, 'no_match');

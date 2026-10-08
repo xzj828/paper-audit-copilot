@@ -7,6 +7,7 @@ import { createStore } from '../server/store.js';
 import { createReviewService, normalizeResult, parseReviewJSON } from '../server/review.js';
 import { reviewPack } from '../server/review-pack.js';
 import { reviewReply } from './review-fixtures.js';
+import { buildPdfDiagnostics } from '../shared/pdf-diagnostics.js';
 
 const parse = {
   id: 'parse-1',
@@ -99,6 +100,57 @@ async function settled(version) {
   }
   throw new Error('review timeout');
 }
+test('scientific requests receive bounded extraction diagnostics and reports freeze them', async (t) => {
+  const sent = [];
+  const { service, version, store } = fixture(t, async (_config, messages) => {
+    const data = JSON.parse(messages.at(-1).content);
+    if (data.task === 'review') sent.push(data.pdfDiagnostics);
+    return JSON.stringify(reviewReply(messages));
+  });
+  const p = store.get('ws', 'project');
+  p.versions[0].parse.pdfDiagnostics = buildPdfDiagnostics([
+    { page: 1, text: parse.sections[0].text },
+  ]);
+  store.save('ws', p);
+  service.start('ws', 'project', 'v1');
+  const completed = await settled(version);
+  assert.ok(sent.length);
+  for (const d of sent) assert.equal(d.summary.unrecordedCoordinatePages, 1);
+  const frozen = completed.reports.at(-1).pdfDiagnostics;
+  assert.equal(frozen.summary.unrecordedCoordinatePages, 1);
+  const changed = store.get('ws', 'project');
+  delete changed.versions[0].parse.pdfDiagnostics;
+  store.save('ws', changed);
+  assert.deepEqual(version().reports.at(-1).pdfDiagnostics, frozen);
+});
+test('legacy executor retries cannot mix anchor policies and new runs record the current contract', async (t) => {
+  let calls = 0;
+  const { service, version, store } = fixture(t, async (_config, messages) => {
+    calls++;
+    return JSON.stringify(reviewReply(messages));
+  });
+  const project = store.get('ws', 'project');
+  project.versions[0].runs.push({
+    id: 'legacy-run',
+    scope: 'scientific-trial',
+    status: 'interrupted',
+    executorVersion: '4.0.0',
+    parseId: parse.id,
+    model: { model: 'fixture', baseUrl: 'http://localhost' },
+  });
+  project.versions[0].reports.push({ id: 'frozen-legacy-report', executorVersion: '4.0.0' });
+  store.save('ws', project);
+  const legacy = JSON.stringify(version());
+  assert.throws(() => service.start('ws', 'project', 'v1', 'legacy-run'), /不能混用结果/);
+  assert.equal(calls, 0);
+  assert.equal(JSON.stringify(version()), legacy);
+  service.start('ws', 'project', 'v1');
+  const current = await settled(version);
+  assert.equal(current.runs.at(-1).executorVersion, '4.1.0');
+  assert.equal(current.runs.at(-1).anchorValidation, 'exact-occurrence@2');
+  assert.equal(current.reports.at(-1).anchorValidation, 'exact-occurrence@2');
+  assert.deepEqual(current.reports[0], { id: 'frozen-legacy-report', executorVersion: '4.0.0' });
+});
 test('persistent pipeline retries only failed modules, produces immutable evidence reports and partial scores', async (t) => {
   let failOnce = true;
   const calls = [];

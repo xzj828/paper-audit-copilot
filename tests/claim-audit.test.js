@@ -139,9 +139,22 @@ test('manual claims and source anchors reject malformed types, cross-version quo
   ]) {
     await assert.rejects(createClaimAudit(version, input), (error) => error.status === 400);
   }
+  await assert.rejects(
+    createClaimAudit(version, {
+      claim,
+      source: { elementId: 's1', quote: claim, offset: 5000, page: 99, section: 'forged' },
+    }),
+    (error) => error.status === 400,
+  );
   const snapshot = await createClaimAudit(version, {
     claim,
-    source: { elementId: 's1', quote: claim, offset: 5000, page: 99, section: 'forged' },
+    source: {
+      elementId: 's1',
+      quote: claim,
+      offset: version.parse.sections[0].text.indexOf(claim),
+      page: 99,
+      section: 'forged',
+    },
   });
   assert.equal(snapshot.claim.anchor.offset, version.parse.sections[0].text.indexOf(claim));
   assert.equal(snapshot.claim.anchor.section, '结果');

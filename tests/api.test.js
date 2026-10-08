@@ -156,7 +156,11 @@ test('model configuration encrypts keys, isolates workspaces, tests real HTTP an
     );
     const created = await request('/api/projects', 'POST', { title: 'model chat test' });
     const paperId = created.data.id;
-    await upload(paperId, 'sample.pdf', pdfFixture('Research methods: sample size 312. Results and limitations.'));
+    await upload(
+      paperId,
+      'sample.pdf',
+      pdfFixture('Research methods: sample size 312. Results and limitations.'),
+    );
     const paper = await parsed(paperId);
     const answer = await request(`/api/projects/${paperId}/messages`, 'POST', {
       text: '请分析样本',
@@ -207,6 +211,37 @@ test('scientific review requires confirmed type and model while structure report
     settings: { outputMode: 'score' },
   });
   assert.equal(bad.status, 400);
+});
+test('PDF diagnostic downloads require exact workspace and version and only expose extraction counts', async () => {
+  const v = p.versions[0];
+  const url = `/api/projects/${p.id}/versions/${v.id}/pdf-diagnostics/export`;
+  const response = await request(url);
+  assert.equal(response.status, 200);
+  assert.equal(response.data.schema, 'paper-audit-pdf-inspection@1');
+  assert.equal(response.data.version.id, v.id);
+  assert.equal(response.data.version.parseId, v.parse.id);
+  assert.equal(response.data.version.contentHash, v.contentHash);
+  assert.deepEqual(response.data.diagnostics, v.parse.pdfDiagnostics);
+  assert.deepEqual(p.versions[0].reports[0].pdfDiagnostics, v.parse.pdfDiagnostics);
+  for (const key of ['messages', 'findings', 'settings', 'apiKey', 'sections', 'text']) {
+    assert.equal(Object.hasOwn(response.data, key), false);
+    assert.equal(Object.hasOwn(response.data.diagnostics.pages[0], key), false);
+  }
+  assert.equal((await request(url, 'GET', undefined, otherCookie)).status, 404);
+  assert.equal(
+    (await request(`/api/projects/${p.id}/versions/missing/pdf-diagnostics/export`)).status,
+    404,
+  );
+  const docxProject = (
+    await request('/api/projects', 'POST', { title: 'DOCX has no PDF diagnostics' })
+  ).data;
+  await upload(docxProject.id, 'control.docx', docxFixture());
+  const docx = (await parsed(docxProject.id)).versions[0];
+  assert.equal(
+    (await request(`/api/projects/${docxProject.id}/versions/${docx.id}/pdf-diagnostics/export`))
+      .status,
+    409,
+  );
 });
 test('DOCX becomes a separate version and comparison never calls removed issues resolved', async () => {
   assert.equal((await upload(p.id, '修订论文.docx', docxFixture())).status, 202);
