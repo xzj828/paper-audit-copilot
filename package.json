@@ -25,6 +25,7 @@
     "evaluate:real-papers": "node scripts/evaluate-real-papers.mjs",
     "evaluate:docx": "node scripts/evaluate-docx.mjs",
     "evaluate:pdf": "node scripts/evaluate-pdf.mjs",
+    "evaluate:pdf-layout": "node scripts/evaluate-pdf-layout.mjs",
     "evaluate:review-contracts": "node scripts/evaluate-review-contracts.mjs"
   },
   "dependencies": {

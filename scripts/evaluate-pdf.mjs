@@ -117,6 +117,7 @@ export async function evaluatePublishedPdf() {
     'server/parser.js',
     'shared/pdf-text.js',
     'shared/pdf-diagnostics.js',
+    'shared/pdf-layout.js',
     'shared/text-highlight.js',
     'server/retrieval.js',
     'server/retrieval-terms.js',

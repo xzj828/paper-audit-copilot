@@ -10,13 +10,11 @@ async function upload(page, title) {
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill(title);
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
   await expect(page.locator('.conversation-header h1')).toHaveText(title);
-  await page
-    .locator('input[type=file]')
-    .setInputFiles({
-      name: 'inspection-control.pdf',
-      mimeType: 'application/pdf',
-      buffer: positionedPdfFixture({ extraBlank: true }),
-    });
+  await page.locator('input[type=file]').setInputFiles({
+    name: 'inspection-control.pdf',
+    mimeType: 'application/pdf',
+    buffer: positionedPdfFixture({ extraBlank: true }),
+  });
   await expect(page.locator('.parse-metrics')).toBeVisible({ timeout: 20000 });
   const projects = await (await page.request.get('/api/projects')).json();
   return (await page.request.get(`/api/projects/${projects[0].id}`)).json();
@@ -35,6 +33,9 @@ test('PDF inspection survives mobile refresh, downloads exact counts and opens a
     coordinateGapPages: 0,
     unrecordedCoordinatePages: 0,
     attentionPages: 2,
+    parallelRegionPages: 0,
+    interleavedRegionPages: 0,
+    unavailableLayoutPages: 0,
   });
   await page.getByRole('tab', { name: '论文批注', exact: true }).click();
   await page.getByRole('button', { name: '搜索论文', exact: true }).click();

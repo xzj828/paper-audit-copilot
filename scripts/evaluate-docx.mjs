@@ -96,6 +96,7 @@ export async function evaluatePublishedDocx() {
       [
         'server/parser.js',
         'shared/pdf-diagnostics.js',
+        'shared/pdf-layout.js',
         'server/docx-structure.js',
         'server/retrieval.js',
         'server/retrieval-terms.js',

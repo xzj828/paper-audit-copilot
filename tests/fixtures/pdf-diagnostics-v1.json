@@ -1,0 +1,215 @@
+{
+  "version": "pdf-extraction-diagnostics@1",
+  "pageCount": 20,
+  "summary": {
+    "pagesWithText": 20,
+    "pagesWithoutText": 0,
+    "sparsePages": 0,
+    "coordinateGapPages": 0,
+    "unrecordedCoordinatePages": 0,
+    "attentionPages": 0
+  },
+  "pages": [
+    {
+      "page": 1,
+      "characters": 3377,
+      "nonWhitespaceCharacters": 2864,
+      "textStatus": "present",
+      "textItems": 88,
+      "mappedTextItems": 88,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 2,
+      "characters": 4311,
+      "nonWhitespaceCharacters": 3701,
+      "textStatus": "present",
+      "textItems": 65,
+      "mappedTextItems": 65,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 3,
+      "characters": 2126,
+      "nonWhitespaceCharacters": 1802,
+      "textStatus": "present",
+      "textItems": 34,
+      "mappedTextItems": 34,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 4,
+      "characters": 4043,
+      "nonWhitespaceCharacters": 3326,
+      "textStatus": "present",
+      "textItems": 127,
+      "mappedTextItems": 127,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 5,
+      "characters": 4141,
+      "nonWhitespaceCharacters": 3389,
+      "textStatus": "present",
+      "textItems": 107,
+      "mappedTextItems": 107,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 6,
+      "characters": 4137,
+      "nonWhitespaceCharacters": 3448,
+      "textStatus": "present",
+      "textItems": 83,
+      "mappedTextItems": 83,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 7,
+      "characters": 3932,
+      "nonWhitespaceCharacters": 3283,
+      "textStatus": "present",
+      "textItems": 90,
+      "mappedTextItems": 90,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 8,
+      "characters": 1561,
+      "nonWhitespaceCharacters": 1305,
+      "textStatus": "present",
+      "textItems": 37,
+      "mappedTextItems": 37,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 9,
+      "characters": 2915,
+      "nonWhitespaceCharacters": 2425,
+      "textStatus": "present",
+      "textItems": 65,
+      "mappedTextItems": 65,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 10,
+      "characters": 1742,
+      "nonWhitespaceCharacters": 1444,
+      "textStatus": "present",
+      "textItems": 54,
+      "mappedTextItems": 54,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 11,
+      "characters": 2334,
+      "nonWhitespaceCharacters": 1909,
+      "textStatus": "present",
+      "textItems": 68,
+      "mappedTextItems": 68,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 12,
+      "characters": 3961,
+      "nonWhitespaceCharacters": 3207,
+      "textStatus": "present",
+      "textItems": 112,
+      "mappedTextItems": 112,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 13,
+      "characters": 1362,
+      "nonWhitespaceCharacters": 1139,
+      "textStatus": "present",
+      "textItems": 24,
+      "mappedTextItems": 24,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 14,
+      "characters": 4294,
+      "nonWhitespaceCharacters": 3613,
+      "textStatus": "present",
+      "textItems": 71,
+      "mappedTextItems": 71,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 15,
+      "characters": 4397,
+      "nonWhitespaceCharacters": 3725,
+      "textStatus": "present",
+      "textItems": 52,
+      "mappedTextItems": 52,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 16,
+      "characters": 3697,
+      "nonWhitespaceCharacters": 3067,
+      "textStatus": "present",
+      "textItems": 86,
+      "mappedTextItems": 86,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 17,
+      "characters": 3285,
+      "nonWhitespaceCharacters": 2783,
+      "textStatus": "present",
+      "textItems": 76,
+      "mappedTextItems": 76,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 18,
+      "characters": 5033,
+      "nonWhitespaceCharacters": 4334,
+      "textStatus": "present",
+      "textItems": 84,
+      "mappedTextItems": 84,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 19,
+      "characters": 4727,
+      "nonWhitespaceCharacters": 4039,
+      "textStatus": "present",
+      "textItems": 86,
+      "mappedTextItems": 86,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    },
+    {
+      "page": 20,
+      "characters": 5129,
+      "nonWhitespaceCharacters": 4386,
+      "textStatus": "present",
+      "textItems": 87,
+      "mappedTextItems": 87,
+      "unmappedTextItems": 0,
+      "coordinateStatus": "available"
+    }
+  ],
+  "limits": "体检只统计已提取文字与文字块坐标，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。未执行OCR；双栏阅读顺序、表格关系、图像与完整公式仍需人工核对。"
+}

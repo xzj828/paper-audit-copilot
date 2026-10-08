@@ -244,6 +244,7 @@ export async function evaluateReviewContracts(input) {
     'server/engine.js',
     'shared/text-highlight.js',
     'shared/pdf-diagnostics.js',
+    'shared/pdf-layout.js',
     'server/review.js',
     'server/atomic-review.js',
     'server/review-pack.js',
