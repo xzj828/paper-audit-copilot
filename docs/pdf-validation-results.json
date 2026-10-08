@@ -1,18 +1,19 @@
 {
   "schema": "published-pdf-validation@1",
   "status": "passed",
-  "evaluatedAt": "2026-10-08T09:42:42.343Z",
+  "evaluatedAt": "2026-10-08T15:06:50.700Z",
   "labelOrigin": "Developer-fixed short phrases and physical pages checked using independent pypdf extraction and original rendered pages before running retrieval; not expert labels",
   "scope": "One original licensed publisher PDF; text extraction, fixed lexical retrieval and text-item coordinate mapping. Not all PDFs, layout reconstruction, glyph-level accuracy, semantic support or expert review accuracy.",
   "manifestSHA256": "e65e1b199a746aa55b0ae467e72addacee70f60da2021e448a09bcdaeb36c035",
   "implementation": {
-    "server/parser.js": "6ad0606608a739484eaa8d266950a91d8bd9ac05c03b768b45d180d42797471a",
+    "server/parser.js": "3f8166f7adbcd11295466752600eac59361ecf9b0f04311a0b0dfdce0ac77319",
     "shared/pdf-text.js": "66d0813ff591162211bfd195bebf3509a5656aea44c019c4381deb50733d2cd5",
-    "shared/pdf-diagnostics.js": "498d5c54bffe2e7dc49dce95fc07553c3befee86d919f994afeb3378124ab2f9",
+    "shared/pdf-diagnostics.js": "6c79bbb6fa0d8114154aeada48ccd7039187d61fb833abfd7fce115f8bdd7c51",
+    "shared/pdf-layout.js": "d1c5575d9d43b371fb30bb8651ad119a9eaa31734690c398bb399ce6f8d9b2c2",
     "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
     "server/retrieval.js": "851fb6abb3566cb2843d9075e86d305c3aeb85a0b76394b75034ef1d3951b9ca",
     "server/retrieval-terms.js": "b4e1b746881206031c5d1ebfe32901a4f2d9ef36d7be0755dd8fe4998acfb445",
-    "scripts/evaluate-pdf.mjs": "466a04f813d6394d1b5e9721d8a2bc60b02a5f78e2da86fd6b0c4f1aadd59f40"
+    "scripts/evaluate-pdf.mjs": "a8062d36c1213b4cf8e099694d620169400c4e477b38eddca4b84cdc46f23f86"
   },
   "source": {
     "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
@@ -31,7 +32,7 @@
   },
   "parse": {
     "pdfDiagnostics": {
-      "version": "pdf-extraction-diagnostics@1",
+      "version": "pdf-extraction-diagnostics@2",
       "pageCount": 20,
       "summary": {
         "pagesWithText": 20,
@@ -39,7 +40,10 @@
         "sparsePages": 0,
         "coordinateGapPages": 0,
         "unrecordedCoordinatePages": 0,
-        "attentionPages": 0
+        "attentionPages": 1,
+        "parallelRegionPages": 1,
+        "interleavedRegionPages": 1,
+        "unavailableLayoutPages": 0
       },
       "pages": [
         {
@@ -50,7 +54,18 @@
           "textItems": 88,
           "mappedTextItems": 88,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 35,
+            "leftTextItems": 29,
+            "rightTextItems": 1,
+            "leftRows": 27,
+            "rightRows": 1,
+            "pairedRows": 1,
+            "crossRegionTransitions": 2
+          }
         },
         {
           "page": 2,
@@ -60,7 +75,18 @@
           "textItems": 65,
           "mappedTextItems": 65,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 14,
+            "leftTextItems": 5,
+            "rightTextItems": 4,
+            "leftRows": 4,
+            "rightRows": 4,
+            "pairedRows": 1,
+            "crossRegionTransitions": 4
+          }
         },
         {
           "page": 3,
@@ -70,7 +96,18 @@
           "textItems": 34,
           "mappedTextItems": 34,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 6,
+            "leftTextItems": 0,
+            "rightTextItems": 0,
+            "leftRows": 0,
+            "rightRows": 0,
+            "pairedRows": 0,
+            "crossRegionTransitions": 0
+          }
         },
         {
           "page": 4,
@@ -80,7 +117,18 @@
           "textItems": 127,
           "mappedTextItems": 127,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "interleaved_regions",
+            "eligibleTextItems": 32,
+            "leftTextItems": 13,
+            "rightTextItems": 11,
+            "leftRows": 13,
+            "rightRows": 7,
+            "pairedRows": 3,
+            "crossRegionTransitions": 9
+          }
         },
         {
           "page": 5,
@@ -90,7 +138,18 @@
           "textItems": 107,
           "mappedTextItems": 107,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 26,
+            "leftTextItems": 3,
+            "rightTextItems": 11,
+            "leftRows": 3,
+            "rightRows": 10,
+            "pairedRows": 2,
+            "crossRegionTransitions": 6
+          }
         },
         {
           "page": 6,
@@ -100,7 +159,18 @@
           "textItems": 83,
           "mappedTextItems": 83,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 16,
+            "leftTextItems": 1,
+            "rightTextItems": 6,
+            "leftRows": 1,
+            "rightRows": 6,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 7,
@@ -110,7 +180,18 @@
           "textItems": 90,
           "mappedTextItems": 90,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 21,
+            "leftTextItems": 3,
+            "rightTextItems": 11,
+            "leftRows": 3,
+            "rightRows": 9,
+            "pairedRows": 0,
+            "crossRegionTransitions": 3
+          }
         },
         {
           "page": 8,
@@ -120,7 +201,18 @@
           "textItems": 37,
           "mappedTextItems": 37,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 10,
+            "leftTextItems": 3,
+            "rightTextItems": 2,
+            "leftRows": 3,
+            "rightRows": 2,
+            "pairedRows": 1,
+            "crossRegionTransitions": 2
+          }
         },
         {
           "page": 9,
@@ -130,7 +222,18 @@
           "textItems": 65,
           "mappedTextItems": 65,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 15,
+            "leftTextItems": 4,
+            "rightTextItems": 5,
+            "leftRows": 4,
+            "rightRows": 4,
+            "pairedRows": 2,
+            "crossRegionTransitions": 5
+          }
         },
         {
           "page": 10,
@@ -140,7 +243,18 @@
           "textItems": 54,
           "mappedTextItems": 54,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 14,
+            "leftTextItems": 7,
+            "rightTextItems": 4,
+            "leftRows": 5,
+            "rightRows": 4,
+            "pairedRows": 2,
+            "crossRegionTransitions": 7
+          }
         },
         {
           "page": 11,
@@ -150,7 +264,18 @@
           "textItems": 68,
           "mappedTextItems": 68,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 16,
+            "leftTextItems": 5,
+            "rightTextItems": 6,
+            "leftRows": 4,
+            "rightRows": 5,
+            "pairedRows": 2,
+            "crossRegionTransitions": 5
+          }
         },
         {
           "page": 12,
@@ -160,7 +285,18 @@
           "textItems": 112,
           "mappedTextItems": 112,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 35,
+            "leftTextItems": 3,
+            "rightTextItems": 16,
+            "leftRows": 3,
+            "rightRows": 14,
+            "pairedRows": 1,
+            "crossRegionTransitions": 5
+          }
         },
         {
           "page": 13,
@@ -170,7 +306,18 @@
           "textItems": 24,
           "mappedTextItems": 24,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 5,
+            "leftTextItems": 3,
+            "rightTextItems": 1,
+            "leftRows": 3,
+            "rightRows": 1,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 14,
@@ -180,7 +327,18 @@
           "textItems": 71,
           "mappedTextItems": 71,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 9,
+            "leftTextItems": 1,
+            "rightTextItems": 4,
+            "leftRows": 1,
+            "rightRows": 3,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 15,
@@ -190,7 +348,18 @@
           "textItems": 52,
           "mappedTextItems": 52,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 2,
+            "leftTextItems": 0,
+            "rightTextItems": 0,
+            "leftRows": 0,
+            "rightRows": 0,
+            "pairedRows": 0,
+            "crossRegionTransitions": 0
+          }
         },
         {
           "page": 16,
@@ -200,7 +369,18 @@
           "textItems": 86,
           "mappedTextItems": 86,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 12,
+            "leftTextItems": 1,
+            "rightTextItems": 4,
+            "leftRows": 1,
+            "rightRows": 3,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 17,
@@ -210,7 +390,18 @@
           "textItems": 76,
           "mappedTextItems": 76,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 22,
+            "leftTextItems": 5,
+            "rightTextItems": 1,
+            "leftRows": 5,
+            "rightRows": 1,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 18,
@@ -220,7 +411,18 @@
           "textItems": 84,
           "mappedTextItems": 84,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 14,
+            "leftTextItems": 1,
+            "rightTextItems": 1,
+            "leftRows": 1,
+            "rightRows": 1,
+            "pairedRows": 0,
+            "crossRegionTransitions": 1
+          }
         },
         {
           "page": 19,
@@ -230,7 +432,18 @@
           "textItems": 86,
           "mappedTextItems": 86,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 18,
+            "leftTextItems": 1,
+            "rightTextItems": 2,
+            "leftRows": 1,
+            "rightRows": 2,
+            "pairedRows": 0,
+            "crossRegionTransitions": 2
+          }
         },
         {
           "page": 20,
@@ -240,12 +453,23 @@
           "textItems": 87,
           "mappedTextItems": 87,
           "unmappedTextItems": 0,
-          "coordinateStatus": "available"
+          "coordinateStatus": "available",
+          "layout": {
+            "version": "pdf-parallel-regions@1",
+            "status": "not_detected",
+            "eligibleTextItems": 12,
+            "leftTextItems": 0,
+            "rightTextItems": 0,
+            "leftRows": 0,
+            "rightRows": 0,
+            "pairedRows": 0,
+            "crossRegionTransitions": 0
+          }
         }
       ],
-      "limits": "体检只统计已提取文字与文字块坐标，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。未执行OCR；双栏阅读顺序、表格关系、图像与完整公式仍需人工核对。"
+      "limits": "体检只统计已提取文字、文字块坐标与有限并列布局提示，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。并列区可来自双栏、表格、列表等；多次跨区抽取不等同于顺序错误，未触发不证明排版正确。未重排原文、未执行OCR；跨页表格、图像与完整公式仍需人工核对。"
     },
-    "parser": "pdfjs-dist@6:text-map@1:diagnostics@1",
+    "parser": "pdfjs-dist@6:text-map@1:diagnostics@2",
     "normalization": "pdf-text-map@1: PDF.js item order; EOL joined with LF, other items with SPACE; outer whitespace trimmed; UTF-16 offsets",
     "pageCount": 20,
     "characterCount": 70504,
@@ -254,6 +478,7 @@
     "itemOffsetsValid": true,
     "unmappedNonWhitespaceItems": 0,
     "warnings": [
+      "并列文字区提示1页，其中多次跨区抽取1页；请在逐页体检核对原页，文字顺序未重排。",
       "PDF 文字按内嵌文本顺序提取；位置框覆盖文字块，可能包含相邻字。双栏阅读顺序、表格关系、图像与完整公式需人工核对；未执行 OCR。"
     ]
   },

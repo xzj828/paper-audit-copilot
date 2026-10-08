@@ -22,7 +22,7 @@
 
 新增[有限生态术语映射](docs/retrieval-terminology.md)：光合作用 / photosynthesis、生境破碎化 / habitat fragmentation 支持双向短语检索，证据卡片和对话导出保存映射与版本。完整短语不按孤立 fragmentation 回退，原文及偏移保持不变；这只扩展词法匹配。`npm run evaluate:terminology` 可复现另外24例正负控制，既有38例保留原预期和历史结果。
 
-新增[PDF 逐页解析体检](docs/pdf-inspection.md)：显示无文字、文字较少和坐标缺口页，筛选后可点击核对物理原页。JSON 下载保留文件与解析身份；新报告冻结体检，三种报告导出保留附录。少量文字不能据此认定扫描件，文字与坐标可用也不代表已理解图表；未执行 OCR。
+新增[PDF 逐页解析体检](docs/pdf-inspection.md)：显示无文字、文字较少、坐标缺口与有限[并列文字区提示](docs/pdf-layout.md)，筛选后可点击核对物理原页。JSON与新报告冻结身份和逐页计数，历史v1不补造布局。16个实现前登记的几何控制可用 `npm run evaluate:pdf-layout -- --output ./test-results/pdf-layout` 复跑。多次跨区抽取不等于错误；文字与坐标可用也不代表理解图表，原文未重排、未执行OCR。
 
 新增[公开真实论文检索验证](docs/real-paper-validation.md)：三篇 PLOS 生态学论文、九个预先登记的问题，校验来源身份、CC BY 4.0 许可、文件指纹和原文偏移。首次明确指定下载与本地缓存；此后可离线重跑，不调用模型。完整论文只存本地缓存，公开报告只保留定位、哈希和检查结果。该验证使用出版商 XML，不等同于 PDF/DOCX 上传或专家质量验收。
 

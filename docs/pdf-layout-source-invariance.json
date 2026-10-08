@@ -1,0 +1,28 @@
+{
+  "schema": "pdf-layout-source-invariance@1",
+  "verifiedAt": "2026-10-08T15:09:58.038619+00:00",
+  "baselineVersion": "pdf-extraction-diagnostics@1",
+  "currentVersion": "pdf-extraction-diagnostics@2",
+  "sourceSHA256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+  "normalizedTextSHA256": "4d1eaf43c610435d17c6cf5be4b9b48842d2002705f7e7f82fd883548fc2f7f0",
+  "registeredQueries": 3,
+  "identicalQueryAndSliceRecords": true,
+  "returnedSlices": 21,
+  "unchangedOriginalPageCounts": 20,
+  "currentDiagnosticsSummary": {
+    "pagesWithText": 20,
+    "pagesWithoutText": 0,
+    "sparsePages": 0,
+    "coordinateGapPages": 0,
+    "unrecordedCoordinatePages": 0,
+    "attentionPages": 1,
+    "parallelRegionPages": 1,
+    "interleavedRegionPages": 1,
+    "unavailableLayoutPages": 0
+  },
+  "flaggedOriginalPage": {
+    "page": 4,
+    "visualObservation": "Table 1 is present on the original rendered page; this is a parallel text region hint, not a claim of broken order or two-column detection"
+  },
+  "scope": "Engineering invariance check on one licensed original PDF; no expert accuracy or model quality measurement"
+}

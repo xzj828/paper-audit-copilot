@@ -1,7 +1,7 @@
 {
   "schema": "review-contract-results@1",
   "benchmarkId": "review-safety-controls@1",
-  "evaluatedAt": "2026-10-08T09:42:42.167Z",
+  "evaluatedAt": "2026-10-08T15:06:50.458Z",
   "materialType": "synthetic",
   "labelOrigin": "Developer-authored fixed engineering expectations registered before execution; not expert labels, independent blind review or a quality estimate",
   "fixtureSha256": "c2e54d90c8145361eafb29d73695e56da6aef2f707586aec945f08f7d4e6864f",
@@ -11,7 +11,8 @@
   "implementation": {
     "server/engine.js": "170a764e46494d6ff92dbe644bcb24e91bc88be3933a569bbf772d19ef2df00e",
     "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
-    "shared/pdf-diagnostics.js": "498d5c54bffe2e7dc49dce95fc07553c3befee86d919f994afeb3378124ab2f9",
+    "shared/pdf-diagnostics.js": "6c79bbb6fa0d8114154aeada48ccd7039187d61fb833abfd7fce115f8bdd7c51",
+    "shared/pdf-layout.js": "d1c5575d9d43b371fb30bb8651ad119a9eaa31734690c398bb399ce6f8d9b2c2",
     "server/review.js": "ed6c6900c4ec9fb02e15e5708227befc2cb0ec473a395af43c1e274aa7b34cfd",
     "server/atomic-review.js": "4dd8e495cdfb6b1abc828c9c30c02895450557e4a551a6e573939207fac3f52d",
     "server/review-pack.js": "e35f11537b877ecde66c9b72e7f6ad507d9e40a33c4ba09d911578a05e65d04d",
