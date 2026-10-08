@@ -42,7 +42,11 @@ async function parse() {
     }
     await task.destroy();
     pdfDiagnostics = buildPdfDiagnostics(pages);
-    parser = 'pdfjs-dist@6:text-map@1:diagnostics@1';
+    parser = 'pdfjs-dist@6:text-map@1:diagnostics@2';
+    if (pdfDiagnostics.summary.parallelRegionPages)
+      warnings.push(
+        `并列文字区提示${pdfDiagnostics.summary.parallelRegionPages}页，其中多次跨区抽取${pdfDiagnostics.summary.interleavedRegionPages}页；请在逐页体检核对原页，文字顺序未重排。`,
+      );
     normalization = PDF_TEXT_NORMALIZATION;
     warnings.push(
       'PDF 文字按内嵌文本顺序提取；位置框覆盖文字块，可能包含相邻字。双栏阅读顺序、表格关系、图像与完整公式需人工核对；未执行 OCR。',

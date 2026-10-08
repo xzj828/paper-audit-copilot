@@ -82,6 +82,17 @@ export interface PdfPage {
     height?: number;
   }[];
 }
+export interface PdfLayoutDiagnostic {
+  version: string;
+  status: 'parallel_regions' | 'interleaved_regions' | 'not_detected' | 'unavailable' | 'no_text';
+  eligibleTextItems: number | null;
+  leftTextItems: number | null;
+  rightTextItems: number | null;
+  leftRows: number | null;
+  rightRows: number | null;
+  pairedRows: number | null;
+  crossRegionTransitions: number | null;
+}
 export interface PdfPageDiagnostic {
   page: number;
   characters: number;
@@ -91,6 +102,7 @@ export interface PdfPageDiagnostic {
   textItems: number | null;
   mappedTextItems: number | null;
   unmappedTextItems: number | null;
+  layout?: PdfLayoutDiagnostic;
 }
 export interface PdfDiagnostics {
   version: string;
@@ -103,6 +115,9 @@ export interface PdfDiagnostics {
     coordinateGapPages: number;
     unrecordedCoordinatePages: number;
     attentionPages: number;
+    parallelRegionPages?: number;
+    interleavedRegionPages?: number;
+    unavailableLayoutPages?: number;
   };
   limits: string;
 }

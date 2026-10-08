@@ -8,6 +8,7 @@ import {
   pdfPageNeedsAttention,
 } from '../../shared/pdf-diagnostics.js';
 import Icon from './Icon.vue';
+import { pdfLayoutLabels } from '../../shared/pdf-layout.js';
 const props = withDefaults(
   defineProps<{ diagnostics?: PdfDiagnostics | null; exportUrl?: string; navigate?: boolean }>(),
   { navigate: true },
@@ -37,8 +38,15 @@ const rows = computed(
         >
       </p>
       <p class="inspection-limits">
+        <template v-if="snapshot.summary.parallelRegionPages !== undefined">
+          并列文字区 {{ snapshot.summary.parallelRegionPages }} 页 · 多次跨区抽取
+          {{ snapshot.summary.interleavedRegionPages }} 页。
+        </template>
         体检统计已提取文字与文字块坐标。有文字、可定位都不代表全文已读懂；未执行
-        OCR。文字较少仅提示核对，不能据此认定扫描件。双栏、表格、图像与完整公式需人工核对。
+        OCR。文字较少仅提示核对，不能据此认定扫描件。并列区可来自双栏、表格或列表；多次跨区不等同于抽取错误，未触发也不证明顺序正确。原文未重排。
+      </p>
+      <p v-if="snapshot.summary.parallelRegionPages === undefined" class="inspection-limits">
+        历史体检未记录布局提示；原记录保持不变，需要新提示时请在新项目重新上传原文件。
       </p>
       <details>
         <summary>查看逐页记录 · {{ snapshot.summary.attentionPages }} 页待核对</summary>
@@ -69,6 +77,12 @@ const rows = computed(
               }}
               个文字块</small
             >
+            <small v-if="entry.layout" class="inspection-layout">
+              {{ pdfLayoutLabels[entry.layout.status] }} · 候选文字块
+              {{ entry.layout.eligibleTextItems ?? '无法统计' }} · 对齐行
+              {{ entry.layout.pairedRows ?? '未记录' }} · 跨区切换
+              {{ entry.layout.crossRegionTransitions ?? '未记录' }}
+            </small>
             <Icon v-if="navigate" name="right" :size="15" />
           </button>
           <p v-if="!rows.length" class="inspection-limits">
@@ -77,7 +91,7 @@ const rows = computed(
         </div>
       </details>
       <small class="inspection-version"
-        >{{ snapshot.version }} · 少于 30 个非空白字符提示核对</small
+        >{{ snapshot.version }} · 少于 30 个非空白字符提示核对；并列布局只作人工核对提示</small
       >
     </template>
     <p v-else class="inspection-limits">
@@ -163,7 +177,7 @@ summary {
   font-size: 11px;
 }
 .inspection-pages strong {
-  grid-row: 1 / 3;
+  grid-row: 1 / 4;
 }
 .inspection-pages span,
 .inspection-pages small {

@@ -1,8 +1,12 @@
 import { PDF_TEXT_MAP } from './pdf-text.js';
+import { inspectPdfLayout, pdfLayoutSnapshot, pdfLayoutLabels } from './pdf-layout.js';
 
-export const PDF_DIAGNOSTICS_VERSION = 'pdf-extraction-diagnostics@1';
-export const PDF_DIAGNOSTICS_LIMITS =
+export const PDF_DIAGNOSTICS_VERSION = 'pdf-extraction-diagnostics@2';
+const LEGACY_VERSION = 'pdf-extraction-diagnostics@1';
+const LEGACY_LIMITS =
   '体检只统计已提取文字与文字块坐标，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。未执行OCR；双栏阅读顺序、表格关系、图像与完整公式仍需人工核对。';
+export const PDF_DIAGNOSTICS_LIMITS =
+  '体检只统计已提取文字、文字块坐标与有限并列布局提示，不判断论文质量或全文完整性。少于30个非空白UTF-16字符仅提示人工核对，不能据此认定扫描件。并列区可来自双栏、表格、列表等；多次跨区抽取不等同于顺序错误，未触发不证明排版正确。未重排原文、未执行OCR；跨页表格、图像与完整公式仍需人工核对。';
 export const pdfTextLabels = { empty: '无可检索文字', sparse: '文字较少', present: '已提取文字' };
 export const pdfCoordinateLabels = {
   available: '文字块坐标可用',
@@ -21,9 +25,11 @@ const validBox = (b) =>
   b[0] < b[2] &&
   b[1] < b[3];
 export const pdfPageNeedsAttention = (p) =>
-  p.textStatus !== 'present' || p.coordinateStatus !== 'available';
+  p.textStatus !== 'present' ||
+  p.coordinateStatus !== 'available' ||
+  ['parallel_regions', 'interleaved_regions', 'unavailable'].includes(p.layout?.status);
 
-function summarize(pages) {
+function summarize(pages, withLayout = true) {
   return {
     pagesWithText: pages.filter((p) => p.nonWhitespaceCharacters > 0).length,
     pagesWithoutText: pages.filter((p) => p.textStatus === 'empty').length,
@@ -33,6 +39,16 @@ function summarize(pages) {
     ).length,
     unrecordedCoordinatePages: pages.filter((p) => p.coordinateStatus === 'unrecorded').length,
     attentionPages: pages.filter(pdfPageNeedsAttention).length,
+    ...(withLayout
+      ? {
+          parallelRegionPages: pages.filter((p) =>
+            ['parallel_regions', 'interleaved_regions'].includes(p.layout?.status),
+          ).length,
+          interleavedRegionPages: pages.filter((p) => p.layout?.status === 'interleaved_regions')
+            .length,
+          unavailableLayoutPages: pages.filter((p) => p.layout?.status === 'unavailable').length,
+        }
+      : {}),
   };
 }
 
@@ -100,7 +116,10 @@ export function buildPdfDiagnostics(pages) {
     pages.some((p, i) => p?.page !== i + 1 || typeof p.text !== 'string' || p.text.length > 1000000)
   )
     throw new Error('PDF 体检需要完整且按物理页码排列的解析页');
-  const rows = pages.map(inspectPage);
+  const rows = pages.map((page) => {
+    const row = inspectPage(page);
+    return { ...row, layout: inspectPdfLayout(page, row.coordinateStatus) };
+  });
   return {
     version: PDF_DIAGNOSTICS_VERSION,
     pageCount: rows.length,
@@ -114,7 +133,7 @@ export function buildPdfDiagnostics(pages) {
 // reports do not infer a new inspection or copy private fields from a record.
 export function pdfDiagnosticsSnapshot(value) {
   if (
-    value?.version !== PDF_DIAGNOSTICS_VERSION ||
+    ![PDF_DIAGNOSTICS_VERSION, LEGACY_VERSION].includes(value?.version) ||
     !integer(value.pageCount, 500) ||
     !value.pageCount ||
     !Array.isArray(value.pages) ||
@@ -153,8 +172,13 @@ export function pdfDiagnosticsSnapshot(value) {
       )
         return null;
     }
-    pages.push(
-      Object.fromEntries(
+    const layout =
+      value.version === PDF_DIAGNOSTICS_VERSION
+        ? pdfLayoutSnapshot(p.layout, p.coordinateStatus, p.mappedTextItems)
+        : null;
+    if (value.version === PDF_DIAGNOSTICS_VERSION && !layout) return null;
+    pages.push({
+      ...Object.fromEntries(
         [
           'page',
           'characters',
@@ -166,14 +190,15 @@ export function pdfDiagnosticsSnapshot(value) {
           'coordinateStatus',
         ].map((k) => [k, p[k]]),
       ),
-    );
+      ...(layout ? { layout } : {}),
+    });
   }
   return {
-    version: PDF_DIAGNOSTICS_VERSION,
+    version: value.version,
     pageCount: pages.length,
-    summary: summarize(pages),
+    summary: summarize(pages, value.version === PDF_DIAGNOSTICS_VERSION),
     pages,
-    limits: PDF_DIAGNOSTICS_LIMITS,
+    limits: value.version === PDF_DIAGNOSTICS_VERSION ? PDF_DIAGNOSTICS_LIMITS : LEGACY_LIMITS,
   };
 }
 
@@ -186,7 +211,10 @@ export function pdfDiagnosticsLines(value) {
     snapshot.limits,
     ...snapshot.pages.map(
       (p) =>
-        `第${p.page}页：${pdfTextLabels[p.textStatus]}，${p.characters}字符（非空白${p.nonWhitespaceCharacters}）；${pdfCoordinateLabels[p.coordinateStatus]}，可定位文字块${p.mappedTextItems ?? '未记录'}/${p.textItems ?? '未记录'}。`,
+        `第${p.page}页：${pdfTextLabels[p.textStatus]}，${p.characters}字符（非空白${p.nonWhitespaceCharacters}）；${pdfCoordinateLabels[p.coordinateStatus]}，可定位文字块${p.mappedTextItems ?? '未记录'}/${p.textItems ?? '未记录'}。` +
+        (p.layout
+          ? `布局：${pdfLayoutLabels[p.layout.status]}；候选文字块${p.layout.eligibleTextItems ?? '无法统计'}，左／右区${p.layout.leftTextItems ?? '未记录'}/${p.layout.rightTextItems ?? '未记录'}，对齐行${p.layout.pairedRows ?? '未记录'}，跨区切换${p.layout.crossRegionTransitions ?? '未记录'}。`
+          : ''),
     ),
   ];
 }
