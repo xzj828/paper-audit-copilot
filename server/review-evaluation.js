@@ -18,6 +18,30 @@ const hash = (value) =>
 const fields = ['accuracy', 'evidenceSupport', 'actionability', 'severity'];
 const choices = ['yes', 'no', 'unable'];
 const severityChoices = ['none', 'minor', 'major', 'critical', 'unable'];
+function validReviewTime(value) {
+  if (typeof value !== 'string') return false;
+  const parts =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|([+-])(\d{2}):(\d{2}))$/.exec(
+      value,
+    );
+  if (!parts) return false;
+  const [, year, month, day, hour, minute, second, , zoneHour, zoneMinute] = parts;
+  const leap = +year % 4 === 0 && (+year % 100 !== 0 || +year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  // Date.parse normalizes some impossible dates (e.g. February 30) and 24:00.
+  // Validate the written local calendar before checking the zoned instant.
+  return (
+    +month >= 1 &&
+    +month <= 12 &&
+    +day >= 1 &&
+    +day <= days[+month - 1] &&
+    +hour <= 23 &&
+    +minute <= 59 &&
+    +second <= 59 &&
+    (zoneHour === undefined || (+zoneHour <= 23 && +zoneMinute <= 59)) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
 const text = (value, limit = 20000) => {
   if (value == null) return '';
   if (typeof value !== 'string' || value.length > limit)
@@ -162,14 +186,8 @@ export function compareReviewAnnotations(packet, annotations) {
       !['independent_human', 'developer', 'model_assisted'].includes(record.reviewer?.role)
     )
       throw new Error('请填写复核者代号和真实参与方式');
-    if (
-      typeof record.recordedAt !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(
-        record.recordedAt,
-      ) ||
-      !Number.isFinite(Date.parse(record.recordedAt))
-    )
-      throw new Error('请填写实际复核时间');
+    if (!validReviewTime(record.recordedAt))
+      throw new Error('请填写有效的实际复核时间：日期须存在，小时为00–23，并包含时区');
     if (!Array.isArray(record.cases) || record.cases.length !== ids.length)
       throw new Error('复核问题缺失或包含额外记录');
     const seen = new Set();
