@@ -303,7 +303,7 @@ test('real upload, parse, PDF render, report, version comparison, persistence an
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
   await expect(page.locator('.upload-guide')).toBeVisible();
   await page
-    .locator('input[type=file]')
+    .getByLabel('上传论文文件', { exact: true })
     .setInputFiles({ name: 'research.pdf', mimeType: 'application/pdf', buffer: pdfFixture() });
   await expect(page.locator('.parse-metrics')).toBeVisible();
   await expect(page.locator('.structure-list')).toContainText('sample size 312');
@@ -316,7 +316,7 @@ test('real upload, parse, PDF render, report, version comparison, persistence an
   await page.getByRole('button', { name: '生成报告预览' }).click();
   await expect(page.locator('.recommendation')).toContainText('暂无法判定');
   await expect(page.locator('.result-row')).toHaveCount(8);
-  await page.locator('input[type=file]').setInputFiles({
+  await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
     name: '修订论文.docx',
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     buffer: docxFixture(),
@@ -399,7 +399,7 @@ test('scientific review runs through real API, exposes evidence and exports part
     await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('科学评审自检');
     await page.getByRole('button', { name: '创建项目', exact: true }).click();
     await expect(page.locator('.upload-guide')).toBeVisible();
-    await page.locator('input[type=file]').setInputFiles({
+    await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
       name: 'study.docx',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       buffer: docxFixture(),

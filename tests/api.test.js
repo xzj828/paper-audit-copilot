@@ -243,6 +243,62 @@ test('PDF diagnostic downloads require exact workspace and version and only expo
     409,
   );
 });
+test('human review exports require workspace, report and explicit version, and comparisons never mutate snapshots', async () => {
+  const before = (await request(`/api/projects/${p.id}`)).data;
+  const version = before.versions[0];
+  const report = version.reports[0];
+  const url = `/api/projects/${p.id}/reports/${report.id}/evaluation`;
+  const response = await request(`${url}?versionId=${version.id}`);
+  assert.equal(response.status, 200);
+  const bundle = response.data;
+  assert.equal(bundle.packet.basis.reportId, report.id);
+  assert.equal(bundle.packet.basis.parseId, version.parse.id);
+  assert.equal(bundle.packet.basis.sourceHash, version.contentHash);
+  assert.equal(bundle.packet.cases.length, 0);
+  for (const key of ['model', 'score', 'recommendation', 'messages', 'apiKey'])
+    assert.equal(Object.hasOwn(bundle.packet, key), false);
+  for (const identity of [otherCookie])
+    assert.equal(
+      (await request(`${url}?versionId=${version.id}`, 'GET', undefined, identity)).status,
+      404,
+    );
+  assert.equal((await request(url)).status, 404);
+  assert.equal((await request(url + '/compare', 'POST')).status, 404);
+  assert.equal((await request(`${url}?versionId=missing`)).status, 404);
+  const records = ['api-control-a', 'api-control-b'].map((id) => ({
+    ...bundle.annotationTemplate,
+    reviewer: { id, role: 'developer' },
+    recordedAt: '2026-10-09T00:00:00.000Z',
+  }));
+  records[0].extra = 'CONTROL-PADDING'.repeat(6000); // This route alone admits bodies beyond the global 64 KiB limit.
+  const compared = await request(url + '/compare', 'POST', {
+    versionId: version.id,
+    annotations: records,
+  });
+  assert.equal(compared.status, 200);
+  assert.equal(compared.data.summary.cases, 0);
+  assert.equal(JSON.stringify(compared.data).includes('CONTROL-PADDING'), false);
+  assert.equal(
+    (
+      await request(
+        url + '/compare',
+        'POST',
+        { versionId: version.id, annotations: records },
+        otherCookie,
+      )
+    ).status,
+    404,
+  );
+  const invalid = structuredClone(records);
+  invalid[1].packetHash = '0'.repeat(64);
+  assert.equal(
+    (await request(url + '/compare', 'POST', { versionId: version.id, annotations: invalid }))
+      .status,
+    400,
+  );
+  const saved = (await request(`/api/projects/${p.id}`)).data;
+  assert.deepEqual(saved.versions[0].reports, version.reports);
+});
 test('DOCX becomes a separate version and comparison never calls removed issues resolved', async () => {
   assert.equal((await upload(p.id, '修订论文.docx', docxFixture())).status, 202);
   p = await parsed(p.id);

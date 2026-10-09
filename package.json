@@ -27,7 +27,9 @@
     "evaluate:pdf": "node scripts/evaluate-pdf.mjs",
     "evaluate:pdf-layout": "node scripts/evaluate-pdf-layout.mjs",
     "evaluate:review-contracts": "node scripts/evaluate-review-contracts.mjs",
-    "evaluate:source-search": "node scripts/evaluate-source-search.mjs"
+    "evaluate:source-search": "node scripts/evaluate-source-search.mjs",
+    "compare:human-review": "node scripts/compare-human-review.mjs",
+    "evaluate:human-review": "node scripts/evaluate-human-review-controls.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",
