@@ -20,6 +20,7 @@ import { exportChat } from './chat-export.js';
 import { mountReferenceAudit } from './reference-audit.js';
 import { mountDataAudit } from './data-audit.js';
 import { mountClaimAudit } from './claim-audit.js';
+import { makeReviewEvaluationPacket, compareReviewAnnotations } from './review-evaluation.js';
 import { pdfDiagnosticsSnapshot } from '../shared/pdf-diagnostics.js';
 
 export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
@@ -87,6 +88,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     }
     next();
   });
+  app.use('/api/projects/:id/reports/:reportId/evaluation/compare', express.json({ limit: '1mb' }));
   app.use(express.json({ limit: '64kb' }));
 
   app.get('/api/workspace', (req, res) => res.json(workspaceState.read(req.workspace)));
@@ -593,6 +595,41 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     });
     save(req, p);
     res.json(p);
+  });
+  function evaluationTarget(req, res) {
+    const p = project(req, res);
+    if (!p) return null;
+    // This endpoint requires an explicit version; never fall back to the active one.
+    const versionId = req.method === 'GET' ? req.query.versionId : req.body?.versionId;
+    const v =
+      typeof versionId === 'string' ? p.versions.find((item) => item.id === versionId) : undefined;
+    const report = v?.reports.find((item) => item.id === req.params.reportId);
+    if (!report) {
+      res.status(404).json({ error: '报告或指定版本不存在' });
+      return null;
+    }
+    return { v, report };
+  }
+  app.get('/api/projects/:id/reports/:reportId/evaluation', (req, res) => {
+    const target = evaluationTarget(req, res);
+    if (!target) return;
+    try {
+      const bundle = makeReviewEvaluationPacket(target.v, target.report);
+      res.setHeader('Content-Disposition', 'attachment; filename="human-review-packet.json"');
+      res.json(bundle);
+    } catch (error) {
+      res.status(409).json({ error: error.message });
+    }
+  });
+  app.post('/api/projects/:id/reports/:reportId/evaluation/compare', (req, res) => {
+    const target = evaluationTarget(req, res);
+    if (!target) return;
+    try {
+      const { packet } = makeReviewEvaluationPacket(target.v, target.report);
+      res.json(compareReviewAnnotations(packet, req.body.annotations));
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   });
   app.get('/api/projects/:id/reports/:reportId/export', async (req, res) => {
     const p = project(req, res);

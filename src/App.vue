@@ -10,6 +10,7 @@ import ModelPicker from './components/ModelPicker.vue';
 import MessageContent from './components/MessageContent.vue';
 import EvidenceSources from './components/EvidenceSources.vue';
 import { readSSE } from '../shared/sse.js';
+import ReviewEvaluation from './components/ReviewEvaluation.vue';
 import ReviewControls from './components/ReviewControls.vue';
 import ReferenceAudit from './components/ReferenceAudit.vue';
 import DataAudit from './components/DataAudit.vue';
@@ -2056,6 +2057,13 @@ onUnmounted(() => {
             按模板保存新快照
           </button>
         </div>
+        <ReviewEvaluation
+          v-if="report && project"
+          :key="`${project.id}:${version.id}:${report.id}`"
+          :project-id="project.id"
+          :version-id="version.id"
+          :report-id="report.id"
+        />
         <article class="artifact-content report-content" aria-label="报告正文">
           <header class="report-document-header">
             <h2>
@@ -2361,6 +2369,7 @@ onUnmounted(() => {
     </div>
     <input
       ref="fileInput"
+      aria-label="上传论文文件"
       type="file"
       accept=".pdf,.docx"
       class="sr-only"
