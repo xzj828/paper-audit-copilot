@@ -6,7 +6,7 @@
 
 在所选论文版本的“评审报告”打开“人工复核材料与分歧”，下载人工复核材料和空白记录模板。两名复核者分别对照原文件与图表阅读材料，各自填写模板，不要让模型产生标注后冒充独立人工记录。原文件不会由此工具自动发送给其他人。
 
-填写reviewer.id为本人代号；role如实选择independent_human（声明独立人工）、developer（开发者）或model_assisted（模型辅助）。recordedAt填写实际ISO复核时间。四项逐条选择：accuracy（问题准确性）、evidenceSupport（证据支持）及actionability（建议可执行性）为yes/no/unable；severity为none/minor/major/critical/unable。默认null是未填写，不是“无问题”；否定或无法判断必须写note说明理由。
+填写reviewer.id为本人代号；role如实选择independent_human（声明独立人工）、developer（开发者）或model_assisted（模型辅助）。recordedAt填写含时区的实际ISO复核时间，例如2026-10-09T12:00:00+08:00。日期须存在，小时为00–23；不会把2月30日或24:00自动换算后接受。支持闰年、Z或数值时区以及1–3位小数秒，合法写法原样保留。时间格式正确不证明复核实际发生。四项逐条选择：accuracy（问题准确性）、evidenceSupport（证据支持）及actionability（建议可执行性）为yes/no/unable；severity为none/minor/major/critical/unable。默认null是未填写，不是“无问题”；否定或无法判断必须写note说明理由。
 
 分别导入两份完成的JSON记录，点击比对。完整材料身份必须一致，所有问题恰好标注一次；缺失、额外、重复问题、错误材料指纹、相同代号、未填选择或缺少理由都会拒绝。结果按冻结报告原顺序保留全部选择及双方说明，可下载完整JSON。切换报告或版本会清空当前导入文件和比对结果；刷新后需要重新导入，下载文件是保存本次比对的方式。
 
