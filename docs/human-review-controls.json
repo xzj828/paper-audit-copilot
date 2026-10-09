@@ -1,0 +1,352 @@
+{
+  "schema": "human-review-controls@1",
+  "labelOrigin": "Developer-fixed software controls; not expert labels, independent review data or quality accuracy",
+  "materialType": "synthetic",
+  "localPreregistrationCommit": "b2ce3de",
+  "fixtureSha256": "14475e48a1221c2119ab5a75e7967948ed928303f8b4d8b6aaf769dc3f07b3cc",
+  "implementation": {
+    "server/review-evaluation.js": "6bedde3602fb752907c8f6ee239a51011b6a8c39edfdf465179d0b079ea8ca68",
+    "server/application.js": "e9c2c89b4b5d800a68241db3a748bca32f7952483177953e46b92154912edc6e",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "src/components/ReviewEvaluation.vue": "ae1a57987247dda77e88a36416492f2f9dcf111d071c7f7e70ca1a1c0022ee90",
+    "src/App.vue": "c20093331065128bbf4bc5e001cc61ae390fe0d6487bab74dcc7a2c81bd584f3",
+    "scripts/compare-human-review.mjs": "263faba4afd39b20da5453749bc05705a0b4b1cf02708e86bd2a8f3b52d81722",
+    "scripts/evaluate-human-review-controls.mjs": "d37ef9d501573acca99801bbbc8850902cce89614b225c8f7d5c31d4e96801ae",
+    "tests/human-review-fixtures.js": "4f90ef09b408d7ead1369f8ce605fe12352c7ec9b9d45b7c7a26137d5d956367"
+  },
+  "externalModelRequests": 0,
+  "summary": {
+    "controls": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "id": "agreement",
+      "change": "none",
+      "expected": {
+        "agreements": 2,
+        "disagreements": 0,
+        "jointlyUnassessable": 0
+      },
+      "actual": {
+        "schema": "human-review-comparison@1",
+        "packetHash": "de68303a66be609735461702ae070c1c4032b0ef2bd2a8fa0f4c9782b1b783f4",
+        "basis": {
+          "versionId": "control-v1",
+          "parseId": "control-parse1",
+          "sourceHash": "5b4dbb95dd61290b2d5f9d664bc53916d5562d44f3b02034a03f526dd6f82fa4",
+          "reportId": "control-r1",
+          "reportCreatedAt": "2026-10-09T00:00:00.000Z",
+          "materialType": "unspecified"
+        },
+        "label": "Self-declared human records compared; not expert accuracy, semantic truth, issue recall or verified reviewer independence.",
+        "releaseStatus": "requires_independent_domain_review",
+        "reviewers": [
+          {
+            "id": "control-a",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          },
+          {
+            "id": "control-b",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          }
+        ],
+        "annotationHashes": [
+          "23226424a50906fc2731dcf423cb22935249c39dc8e31f71971c69a798528564",
+          "81e4c54a55ffb4b15f9b17314f2fd84f2b9bc37f05cfd2faa779d4406c545fc3"
+        ],
+        "summary": {
+          "cases": 2,
+          "agreements": 2,
+          "disagreements": 0,
+          "jointlyUnassessable": 0
+        },
+        "cases": [
+          {
+            "caseId": "C1",
+            "title": "Synthetic finding 1",
+            "status": "agreement",
+            "differingFields": [],
+            "left": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            }
+          },
+          {
+            "caseId": "C2",
+            "title": "Synthetic finding 2",
+            "status": "agreement",
+            "differingFields": [],
+            "left": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            }
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "one-field-disagreement",
+      "change": "severity",
+      "expected": {
+        "agreements": 1,
+        "disagreements": 1,
+        "jointlyUnassessable": 0
+      },
+      "actual": {
+        "schema": "human-review-comparison@1",
+        "packetHash": "de68303a66be609735461702ae070c1c4032b0ef2bd2a8fa0f4c9782b1b783f4",
+        "basis": {
+          "versionId": "control-v1",
+          "parseId": "control-parse1",
+          "sourceHash": "5b4dbb95dd61290b2d5f9d664bc53916d5562d44f3b02034a03f526dd6f82fa4",
+          "reportId": "control-r1",
+          "reportCreatedAt": "2026-10-09T00:00:00.000Z",
+          "materialType": "unspecified"
+        },
+        "label": "Self-declared human records compared; not expert accuracy, semantic truth, issue recall or verified reviewer independence.",
+        "releaseStatus": "requires_independent_domain_review",
+        "reviewers": [
+          {
+            "id": "control-a",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          },
+          {
+            "id": "control-b",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          }
+        ],
+        "annotationHashes": [
+          "23226424a50906fc2731dcf423cb22935249c39dc8e31f71971c69a798528564",
+          "06f21ee4a5bac1b24023ae18344db087c06007e63e069109bdb3ba3f44847be7"
+        ],
+        "summary": {
+          "cases": 2,
+          "agreements": 1,
+          "disagreements": 1,
+          "jointlyUnassessable": 0
+        },
+        "cases": [
+          {
+            "caseId": "C1",
+            "title": "Synthetic finding 1",
+            "status": "needs_adjudication",
+            "differingFields": [
+              "severity"
+            ],
+            "left": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "major",
+              "note": "Developer software control, not human evaluation data."
+            }
+          },
+          {
+            "caseId": "C2",
+            "title": "Synthetic finding 2",
+            "status": "agreement",
+            "differingFields": [],
+            "left": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            }
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "jointly-unable",
+      "change": "both-unable",
+      "expected": {
+        "agreements": 1,
+        "disagreements": 0,
+        "jointlyUnassessable": 1
+      },
+      "actual": {
+        "schema": "human-review-comparison@1",
+        "packetHash": "de68303a66be609735461702ae070c1c4032b0ef2bd2a8fa0f4c9782b1b783f4",
+        "basis": {
+          "versionId": "control-v1",
+          "parseId": "control-parse1",
+          "sourceHash": "5b4dbb95dd61290b2d5f9d664bc53916d5562d44f3b02034a03f526dd6f82fa4",
+          "reportId": "control-r1",
+          "reportCreatedAt": "2026-10-09T00:00:00.000Z",
+          "materialType": "unspecified"
+        },
+        "label": "Self-declared human records compared; not expert accuracy, semantic truth, issue recall or verified reviewer independence.",
+        "releaseStatus": "requires_independent_domain_review",
+        "reviewers": [
+          {
+            "id": "control-a",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          },
+          {
+            "id": "control-b",
+            "role": "developer",
+            "recordedAt": "2026-10-09T00:00:00.000Z"
+          }
+        ],
+        "annotationHashes": [
+          "eeadd7cb411fb451d567c9f55316c5c3fd64192fd4e578aef7486f4925fe3e4c",
+          "da73536f2b76d932988dd8d02b0938999b5badaef2eb36349e15af7e60266d51"
+        ],
+        "summary": {
+          "cases": 2,
+          "agreements": 1,
+          "disagreements": 0,
+          "jointlyUnassessable": 1
+        },
+        "cases": [
+          {
+            "caseId": "C1",
+            "title": "Synthetic finding 1",
+            "status": "insufficient_material",
+            "differingFields": [],
+            "left": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "unable",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C1",
+              "accuracy": "yes",
+              "evidenceSupport": "unable",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            }
+          },
+          {
+            "caseId": "C2",
+            "title": "Synthetic finding 2",
+            "status": "agreement",
+            "differingFields": [],
+            "left": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            },
+            "right": {
+              "caseId": "C2",
+              "accuracy": "yes",
+              "evidenceSupport": "yes",
+              "actionability": "yes",
+              "severity": "minor",
+              "note": "Developer software control, not human evaluation data."
+            }
+          }
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "missing-case",
+      "change": "missing-case",
+      "expectedError": true,
+      "actualError": "复核问题缺失或包含额外记录",
+      "passed": true
+    },
+    {
+      "id": "duplicate-case",
+      "change": "duplicate-case",
+      "expectedError": true,
+      "actualError": "复核问题ID重复或不属于材料",
+      "passed": true
+    },
+    {
+      "id": "extra-case",
+      "change": "extra-case",
+      "expectedError": true,
+      "actualError": "复核问题缺失或包含额外记录",
+      "passed": true
+    },
+    {
+      "id": "stale-packet",
+      "change": "stale-packet",
+      "expectedError": true,
+      "actualError": "复核记录不属于所选报告材料",
+      "passed": true
+    },
+    {
+      "id": "same-reviewer",
+      "change": "same-reviewer",
+      "expectedError": true,
+      "actualError": "两份记录不能使用同一复核者代号",
+      "passed": true
+    },
+    {
+      "id": "incomplete-label",
+      "change": "incomplete-label",
+      "expectedError": true,
+      "actualError": "请完成每项选择；无法判断请明确选择unable",
+      "passed": true
+    },
+    {
+      "id": "tampered-packet",
+      "change": "tampered-packet",
+      "expectedError": true,
+      "actualError": "复核材料指纹失配",
+      "passed": true
+    }
+  ]
+}

@@ -185,3 +185,5 @@ docs/                     原始设计、自检记录与截图
 前端采用 [Vue 官方推荐的 Vite 构建方式](https://vuejs.org/guide/quick-start)，文档解析使用 [PDF.js](https://github.com/mozilla/pdf.js) 与 [Mammoth](https://github.com/mwilliamson/mammoth.js)。依赖的确切版本由 `package-lock.json` 固定。
 
 原文搜索现支持[逐处定位与单次换行兼容](docs/source-search.md)，重复出现独立显示，引用保留原文。固定开发控制可用 `npm run evaluate:source-search -- --output 指定目录` 复现。
+
+评审报告新增[人工复核材料与两份记录比对](docs/human-review.md)，下载空白模板、导入各自记录并保留分歧，不自动改变报告或认证专家质量。固定软件控制用 `npm run evaluate:human-review -- --output 指定目录` 复现；离线比对用 `npm run compare:human-review -- 材料.json 记录A.json 记录B.json 结果.json`。
