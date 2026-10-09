@@ -166,3 +166,46 @@ test('comparison retains all ordered cases and reviewer notes, ignores extras an
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('review timestamps reject normalized impossible calendar dates and retain valid zoned input verbatim', () => {
+  const { version, report } = humanReviewSource();
+  const bundle = makeReviewEvaluationPacket(version, report);
+  const records = (date) => {
+    const a = filledReview(bundle.annotationTemplate, 'calendar-a');
+    const b = filledReview(bundle.annotationTemplate, 'calendar-b');
+    b.recordedAt = date;
+    return [a, b];
+  };
+  for (const date of [
+    '2026-02-30T12:00:00Z',
+    '2025-02-29T12:00:00Z',
+    '1900-02-29T12:00:00Z',
+    '2026-04-31T12:00:00+08:00',
+    '2026-10-09T24:00:00Z',
+    '2026-00-09T12:00:00Z',
+    '2026-10-00T12:00:00Z',
+    '2026-10-09T12:60:00Z',
+    '2026-10-09T12:00:60Z',
+    '2026-10-09T12:00:00+24:00',
+    '2026-10-09T12:00:00+08:60',
+    '2026-10-09T12:00:00',
+  ]) {
+    const input = records(date),
+      before = structuredClone(input);
+    assert.throws(() => compareReviewAnnotations(bundle.packet, input), /复核时间/, date);
+    assert.deepEqual(input, before);
+  }
+  for (const date of [
+    '2024-02-29T23:59:59Z',
+    '2000-02-29T00:00:00Z',
+    '2026-04-30T23:59:59.999+08:00',
+    '2026-01-01T00:00:00-12:00',
+    '2026-12-31T23:59:59.1+14:00',
+    '2026-10-09T12:00:00.12Z',
+  ]) {
+    const input = records(date),
+      before = structuredClone(input);
+    assert.equal(compareReviewAnnotations(bundle.packet, input).reviewers[1].recordedAt, date);
+    assert.deepEqual(input, before);
+  }
+});

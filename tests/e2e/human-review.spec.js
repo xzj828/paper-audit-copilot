@@ -100,6 +100,10 @@ test('actual upload exports frozen human-review packets, imports paired controls
   await page.getByRole('button', { name: '比对两份复核记录', exact: true }).click();
   await expect(page.locator('.human-review [role=alert]')).toContainText('不属于所选报告');
   await expect(page.locator('.human-review-result')).toHaveCount(0);
+  await uploadRecord('B', { ...b, recordedAt: '2026-02-30T12:00:00+08:00' });
+  await page.getByRole('button', { name: '比对两份复核记录', exact: true }).click();
+  await expect(page.locator('.human-review [role=alert]')).toContainText('日期须存在');
+  await expect(page.locator('.human-review-result')).toHaveCount(0);
   await uploadRecord('B', b);
   await page.getByRole('button', { name: '比对两份复核记录', exact: true }).click();
   await expect(page.locator('.human-review-result')).toContainText('分歧 1 条');
