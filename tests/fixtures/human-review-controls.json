@@ -1,0 +1,68 @@
+{
+  "labelOrigin": "Developer-fixed software controls; not expert labels, independent review data or quality accuracy",
+  "materialType": "synthetic",
+  "cases": [
+    {
+      "id": "agreement",
+      "change": "none",
+      "expected": {
+        "agreements": 2,
+        "disagreements": 0,
+        "jointlyUnassessable": 0
+      }
+    },
+    {
+      "id": "one-field-disagreement",
+      "change": "severity",
+      "expected": {
+        "agreements": 1,
+        "disagreements": 1,
+        "jointlyUnassessable": 0
+      }
+    },
+    {
+      "id": "jointly-unable",
+      "change": "both-unable",
+      "expected": {
+        "agreements": 1,
+        "disagreements": 0,
+        "jointlyUnassessable": 1
+      }
+    },
+    {
+      "id": "missing-case",
+      "change": "missing-case",
+      "expectedError": true
+    },
+    {
+      "id": "duplicate-case",
+      "change": "duplicate-case",
+      "expectedError": true
+    },
+    {
+      "id": "extra-case",
+      "change": "extra-case",
+      "expectedError": true
+    },
+    {
+      "id": "stale-packet",
+      "change": "stale-packet",
+      "expectedError": true
+    },
+    {
+      "id": "same-reviewer",
+      "change": "same-reviewer",
+      "expectedError": true
+    },
+    {
+      "id": "incomplete-label",
+      "change": "incomplete-label",
+      "expectedError": true
+    },
+    {
+      "id": "tampered-packet",
+      "change": "tampered-packet",
+      "expectedError": true
+    }
+  ]
+}
