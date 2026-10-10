@@ -13,8 +13,8 @@
     "server/parser.js": "3f8166f7adbcd11295466752600eac59361ecf9b0f04311a0b0dfdce0ac77319",
     "scripts/evaluate-hyphen-candidates.mjs": "26883ab46dac76883363fbc51869bf085a1af212a02b36f719d683c15d24d5bc",
     "src/App.vue": "b8d84d5b3fb0cd8733b6735b65efae2f7537e73fae6d4742df44318bdb379afe",
-    "src/components/PdfReader.vue": "01b51f34f8841d5b0978dc0a081691c74e15c9504948c1715afc650b6d6ae288",
-    "src/style.css": "899cf2ce7d23dbf9afcc3be1bead31055c839107ce88fe0e8ee3fe3d0f82f43e"
+    "src/components/PdfReader.vue": "f14e08441f2361350e3b418f0d74f6f8af644f527f8134094d595872173bcb58",
+    "src/style.css": "62e77dd2e549504c5ad2bc5aef6dff7d7f56162d3e11699cae786e2757463c3a"
   },
   "cases": [
     {

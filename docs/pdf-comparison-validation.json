@@ -1,0 +1,73 @@
+{
+  "schema": "pdf-adjacent-page-validation@1",
+  "round": 16,
+  "evaluatedAt": "2026-10-10T16:05:41.377485+00:00",
+  "scope": "Developer-authored browser engineering controls and one unchanged licensed source; not expert accuracy or automatic table reconstruction",
+  "defaultEnabled": false,
+  "comparisonPagesAdditional": 1,
+  "sourcePagesJoined": false,
+  "externalModelRequests": 0,
+  "expertAccuracyComputed": false,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 236,
+    "browserPassed": 46,
+    "newBrowserFlows": 2,
+    "fullCheckLogSHA256": "e1ad74d3e10766003e26093fd0e73950b5bbd7e984c4df982578937265d132da"
+  },
+  "controls": [
+    {
+      "material": "Developer-authored three-page positioned PDF, rotated/cropped second page and vector-only third page",
+      "assertions": [
+        "first/last page direction boundaries",
+        "neighbor rendered without horizontal scrolling",
+        "independent 720/560 rotated viewport ratio",
+        "two desktop columns and mobile vertical ordering",
+        "only current page receives checked second-occurrence source offset and boxes",
+        "zoom, refresh default-off and single-page revision reset",
+        "old full parse snapshot unchanged"
+      ]
+    },
+    {
+      "material": "Unchanged licensed Beule and Karlovsky 2021 PLOS original PDF",
+      "sourceSHA256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+      "license": "CC BY 4.0",
+      "physicalPages": 20,
+      "tableCrossesPageBoundary": false,
+      "assertions": [
+        "page 4 Table 1 compared with pages 5 and 3",
+        "exact current-page quote box retained",
+        "comparison contains only two canvases",
+        "closing restores sixteen subsequent continuous pages",
+        "full parse snapshot unchanged"
+      ]
+    }
+  ],
+  "implementationSha256": {
+    "src/components/PdfReader.vue": "f14e08441f2361350e3b418f0d74f6f8af644f527f8134094d595872173bcb58",
+    "src/components/ContinuousPdfPage.vue": "10fd68e65e770187b374a855e2a451ccf3b3588b627bdfc3b776b29e79dd6192",
+    "src/style.css": "62e77dd2e549504c5ad2bc5aef6dff7d7f56162d3e11699cae786e2757463c3a",
+    "tests/e2e/pdf-comparison.spec.js": "a3860bdf9384d23cbe08cecdd728be9e89715855356d8730b7f412219a2edd2e",
+    "tests/e2e/management.spec.js": "585496ca140686077c9cda2ad9c3c91730dd3a0c05909024124c2382ff8fc3e4",
+    "tests/pdf-fixtures.js": "f03b7bb2fa8069464244a4410e615dbee125604b3b8d47699d46e4d622e6b12e",
+    "tests/fixtures/published-pdf/beule-2021.pdf": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+    "tests/fixtures/published-pdf/source.json": "e65e1b199a746aa55b0ae467e72addacee70f60da2021e448a09bcdaeb36c035"
+  },
+  "intermediateFailures": [
+    {
+      "log": "round-sixteen-browser.log",
+      "sha256": "84b7b1c15d7e68e92758ebdd8b89dd7c92b2739b5602535d09846f29284fd676",
+      "cause": "Option disabled matcher did not evaluate the native option disabled property; corrected to inspect that property."
+    },
+    {
+      "log": "round-sixteen-browser-final.log",
+      "sha256": "be4c40c192f0ea41949de2905c298105a3f68bf65ed23ea5c10d18cd47c87623",
+      "cause": "Actual clipped adjacent page remained lazy and blank; comparison now eagerly renders exactly one neighbor."
+    },
+    {
+      "log": "round-sixteen-check.log",
+      "sha256": "25e829f2b7312ba50b96eb396a171a3d3f28ea14a4578e0163cbc57a772c6c9e",
+      "cause": "45 browser flows passed, one existing continuous-reading geometry assertion read a still-rendering canvas; now waits for both displayed page identities."
+    }
+  ]
+}
