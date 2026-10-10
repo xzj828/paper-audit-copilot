@@ -95,6 +95,15 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
   await expect
     .poll(() => page.locator('.pdf-continuous-page canvas').evaluate((c) => c.width))
     .toBeGreaterThan(600);
+  // A sized canvas can still be rendering after fast next/previous navigation.
+  // Geometry is meaningful only once both original pages are displayed.
+  await expect(canvas).toHaveAttribute('data-rendered-page', '1');
+  await expect(page.locator('.pdf-continuous-page canvas')).toHaveAttribute(
+    'data-rendered-page',
+    '2',
+  );
+  await expect(canvas).toBeVisible();
+  await expect(page.locator('.pdf-continuous-page canvas')).toBeVisible();
   const firstBounds = await canvas.boundingBox();
   const nextBounds = await page.locator('.pdf-continuous-page canvas').boundingBox();
   expect(nextBounds.y).toBeGreaterThanOrEqual(firstBounds.y + firstBounds.height);
