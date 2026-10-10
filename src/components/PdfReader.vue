@@ -12,6 +12,7 @@ const props = defineProps<{
   bbox?: number[];
   continuous?: boolean;
   textAnchor?: Anchor | null;
+  searchCandidate?: boolean;
   parsedPage?: PdfPage;
 }>();
 const canvas = ref<HTMLCanvasElement>();
@@ -176,7 +177,9 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <p v-if="evidenceStatus" class="notice pdf-evidence-status" role="status">{{ evidenceStatus }}</p>
+  <p v-if="evidenceStatus" class="notice pdf-evidence-status" role="status">
+    <span v-if="searchCandidate">换行断词候选，词义与拼写需人工核对。 </span>{{ evidenceStatus }}
+  </p>
   <div class="pdf-reader">
     <div v-if="loading" class="empty-state"><Icon name="loading" class="spin" />正在渲染原文…</div>
     <div v-if="error" class="notice error-notice">

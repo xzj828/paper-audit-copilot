@@ -2217,6 +2217,15 @@ progress {
 .settings-row select {
   font-size: 12px;
 }
+.search-candidate-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.search-candidate-option input {
+  width: auto;
+}
 .search-result {
   display: block;
   width: 100%;

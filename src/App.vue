@@ -22,6 +22,7 @@ import { useLayout } from './useLayout';
 import { api, json } from './api';
 import { quoteRange } from '../shared/text-highlight.js';
 import { searchRanges, type SearchRange } from '../shared/source-search.js';
+import { hyphenCandidateRanges, type HyphenCandidateRange } from '../shared/hyphen-candidates.js';
 import type {
   Project,
   Version,
@@ -240,6 +241,7 @@ const initialLoading = ref(true),
 const dialog = ref(''),
   nameInput = ref(''),
   searchInput = ref(''),
+  searchHyphenCandidates = ref(false),
   projectSearch = ref('');
 const reviewSettingsOpen = ref(false);
 const savingSettings = ref(false);
@@ -393,20 +395,42 @@ const filteredProjects = computed(() =>
 );
 interface SearchResult {
   section: Section;
-  range: SearchRange;
+  range: SearchRange | HyphenCandidateRange;
 }
 const searchResults = computed(() => {
   const results: SearchResult[] = [];
   if (!searchInput.value.trim()) return results;
   for (const section of version.value?.parse?.sections || []) {
-    for (const range of searchRanges(section.text, searchInput.value, {
-      limit: 60 - results.length,
-    }))
+    const ranges: (SearchRange | HyphenCandidateRange)[] = searchRanges(
+      section.text,
+      searchInput.value,
+      {
+        limit: 60 - results.length,
+      },
+    );
+    if (searchHyphenCandidates.value && version.value?.format === 'pdf')
+      ranges.push(
+        ...hyphenCandidateRanges(section.text, searchInput.value, {
+          limit: 60 - results.length,
+        }),
+      );
+    for (const range of ranges
+      .sort((a, b) => a.start - b.start || a.end - b.end)
+      .slice(0, 60 - results.length))
       results.push({ section, range });
     if (results.length === 60) break;
   }
   return results;
 });
+const activeHyphenCandidate = computed(() =>
+  searchResults.value.some(
+    ({ section, range }) =>
+      range.matchKind === 'hyphenation_candidate' &&
+      section.id === textAnchor.value?.elementId &&
+      range.start === textAnchor.value?.offset &&
+      section.text.slice(range.start, range.end) === textAnchor.value?.quote,
+  ),
+);
 function searchAnchor({ section, range }: SearchResult): Anchor {
   return {
     elementId: section.id,
@@ -420,7 +444,7 @@ function searchPreview({ section, range }: SearchResult) {
   const start = Math.max(0, range.start - 30);
   return section.text.slice(start, Math.max(start + 200, range.end));
 }
-watch(searchInput, () => {
+watch([searchInput, searchHyphenCandidates], () => {
   textAnchor.value = null;
   evidenceQuote.value = '';
   visualAnchor.value = null;
@@ -522,6 +546,7 @@ function restoreView() {
   inspector.value = true;
   selectedReportId.value = '';
   searchInput.value = '';
+  searchHyphenCandidates.value = false;
   evidenceQuote.value = '';
   textAnchor.value = null;
   visualAnchor.value = null;
@@ -875,6 +900,7 @@ async function openPdfInspectionPage(target: number) {
   textAnchor.value = null;
   visualAnchor.value = null;
   searchInput.value = '';
+  searchHyphenCandidates.value = false;
   inspector.value = false;
   dialog.value = '';
   page.value = target;
@@ -1625,6 +1651,7 @@ onUnmounted(() => {
               :query="evidenceQuote || searchInput"
               :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
               :text-anchor="textAnchor"
+              :search-candidate="activeHyphenCandidate"
               :parsed-page="version.parse?.pages.find((item) => item.page === page)"
               @pages="pageCount = $event" />
             <article
@@ -2497,6 +2524,13 @@ onUnmounted(() => {
             aria-label="原文搜索关键词"
           /><kbd>Ctrl K</kbd>
         </div>
+        <label v-if="version?.format === 'pdf'" class="search-candidate-option small">
+          <input v-model="searchHyphenCandidates" type="checkbox" />
+          查找 PDF 换行断词候选
+        </label>
+        <p v-if="version?.format === 'pdf' && searchHyphenCandidates" class="small muted">
+          候选需核对原文：只兼容英文字母间的行末连字符，可能含真正的复合词。仅支持200字符以内查询，不跨页或区块。
+        </p>
         <p class="small muted">
           {{
             searchInput
@@ -2515,8 +2549,13 @@ onUnmounted(() => {
             {{ searchPreview(result) }}
           </p>
           <small
-            >{{ result.range.matchKind === 'whitespace' ? '空格 / 换行兼容匹配 · ' : '' }}定位到原文
-            <Icon name="arrow" :size="13"
+            >{{
+              result.range.matchKind === 'hyphenation_candidate'
+                ? '断词候选 · 请核对原文 · '
+                : result.range.matchKind === 'whitespace'
+                  ? '空格 / 换行兼容匹配 · '
+                  : ''
+            }}定位到原文 <Icon name="arrow" :size="13"
           /></small>
         </button>
         <div v-if="searchInput && !searchResults.length" class="empty-state">
