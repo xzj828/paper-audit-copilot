@@ -1,0 +1,385 @@
+{
+  "schema": "hyphen-candidate-evaluation@1",
+  "strategy": "pdf-hyphen-candidates@1",
+  "localPreregistrationCommit": "26d86c2",
+  "fixtureSHA256": "dc86e354357292020748589ca7bb91478fa3a7a72a1d7ad7c654f8656dbe1a4a",
+  "labelOrigin": "Developer-authored fixed source slices and candidate expectations, not expert labels or semantic word judgments",
+  "scope": "Opt-in ASCII line-hyphen search candidates within one parsed section; original text, exact offsets and PDF quote boxes preserved",
+  "externalModelRequests": 0,
+  "implementation": {
+    "shared/hyphen-candidates.js": "48426209b42edc3eeff502a883b2de4da9cab3a78752020ad498d05e79bb13c8",
+    "shared/source-search.js": "de78734c17667c03216ba41a77e330e9b231dcbb3602aa1b4865f9320fa8e7a5",
+    "shared/pdf-text.js": "66d0813ff591162211bfd195bebf3509a5656aea44c019c4381deb50733d2cd5",
+    "server/parser.js": "3f8166f7adbcd11295466752600eac59361ecf9b0f04311a0b0dfdce0ac77319",
+    "scripts/evaluate-hyphen-candidates.mjs": "26883ab46dac76883363fbc51869bf085a1af212a02b36f719d683c15d24d5bc",
+    "src/App.vue": "b8d84d5b3fb0cd8733b6735b65efae2f7537e73fae6d4742df44318bdb379afe",
+    "src/components/PdfReader.vue": "01b51f34f8841d5b0978dc0a081691c74e15c9504948c1715afc650b6d6ae288",
+    "src/style.css": "899cf2ce7d23dbf9afcc3be1bead31055c839107ce88fe0e8ee3fe3d0f82f43e"
+  },
+  "cases": [
+    {
+      "id": "word",
+      "text": "micro-\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "micro-\nbiome"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 12,
+          "matchKind": "hyphenation_candidate",
+          "quote": "micro-\nbiome"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "crlf",
+      "text": "environ- \r\n mental",
+      "query": "environmental",
+      "expectedQuotes": [
+        "environ- \r\n mental"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 18,
+          "matchKind": "hyphenation_candidate",
+          "quote": "environ- \r\n mental"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "phrase",
+      "text": "soil micro-\nbiome study",
+      "query": "soil microbiome study",
+      "expectedQuotes": [
+        "soil micro-\nbiome study"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 23,
+          "matchKind": "hyphenation_candidate",
+          "quote": "soil micro-\nbiome study"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "two-wraps",
+      "text": "micro-\nbio-\nlogy",
+      "query": "microbiology",
+      "expectedQuotes": [
+        "micro-\nbio-\nlogy"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 16,
+          "matchKind": "hyphenation_candidate",
+          "quote": "micro-\nbio-\nlogy"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "regex-literal",
+      "text": "(micro-\nbiome)",
+      "query": "(microbiome)",
+      "expectedQuotes": [
+        "(micro-\nbiome)"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 14,
+          "matchKind": "hyphenation_candidate",
+          "quote": "(micro-\nbiome)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "uncertain-compound",
+      "text": "tree-\nbased",
+      "query": "treebased",
+      "expectedQuotes": [
+        "tree-\nbased"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 11,
+          "matchKind": "hyphenation_candidate",
+          "quote": "tree-\nbased"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "mixed-results",
+      "text": "microbiome; micro-\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "micro-\nbiome"
+      ],
+      "actual": [
+        {
+          "start": 12,
+          "end": 24,
+          "matchKind": "hyphenation_candidate",
+          "quote": "micro-\nbiome"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "case-insensitive",
+      "text": "MICRO-\nBIOME",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "MICRO-\nBIOME"
+      ],
+      "actual": [
+        {
+          "start": 0,
+          "end": 12,
+          "matchKind": "hyphenation_candidate",
+          "quote": "MICRO-\nBIOME"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "inline-compound",
+      "text": "tree-based",
+      "query": "treebased",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "blank-line",
+      "text": "micro-\n\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "table-tab",
+      "text": "micro-\n\tbiome",
+      "query": "microbiome",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "unicode-hyphen",
+      "text": "micro‐\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "numeric",
+      "text": "12-\n34",
+      "query": "1234",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "short-left",
+      "text": "a-\nbcde",
+      "query": "abcde",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "short-right",
+      "text": "abcd-\ne",
+      "query": "abcde",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "non-ascii",
+      "text": "生物-\n多样性",
+      "query": "生物多样性",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "literal-only",
+      "text": "microbiome",
+      "query": "microbiome",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "id": "unknown",
+      "text": "soil biodiversity",
+      "query": "microbiome",
+      "expectedQuotes": [],
+      "actual": [],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "controls": 18,
+    "passed": 18
+  },
+  "licensedOriginal": {
+    "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+    "authors": [
+      "Lukas Beule",
+      "Petr Karlovsky"
+    ],
+    "doi": "10.1371/journal.pone.0246919",
+    "license": "CC BY 4.0",
+    "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0246919&type=printable",
+    "sha256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+    "labelOrigin": "Fixed original phrases independently inspected using pypdf and page render before implementing candidate search; software localization, not expert accuracy",
+    "cases": [
+      {
+        "id": "published-environmental",
+        "page": 1,
+        "query": "environmental",
+        "expectedQuote": "environ-\nmental",
+        "actual": [
+          {
+            "start": 421,
+            "end": 436,
+            "matchKind": "hyphenation_candidate",
+            "quote": "environ-\nmental",
+            "quoteSHA256": "aca252a97db722d360a0229f2c58966a8fefd27339c10c6b7cd0a1132ad68ffb",
+            "geometry": {
+              "status": "matched",
+              "boxes": [
+                {
+                  "itemIndex": 21,
+                  "offset": 344,
+                  "bbox": [
+                    0.3268169934640523,
+                    0.43373989898989906,
+                    0.9160669117647066,
+                    0.44573484848484857
+                  ]
+                },
+                {
+                  "itemIndex": 22,
+                  "offset": 430,
+                  "bbox": [
+                    0.3268169934640523,
+                    0.4514204545454546,
+                    0.9224468137254918,
+                    0.4634154040404041
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "defaultExpectedSliceFound": false,
+        "passed": true
+      },
+      {
+        "id": "published-normalized",
+        "page": 5,
+        "query": "normalized",
+        "expectedQuote": "normal-\nized",
+        "actual": [
+          {
+            "start": 1431,
+            "end": 1443,
+            "matchKind": "hyphenation_candidate",
+            "quote": "normal-\nized",
+            "quoteSHA256": "12967650236eafb872a085a0c0f89b10f5fd90aabeb550d2230901b44710efe6",
+            "geometry": {
+              "status": "matched",
+              "boxes": [
+                {
+                  "itemIndex": 38,
+                  "offset": 1344,
+                  "bbox": [
+                    0.3268169934640523,
+                    0.38525378787878795,
+                    0.9329133986928101,
+                    0.39788005050505054
+                  ]
+                },
+                {
+                  "itemIndex": 39,
+                  "offset": 1439,
+                  "bbox": [
+                    0.3268169934640523,
+                    0.40164520202020204,
+                    0.9140849673202616,
+                    0.41427146464646464
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "defaultExpectedSliceFound": false,
+        "passed": true
+      },
+      {
+        "id": "published-permanova",
+        "page": 11,
+        "query": "PERMANOVA",
+        "expectedQuote": "PERMA-\nNOVA",
+        "actual": [
+          {
+            "start": 80,
+            "end": 91,
+            "matchKind": "hyphenation_candidate",
+            "quote": "PERMA-\nNOVA",
+            "quoteSHA256": "7efa815fca1804ad34bf7a45abcc1c64398906f77e06a1ee1470fed78b1c8ba3",
+            "geometry": {
+              "status": "matched",
+              "boxes": [
+                {
+                  "itemIndex": 0,
+                  "offset": 0,
+                  "bbox": [
+                    0.3463643790849673,
+                    0.09770959595959597,
+                    0.9318186274509808,
+                    0.11033585858585859
+                  ]
+                },
+                {
+                  "itemIndex": 1,
+                  "offset": 87,
+                  "bbox": [
+                    0.3268186274509805,
+                    0.1141729797979798,
+                    0.3772434640522877,
+                    0.12679924242424243
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "defaultExpectedSliceFound": false,
+        "passed": true
+      }
+    ],
+    "summary": {
+      "controls": 3,
+      "passed": 3
+    }
+  }
+}

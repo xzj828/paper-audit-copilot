@@ -9,7 +9,7 @@
     "server/application.js": "e9c2c89b4b5d800a68241db3a748bca32f7952483177953e46b92154912edc6e",
     "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
     "src/components/ReviewEvaluation.vue": "ae1a57987247dda77e88a36416492f2f9dcf111d071c7f7e70ca1a1c0022ee90",
-    "src/App.vue": "c20093331065128bbf4bc5e001cc61ae390fe0d6487bab74dcc7a2c81bd584f3",
+    "src/App.vue": "b8d84d5b3fb0cd8733b6735b65efae2f7537e73fae6d4742df44318bdb379afe",
     "scripts/compare-human-review.mjs": "263faba4afd39b20da5453749bc05705a0b4b1cf02708e86bd2a8f3b52d81722",
     "scripts/evaluate-human-review-controls.mjs": "d37ef9d501573acca99801bbbc8850902cce89614b225c8f7d5c31d4e96801ae",
     "tests/human-review-fixtures.js": "4f90ef09b408d7ead1369f8ce605fe12352c7ec9b9d45b7c7a26137d5d956367"
