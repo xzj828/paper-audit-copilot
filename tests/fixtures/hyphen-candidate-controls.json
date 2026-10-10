@@ -1,0 +1,156 @@
+{
+  "schema": "hyphen-candidate-controls@1",
+  "labelOrigin": "Developer-authored fixed source slices and candidate expectations, not expert labels or semantic word judgments",
+  "scope": "Opt-in ASCII line-hyphen search candidates within one parsed section; original text, exact offsets and PDF quote boxes preserved",
+  "cases": [
+    {
+      "id": "word",
+      "text": "micro-\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "micro-\nbiome"
+      ]
+    },
+    {
+      "id": "crlf",
+      "text": "environ- \r\n mental",
+      "query": "environmental",
+      "expectedQuotes": [
+        "environ- \r\n mental"
+      ]
+    },
+    {
+      "id": "phrase",
+      "text": "soil micro-\nbiome study",
+      "query": "soil microbiome study",
+      "expectedQuotes": [
+        "soil micro-\nbiome study"
+      ]
+    },
+    {
+      "id": "two-wraps",
+      "text": "micro-\nbio-\nlogy",
+      "query": "microbiology",
+      "expectedQuotes": [
+        "micro-\nbio-\nlogy"
+      ]
+    },
+    {
+      "id": "regex-literal",
+      "text": "(micro-\nbiome)",
+      "query": "(microbiome)",
+      "expectedQuotes": [
+        "(micro-\nbiome)"
+      ]
+    },
+    {
+      "id": "uncertain-compound",
+      "text": "tree-\nbased",
+      "query": "treebased",
+      "expectedQuotes": [
+        "tree-\nbased"
+      ]
+    },
+    {
+      "id": "mixed-results",
+      "text": "microbiome; micro-\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "micro-\nbiome"
+      ]
+    },
+    {
+      "id": "case-insensitive",
+      "text": "MICRO-\nBIOME",
+      "query": "microbiome",
+      "expectedQuotes": [
+        "MICRO-\nBIOME"
+      ]
+    },
+    {
+      "id": "inline-compound",
+      "text": "tree-based",
+      "query": "treebased",
+      "expectedQuotes": []
+    },
+    {
+      "id": "blank-line",
+      "text": "micro-\n\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": []
+    },
+    {
+      "id": "table-tab",
+      "text": "micro-\n\tbiome",
+      "query": "microbiome",
+      "expectedQuotes": []
+    },
+    {
+      "id": "unicode-hyphen",
+      "text": "micro‐\nbiome",
+      "query": "microbiome",
+      "expectedQuotes": []
+    },
+    {
+      "id": "numeric",
+      "text": "12-\n34",
+      "query": "1234",
+      "expectedQuotes": []
+    },
+    {
+      "id": "short-left",
+      "text": "a-\nbcde",
+      "query": "abcde",
+      "expectedQuotes": []
+    },
+    {
+      "id": "short-right",
+      "text": "abcd-\ne",
+      "query": "abcde",
+      "expectedQuotes": []
+    },
+    {
+      "id": "non-ascii",
+      "text": "生物-\n多样性",
+      "query": "生物多样性",
+      "expectedQuotes": []
+    },
+    {
+      "id": "literal-only",
+      "text": "microbiome",
+      "query": "microbiome",
+      "expectedQuotes": []
+    },
+    {
+      "id": "unknown",
+      "text": "soil biodiversity",
+      "query": "microbiome",
+      "expectedQuotes": []
+    }
+  ],
+  "licensedPdfControls": {
+    "manifest": "tests/fixtures/published-pdf/source.json",
+    "sourceSHA256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+    "labelOrigin": "Fixed original phrases independently inspected using pypdf and page render before implementing candidate search; software localization, not expert accuracy",
+    "cases": [
+      {
+        "id": "published-environmental",
+        "page": 1,
+        "query": "environmental",
+        "expectedQuote": "environ-\nmental"
+      },
+      {
+        "id": "published-normalized",
+        "page": 5,
+        "query": "normalized",
+        "expectedQuote": "normal-\nized"
+      },
+      {
+        "id": "published-permanova",
+        "page": 11,
+        "query": "PERMANOVA",
+        "expectedQuote": "PERMA-\nNOVA"
+      }
+    ]
+  }
+}
