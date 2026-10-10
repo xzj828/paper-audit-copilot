@@ -42,6 +42,24 @@ const evidenceStatus = computed(() => {
 const emit = defineEmits<{ pages: [count: number] }>();
 let pdf: import('pdfjs-dist').PDFDocumentProxy | undefined;
 const continuousPdf = shallowRef<import('pdfjs-dist').PDFDocumentProxy>();
+const comparing = ref(false);
+const comparisonDirection = ref(1);
+const comparisonPage = computed(() => props.page + comparisonDirection.value);
+watch(
+  () => props.url,
+  () => {
+    comparing.value = false;
+    comparisonDirection.value = 1;
+  },
+);
+watch(
+  () => [props.page, continuousPdf.value?.numPages],
+  () => {
+    const count = continuousPdf.value?.numPages;
+    if (count && (comparisonPage.value < 1 || comparisonPage.value > count))
+      comparisonDirection.value = props.page === count ? -1 : 1;
+  },
+);
 let renderTask: import('pdfjs-dist').RenderTask | undefined;
 let generation = 0;
 let loadTask: import('pdfjs-dist').PDFDocumentLoadingTask | undefined;
@@ -180,31 +198,81 @@ onBeforeUnmount(() => {
   <p v-if="evidenceStatus" class="notice pdf-evidence-status" role="status">
     <span v-if="searchCandidate">换行断词候选，词义与拼写需人工核对。 </span>{{ evidenceStatus }}
   </p>
-  <div class="pdf-reader">
+  <section
+    v-if="continuousPdf && continuousPdf.numPages > 1"
+    class="pdf-comparison-controls"
+    aria-label="相邻页对照"
+  >
+    <label><input v-model="comparing" type="checkbox" />相邻页对照</label>
+    <template v-if="comparing">
+      <label
+        >对照方向
+        <select v-model.number="comparisonDirection" aria-label="对照方向">
+          <option :value="-1" :disabled="page <= 1">上一页</option>
+          <option :value="1" :disabled="page >= continuousPdf.numPages">下一页</option>
+        </select>
+      </label>
+      <p>
+        人工核对跨页表格、表头与上下文；两页未拼接，证据仍只定位当前页。可滚动查看原比例页面，关闭后恢复原阅读布局。
+      </p>
+    </template>
+  </section>
+  <div
+    class="pdf-reader"
+    :class="{ 'pdf-reader-comparing': comparing && continuousPdf && continuousPdf.numPages > 1 }"
+  >
     <div v-if="loading" class="empty-state"><Icon name="loading" class="spin" />正在渲染原文…</div>
     <div v-if="error" class="notice error-notice">
       {{ error }} <button @click="load">重试</button>
     </div>
-    <div :id="`page-${page}`" ref="stage" class="pdf-page-stage">
-      <canvas ref="canvas" aria-label="论文 PDF 原文" />
-      <template v-if="renderedPage === page && evidence?.status === 'matched'">
-        <div
-          v-for="box in evidence.boxes"
-          :key="box.itemIndex"
-          class="pdf-quote-box"
-          aria-hidden="true"
-          :data-text-item="box.itemIndex"
-          :data-source-offset="box.offset"
-          :style="{
-            left: `${box.bbox[0] * 100}%`,
-            top: `${box.bbox[1] * 100}%`,
-            width: `${(box.bbox[2] - box.bbox[0]) * 100}%`,
-            height: `${(box.bbox[3] - box.bbox[1]) * 100}%`,
-          }"
+    <div class="pdf-current-page">
+      <small v-if="comparing">当前页 · 第 {{ page }} 页 · 证据定位页</small>
+      <div :id="`page-${page}`" ref="stage" class="pdf-page-stage">
+        <canvas
+          v-show="renderedPage === page"
+          ref="canvas"
+          aria-label="论文 PDF 原文"
+          :data-rendered-page="renderedPage"
         />
-      </template>
+        <template v-if="renderedPage === page && evidence?.status === 'matched'">
+          <div
+            v-for="box in evidence.boxes"
+            :key="box.itemIndex"
+            class="pdf-quote-box"
+            aria-hidden="true"
+            :data-text-item="box.itemIndex"
+            :data-source-offset="box.offset"
+            :style="{
+              left: `${box.bbox[0] * 100}%`,
+              top: `${box.bbox[1] * 100}%`,
+              width: `${(box.bbox[2] - box.bbox[0]) * 100}%`,
+              height: `${(box.bbox[3] - box.bbox[1]) * 100}%`,
+            }"
+          />
+        </template>
+      </div>
     </div>
-    <template v-if="continuous && continuousPdf">
+    <aside
+      v-if="
+        comparing &&
+        continuousPdf &&
+        continuousPdf.numPages > 1 &&
+        comparisonPage >= 1 &&
+        comparisonPage <= continuousPdf.numPages
+      "
+      class="pdf-comparison-page"
+      aria-label="相邻原页"
+    >
+      <small>对照页 · 第 {{ comparisonPage }} 页 · 仅查看原页</small>
+      <ContinuousPdfPage
+        :key="`${url}-compare-${comparisonPage}`"
+        :pdf="continuousPdf"
+        :page="comparisonPage"
+        :zoom="zoom"
+        eager
+      />
+    </aside>
+    <template v-if="continuous && !comparing && continuousPdf">
       <ContinuousPdfPage
         v-for="offset in Math.max(0, continuousPdf.numPages - page)"
         :key="`${url}-${page + offset}`"
