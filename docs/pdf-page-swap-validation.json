@@ -1,0 +1,63 @@
+{
+  "schema": "pdf-page-swap-validation@1",
+  "round": 17,
+  "evaluatedAt": "2026-10-11T04:07:22.736741+00:00",
+  "scope": "Developer-authored software regression and unchanged licensed PDF; not expert accuracy, independent held-out testing or automatic table-continuation detection",
+  "externalModelRequests": 0,
+  "sourcePagesJoined": false,
+  "expertAccuracyComputed": false,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 237,
+    "browserPassed": 48,
+    "newNodeTests": 1,
+    "newBrowserFlows": 2,
+    "fullCheckLogSHA256": "ff13f5737a27886b435727c438a64a7c168efac318ec2f471553f0e997a74485",
+    "targetedNodeLogSHA256": "bb962fb383f345eaf3da4a44384bc83ed99133f48a014533d8c4dcb0ba92b60a",
+    "targetedBrowserLogSHA256": "f0d34f9640723adec557122f7d0a426d534b0991511a3a67cb7811f4fd0208a1"
+  },
+  "controls": [
+    {
+      "material": "Developer-authored three-page vector PDF with Table A first part/continued and a separate Table B, all with identical headers",
+      "pdfSHA256": "a6421101d1c3962877a7206f0dc080352bf74b5f35522ed10230b06b80959169",
+      "pdfBytes": 2049,
+      "continuationJudgments": "Specified by the control author; not generated or detected by the application",
+      "assertions": [
+        "three distinct physical page/section identities",
+        "same header has an exact original-page offset and rejects every other page identity",
+        "cross-page endings and headings never join into a search result",
+        "manual 1 to 2 to 3 and mobile 2/3 swaps preserve the selected pair",
+        "old source boxes, status and search state cleared",
+        "only current page has evidence IDs and boxes",
+        "zoom, mobile viewport and refresh default-off",
+        "complete original parse and reports field unchanged (no review report generated in this control)"
+      ]
+    },
+    {
+      "material": "Unchanged Beule and Karlovsky 2021 PLOS PDF",
+      "license": "CC BY 4.0",
+      "sourceSHA256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+      "physicalPages": 20,
+      "assertions": [
+        "actual library upload and document modal preview",
+        "six manual swaps between physical pages 1 and 2 retain that pair",
+        "displayed current/neighbor page identities match controls",
+        "exactly two canvases in comparison",
+        "closing comparison removes swap button",
+        "complete parse snapshot unchanged"
+      ]
+    }
+  ],
+  "implementationSha256": {
+    "src/components/PdfReader.vue": "bad2a5b437261e4b1a22da3522a57bf4726280df192360087930c659007d9f40",
+    "src/components/DocumentPreview.vue": "9da6ce24445fbe8a0bb132d37f1b0f2fb3c6b14c12a40a301d92677d5ab9fd0c",
+    "src/App.vue": "07b1009ed8d892220d10bf9aaa968d38058620ab6ed06a25bda89b651d88483a",
+    "tests/cross-page-table-fixture.js": "2c1ea1d0632493d2723f7984f18233b7e969497cfe8e6ece9f768376f53a109f",
+    "tests/cross-page-table.test.js": "eae95b73919fb533747fb344b90270f347626fe671304c3a389f98eb5526bd2e",
+    "tests/e2e/pdf-page-swap.spec.js": "512609fdbfda3ff07071891153b36af7ac0afcc5d466a9695dce9930896be6d7",
+    "tests/fixtures/published-pdf/beule-2021.pdf": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+    "tests/fixtures/published-pdf/source.json": "e65e1b199a746aa55b0ae467e72addacee70f60da2021e448a09bcdaeb36c035"
+  },
+  "intermediateFailures": [],
+  "historicalFailureRecords": "v16 failures remain in pdf-comparison-validation.json and archived delivery; they are not current-round failures"
+}

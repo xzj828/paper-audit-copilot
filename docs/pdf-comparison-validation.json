@@ -1,7 +1,7 @@
 {
   "schema": "pdf-adjacent-page-validation@1",
-  "round": 16,
-  "evaluatedAt": "2026-10-10T16:05:41.377485+00:00",
+  "round": 17,
+  "evaluatedAt": "2026-10-11T04:07:22.736741+00:00",
   "scope": "Developer-authored browser engineering controls and one unchanged licensed source; not expert accuracy or automatic table reconstruction",
   "defaultEnabled": false,
   "comparisonPagesAdditional": 1,
@@ -10,10 +10,10 @@
   "expertAccuracyComputed": false,
   "tests": {
     "productionBuild": "passed",
-    "nodePassed": 236,
-    "browserPassed": 46,
-    "newBrowserFlows": 2,
-    "fullCheckLogSHA256": "e1ad74d3e10766003e26093fd0e73950b5bbd7e984c4df982578937265d132da"
+    "nodePassed": 237,
+    "browserPassed": 48,
+    "retainedBrowserFlows": 2,
+    "fullCheckLogSHA256": "ff13f5737a27886b435727c438a64a7c168efac318ec2f471553f0e997a74485"
   },
   "controls": [
     {
@@ -44,7 +44,7 @@
     }
   ],
   "implementationSha256": {
-    "src/components/PdfReader.vue": "f14e08441f2361350e3b418f0d74f6f8af644f527f8134094d595872173bcb58",
+    "src/components/PdfReader.vue": "bad2a5b437261e4b1a22da3522a57bf4726280df192360087930c659007d9f40",
     "src/components/ContinuousPdfPage.vue": "10fd68e65e770187b374a855e2a451ccf3b3588b627bdfc3b776b29e79dd6192",
     "src/style.css": "62e77dd2e549504c5ad2bc5aef6dff7d7f56162d3e11699cae786e2757463c3a",
     "tests/e2e/pdf-comparison.spec.js": "a3860bdf9384d23cbe08cecdd728be9e89715855356d8730b7f412219a2edd2e",
@@ -69,5 +69,6 @@
       "sha256": "25e829f2b7312ba50b96eb396a171a3d3f28ea14a4578e0163cbc57a772c6c9e",
       "cause": "45 browser flows passed, one existing continuous-reading geometry assertion read a still-rendering canvas; now waits for both displayed page identities."
     }
-  ]
+  ],
+  "retainedFromRound": 16
 }

@@ -12,8 +12,8 @@
     "shared/pdf-text.js": "66d0813ff591162211bfd195bebf3509a5656aea44c019c4381deb50733d2cd5",
     "server/parser.js": "3f8166f7adbcd11295466752600eac59361ecf9b0f04311a0b0dfdce0ac77319",
     "scripts/evaluate-hyphen-candidates.mjs": "26883ab46dac76883363fbc51869bf085a1af212a02b36f719d683c15d24d5bc",
-    "src/App.vue": "b8d84d5b3fb0cd8733b6735b65efae2f7537e73fae6d4742df44318bdb379afe",
-    "src/components/PdfReader.vue": "f14e08441f2361350e3b418f0d74f6f8af644f527f8134094d595872173bcb58",
+    "src/App.vue": "07b1009ed8d892220d10bf9aaa968d38058620ab6ed06a25bda89b651d88483a",
+    "src/components/PdfReader.vue": "bad2a5b437261e4b1a22da3522a57bf4726280df192360087930c659007d9f40",
     "src/style.css": "62e77dd2e549504c5ad2bc5aef6dff7d7f56162d3e11699cae786e2757463c3a"
   },
   "cases": [
