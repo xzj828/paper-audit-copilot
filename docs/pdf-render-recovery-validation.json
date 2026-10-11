@@ -1,0 +1,82 @@
+{
+  "schema": "pdf-render-recovery-validation@1",
+  "round": 18,
+  "evaluatedAt": "2026-10-11T16:11:01.373776+00:00",
+  "scope": "Finite developer-authored browser failure/delay controls with real PDF bytes and a real upload; not expert accuracy or a general PDF reliability benchmark",
+  "externalModelRequests": 0,
+  "expertAccuracyComputed": false,
+  "sourcePagesJoined": false,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 237,
+    "browserPassed": 52,
+    "newBrowserFlows": 4,
+    "componentControls": 3,
+    "actualUploadFlows": 1,
+    "fullCheckLogSHA256": "a334519fe699e78ea9788d6521e7a33045c8258a55709b0166b206d3cd4938d9",
+    "targetedPassLogSHA256": "7dffe2c7b1213dcaddcf594fb50d9b52c5f80c7fd24f132a6d7be64d6100541c"
+  },
+  "material": {
+    "fixture": "tests/cross-page-table-fixture.js",
+    "labelOrigin": "Developer-authored software control, not a research paper or independent held-out material",
+    "pdfSHA256": "a6421101d1c3962877a7206f0dc080352bf74b5f35522ed10230b06b80959169"
+  },
+  "controls": [
+    {
+      "kind": "Production Vue component in Chromium with real PDF.js bytes and test-browser-only public prototype failure/delay injection",
+      "assertions": [
+        "failed current page hidden; successful next page clears old error and reenables comparison swap",
+        "retry reloads current file successfully",
+        "pending page has accessible status",
+        "late rejection does not replace newest rendered page",
+        "rapid page/zoom changes preserve final physical page and independently computed width",
+        "old document controls detached before delayed cleanup",
+        "superseded cleanup neither loads stale intermediate URL nor repeats newest URL",
+        "newest comparison controls remain visible after old cleanup"
+      ]
+    },
+    {
+      "kind": "Actual project creation and upload with one browser-only HTTP 503 file response",
+      "assertions": [
+        "server parse completes normally",
+        "annotations show failed load and hide canvas",
+        "retry restores page 1",
+        "search returns 3 per-page Measurement occurrences",
+        "selected page 2 has one original evidence box",
+        "mobile recovered-reader screenshot inspected",
+        "complete parse and reports field unchanged (no report generated)"
+      ]
+    }
+  ],
+  "intermediateFailures": [
+    {
+      "log": "round-eighteen-before.log",
+      "sha256": "5e37435843b785bcaa773579c3839491f6a0302af813e815b8db16544d26f5c9",
+      "description": "Unmodified production reader: 3 new controls failed (old error retained, missing page loading status, stale comparison controls during document cleanup)"
+    },
+    {
+      "log": "round-eighteen-race-before.log",
+      "sha256": "d732e53806e0da5941af9e02ea51b360921646600af18a9cb32d101f74fa3c22",
+      "description": "Unmodified reader investigation: temporarily skipped only the precondition about hiding old controls; stale cleanup then removed newest document controls; final registered test retains that precondition"
+    },
+    {
+      "log": "round-eighteen-target.log",
+      "sha256": "e3b6d8b7c1ccb271bfc6339190f3d9baf806fb5dc36f8630646f976178011d44",
+      "description": "First implementation target: 2 passed, 1 failed because test width incorrectly expected integer 1055px instead of 1055.7px"
+    },
+    {
+      "log": "round-eighteen-target-final.log",
+      "sha256": "13afcdb7e398a1712c56b86631c145b09c743600b936f089ec0790c3bb4f2eb2",
+      "description": "After width correction, 3 passed and added upload flow failed because it did not open the annotations tab; corrected actual navigation"
+    }
+  ],
+  "implementationSha256": {
+    "src/components/PdfReader.vue": "b23293680a912530cc4de6ce6a4ce2f08e8b0e1c38c860efcc4d8be442fa158f",
+    "src/components/ContinuousPdfPage.vue": "10fd68e65e770187b374a855e2a451ccf3b3588b627bdfc3b776b29e79dd6192",
+    "tests/e2e/pdf-render-recovery.spec.js": "6c4b4f5a33f7e5e61258cd6da9088444ee25ce1455de7b873f024e5976628a3e",
+    "tests/cross-page-table-fixture.js": "2c1ea1d0632493d2723f7984f18233b7e969497cfe8e6ece9f768376f53a109f",
+    "shared/pdf-text.js": "66d0813ff591162211bfd195bebf3509a5656aea44c019c4381deb50733d2cd5",
+    "shared/source-search.js": "de78734c17667c03216ba41a77e330e9b231dcbb3602aa1b4865f9320fa8e7a5",
+    "server/parser.js": "3f8166f7adbcd11295466752600eac59361ecf9b0f04311a0b0dfdce0ac77319"
+  }
+}

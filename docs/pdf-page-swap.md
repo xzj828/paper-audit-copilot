@@ -17,3 +17,5 @@
 另一项文献库实际上传使用未修改的 Beule 与 Karlovsky（2021）PLOS20页原PDF，CC BY 4.0，原来源与SHA-256见 tests/fixtures/published-pdf/source.json。预览中六次来回切换物理第1/2页，始终只显示两张画布，页码正确且完整解析不变。它验证许可原页阅读流程，不验证真实跨页表格重建。原Table 1第4页与邻页的v16回归另保留复跑。
 
 本轮当前实现指纹和完整检查见 pdf-page-swap-validation.json；原相邻页回归的当前复跑见 pdf-comparison-validation.json。所有自动控制均未调用外部模型，不统计专家准确率、自动续表识别准确率或用户时间收益。
+
+v18完整复跑保留本流程，并修复主阅读器加载/失败状态与旧文件清理归属；详见pdf-render-recovery.md。当前实现指纹及完整检查已刷新，原控制材料与历史失败记录保持。
