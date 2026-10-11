@@ -83,17 +83,24 @@ async function load() {
   renderedPage.value = null;
   loading.value = true;
   error.value = '';
+  // Detach the previous document before asynchronous cleanup. A superseded
+  // cleanup must never reset the newest document or start another load.
+  const sourceUrl = props.url;
+  const previousTask = loadTask;
+  loadTask = undefined;
+  renderTask?.cancel();
+  pdf = undefined;
+  continuousPdf.value = undefined;
   try {
-    renderTask?.cancel();
-    await loadTask?.destroy();
-    pdf = undefined;
-    continuousPdf.value = undefined;
+    await previousTask?.destroy();
+    if (token !== generation) return;
     const lib = await import('pdfjs-dist');
+    if (token !== generation) return;
     lib.GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.mjs',
       import.meta.url,
     ).href;
-    const task = lib.getDocument({ url: props.url });
+    const task = lib.getDocument({ url: sourceUrl });
     loadTask = task;
     const result = await task.promise;
     if (token !== generation) {
@@ -115,6 +122,7 @@ async function render() {
   if (!pdf || !canvas.value) return;
   const token = ++rendering;
   renderedPage.value = null;
+  error.value = '';
   renderTask?.cancel();
   try {
     const page = await pdf.getPage(Math.min(props.page, pdf.numPages));
@@ -243,8 +251,11 @@ onBeforeUnmount(() => {
     class="pdf-reader"
     :class="{ 'pdf-reader-comparing': comparing && continuousPdf && continuousPdf.numPages > 1 }"
   >
-    <div v-if="loading" class="empty-state"><Icon name="loading" class="spin" />正在渲染原文…</div>
-    <div v-if="error" class="notice error-notice">
+    <div v-if="loading" class="empty-state" role="status">
+      <Icon name="loading" class="spin" />正在渲染原文…
+    </div>
+    <p v-else-if="!error && renderedPage !== page" role="status">正在渲染第 {{ page }} 页…</p>
+    <div v-if="error" class="notice error-notice" role="alert">
       {{ error }} <button @click="load">重试</button>
     </div>
     <div class="pdf-current-page">

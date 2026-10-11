@@ -126,7 +126,10 @@ test('pending page shows loading state and a stale rejection cannot replace the 
     c.state.zoom = 150;
   });
   await expect(canvas).toHaveAttribute('data-rendered-page', '1');
-  await expect.poll(() => canvas.evaluate((c) => c.style.width)).toBe('1055px');
+  // The fixture's 612-point MediaBox at 150% and reader scale 1.15.
+  await expect
+    .poll(() => canvas.evaluate((c) => Number.parseFloat(c.style.width)))
+    .toBeCloseTo(612 * 1.5 * 1.15, 6);
   expect(errors).toEqual([]);
 });
 
@@ -166,4 +169,57 @@ test('superseded file cleanup does not start another load or remove the newest d
   await expect(root.getByRole('checkbox', { name: '相邻页对照', exact: true })).toBeVisible();
   await expect(canvas).toHaveAttribute('data-rendered-page', '1');
   expect(requests).toEqual(['/reader-control-a.pdf', '/reader-control-c.pdf']);
+});
+
+test('actual uploaded PDF recovers from a failed file request and retains its parsed evidence', async ({
+  page,
+}) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  let failed = false;
+  await page.route('**/api/projects/*/versions/*/file', async (route) => {
+    if (!failed) {
+      failed = true;
+      await route.fulfill({
+        status: 503,
+        contentType: 'text/plain',
+        body: 'Developer controlled temporary failure',
+      });
+    } else await route.continue();
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: '新建项目', exact: true }).first().click();
+  await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('PDF失败恢复 · 开发控制');
+  await page.getByRole('button', { name: '创建项目', exact: true }).click();
+  await expect(page.locator('.conversation-header h1')).toContainText('PDF失败恢复');
+  await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
+    name: 'render-recovery.pdf',
+    mimeType: 'application/pdf',
+    buffer: crossPageTableFixture(),
+  });
+  await expect(page.locator('.parse-metrics')).toBeVisible({ timeout: 20000 });
+  const id = (await (await page.request.get('/api/projects')).json())[0].id;
+  const original = await (await page.request.get(`/api/projects/${id}`)).json();
+  await page.getByRole('tab', { name: '论文批注', exact: true }).click();
+  const error = page.locator('.pdf-reader .error-notice');
+  await expect(error).toContainText('503');
+  await expect(page.getByLabel('论文 PDF 原文', { exact: true })).not.toBeVisible();
+  await error.getByRole('button', { name: '重试', exact: true }).click();
+  const canvas = page.getByLabel('论文 PDF 原文', { exact: true });
+  await expect(canvas).toHaveAttribute('data-rendered-page', '1');
+  await expect(error).toHaveCount(0);
+  await page.getByRole('button', { name: '搜索论文', exact: true }).click();
+  await page.getByRole('textbox', { name: '原文搜索关键词' }).fill('Measurement');
+  await expect(page.locator('.search-result')).toHaveCount(3);
+  await page.locator('.search-result').filter({ hasText: '第 2 页' }).click();
+  await expect(canvas).toHaveAttribute('data-rendered-page', '2');
+  await expect(page.locator('#page-2 .pdf-quote-box')).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: '论文工作区', exact: true }).click();
+  await page.getByRole('checkbox', { name: '相邻页对照', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'docs/screenshots/pdf-render-recovery-mobile.png' });
+  const final = await (await page.request.get(`/api/projects/${id}`)).json();
+  expect(final.versions[0].parse).toEqual(original.versions[0].parse);
+  expect(final.versions[0].reports).toEqual(original.versions[0].reports);
+  expect(errors).toEqual([]);
 });
