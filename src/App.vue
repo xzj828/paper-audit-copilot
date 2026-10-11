@@ -1653,6 +1653,8 @@ onUnmounted(() => {
               :text-anchor="textAnchor"
               :search-candidate="activeHyphenCandidate"
               :parsed-page="version.parse?.pages.find((item) => item.page === page)"
+              allow-page-swap
+              @navigate="openPdfInspectionPage"
               @pages="pageCount = $event" />
             <article
               v-else

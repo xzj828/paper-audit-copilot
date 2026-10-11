@@ -14,6 +14,7 @@ const props = defineProps<{
   textAnchor?: Anchor | null;
   searchCandidate?: boolean;
   parsedPage?: PdfPage;
+  allowPageSwap?: boolean;
 }>();
 const canvas = ref<HTMLCanvasElement>();
 const stage = ref<HTMLElement>();
@@ -39,12 +40,25 @@ const evidenceStatus = computed(() => {
       return '';
   }
 });
-const emit = defineEmits<{ pages: [count: number] }>();
+const emit = defineEmits<{ pages: [count: number]; navigate: [page: number] }>();
 let pdf: import('pdfjs-dist').PDFDocumentProxy | undefined;
 const continuousPdf = shallowRef<import('pdfjs-dist').PDFDocumentProxy>();
 const comparing = ref(false);
 const comparisonDirection = ref(1);
 const comparisonPage = computed(() => props.page + comparisonDirection.value);
+function swapPages() {
+  const target = comparisonPage.value;
+  if (
+    !props.allowPageSwap ||
+    !continuousPdf.value ||
+    !Number.isSafeInteger(target) ||
+    target < 1 ||
+    target > continuousPdf.value.numPages
+  )
+    return;
+  comparisonDirection.value *= -1;
+  emit('navigate', target);
+}
 watch(
   () => props.url,
   () => {
@@ -212,6 +226,14 @@ onBeforeUnmount(() => {
           <option :value="1" :disabled="page >= continuousPdf.numPages">下一页</option>
         </select>
       </label>
+      <button
+        v-if="allowPageSwap"
+        class="secondary-button"
+        :disabled="loading || !!error || renderedPage !== page"
+        @click="swapPages"
+      >
+        将第 {{ comparisonPage }} 页设为当前页
+      </button>
       <p>
         人工核对跨页表格、表头与上下文；两页未拼接，证据仍只定位当前页。可滚动查看原比例页面，关闭后恢复原阅读布局。
       </p>

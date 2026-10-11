@@ -151,6 +151,8 @@ onUnmounted(() => {
           :page="page"
           :zoom="zoom"
           :continuous="preferences.layout === 'continuous'"
+          allow-page-swap
+          @navigate="turnPage"
           @pages="pages = $event"
         />
         <article
