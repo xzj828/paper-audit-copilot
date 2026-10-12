@@ -54,7 +54,7 @@ const project = {
 
 test('chat export preserves scoped questions, original evidence and warnings without private config', () => {
   const result = JSON.parse(exportChat(project, version, 'json'));
-  assert.equal(result.schema, 'paper-audit-chat@1');
+  assert.equal(result.schema, 'paper-audit-chat@2');
   assert.equal(result.version.contentHash, 'a'.repeat(64));
   assert.equal(result.messages.length, 2);
   assert.equal(result.messages[1].sources[0].anchor.quote, quote);

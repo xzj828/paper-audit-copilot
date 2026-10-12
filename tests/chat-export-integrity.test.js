@@ -29,7 +29,7 @@ function fixture({
             id: 'R1',
             anchor: {
               elementId: 'page-2',
-              page,
+              ...(page === undefined ? {} : { page }),
               quote,
               ...(offset === undefined ? {} : { offset }),
             },

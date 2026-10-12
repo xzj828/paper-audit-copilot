@@ -1,5 +1,7 @@
+import { resolveExactTextAnchor, anchorValidationVersion } from './engine.js';
+
 const limits =
-  '仅导出当前版本已保存的问答与来源快照，不包含生成中的回答或正式评审报告。原文匹配只检查文字归属，不代表回答正确或专家核验。未命中不代表全文缺失。证据编号仅在各条回答内有效。';
+  '仅导出当前版本已保存的问答与来源快照，不包含生成中的回答或正式评审报告。原文匹配只检查文字归属，不代表回答正确或专家核验。未命中不代表全文缺失。证据编号仅在各条回答内有效。文字校验仅核对当前解析文本；缺少已保存身份时不能确认生成时材料一致。';
 
 function pick(value, fields) {
   return Object.fromEntries(
@@ -38,7 +40,29 @@ function retrievalSnapshot(value) {
   return result;
 }
 
-function sourceSnapshot(source, parse) {
+function sourceBinding(retrieval, version) {
+  const identity = (value) => (typeof value === 'string' && value.trim() ? value : null);
+  const savedVersionId = identity(retrieval?.versionId);
+  const savedParseId = identity(retrieval?.parseId);
+  const currentVersionId = identity(version.id);
+  const currentParseId = identity(version.parse?.id);
+  const mismatch =
+    (savedVersionId && currentVersionId && savedVersionId !== currentVersionId) ||
+    (savedParseId && currentParseId && savedParseId !== currentParseId);
+  return {
+    status: mismatch
+      ? 'mismatch'
+      : savedVersionId && savedParseId && currentVersionId && currentParseId
+        ? 'matched'
+        : 'unavailable',
+    savedVersionId,
+    savedParseId,
+    currentVersionId,
+    currentParseId,
+  };
+}
+
+function sourceSnapshot(source, parse, binding) {
   const anchor = pick(source.anchor, [
     'elementId',
     'page',
@@ -50,26 +74,41 @@ function sourceSnapshot(source, parse) {
     'kind',
   ]);
   const section = parse?.sections?.find((item) => item.id === anchor.elementId);
-  const text = section ? `${section.text || ''} ${section.after || ''}`.trimEnd() : '';
+  const text =
+    typeof section?.text === 'string'
+      ? section.text +
+        (typeof section.after === 'string' && section.after ? ` ${section.after}` : '')
+      : '';
+  const wrongPage =
+    section?.page !== undefined && anchor.page !== undefined && section.page !== anchor.page;
+  const first =
+    typeof anchor.quote === 'string' && anchor.quote.trim() ? text.indexOf(anchor.quote) : -1;
   const sourceMatch = !parse
     ? 'unavailable'
-    : anchor.quote &&
-        section &&
-        (Number.isInteger(anchor.offset)
-          ? text.slice(anchor.offset, anchor.offset + anchor.quote.length) === anchor.quote
-          : text.includes(anchor.quote))
-      ? 'exact_match'
-      : 'not_found';
+    : binding.status === 'mismatch'
+      ? 'identity_mismatch'
+      : wrongPage
+        ? 'not_found'
+        : resolveExactTextAnchor(parse, anchor)
+          ? 'exact_match'
+          : anchor.offset === undefined && first >= 0 && text.indexOf(anchor.quote, first + 1) >= 0
+            ? 'ambiguous'
+            : 'not_found';
   return {
     ...pick(source, ['id', 'excerpt', 'focusQuote', 'focusOffset', 'cited']),
     anchor,
     sourceMatch,
+    matchScope: 'current_parse_text_only',
   };
 }
 
 export function chatSnapshot(project, version, exportedAt = new Date().toISOString()) {
   return {
-    schema: 'paper-audit-chat@1',
+    schema: 'paper-audit-chat@2',
+    validation: {
+      anchorStrategy: anchorValidationVersion,
+      bindingStrategy: 'saved-retrieval-identity@1',
+    },
     exportedAt,
     limits,
     project: pick(project, ['id', 'title']),
@@ -83,29 +122,41 @@ export function chatSnapshot(project, version, exportedAt = new Date().toISOStri
     },
     messages: (version.messages || [])
       .filter((message) => ['user', 'assistant'].includes(message.kind))
-      .map((message) => ({
-        ...pick(message, [
-          'id',
-          'kind',
-          'title',
-          'text',
-          'at',
-          'model',
-          'citationWarning',
-          'findingId',
-        ]),
-        ...(message.retrieval
-          ? {
-              retrieval: retrievalSnapshot(message.retrieval),
-            }
-          : {}),
-        sources: (message.sources || []).map((source) => sourceSnapshot(source, version.parse)),
-        ...(message.anchor
-          ? {
-              legacySource: sourceSnapshot({ id: 'legacy', anchor: message.anchor }, version.parse),
-            }
-          : {}),
-      })),
+      .map((message) => {
+        const binding = sourceBinding(message.retrieval, version);
+        return {
+          ...pick(message, [
+            'id',
+            'kind',
+            'title',
+            'text',
+            'at',
+            'model',
+            'citationWarning',
+            'findingId',
+          ]),
+          ...(message.retrieval
+            ? {
+                retrieval: retrievalSnapshot(message.retrieval),
+              }
+            : {}),
+          ...(message.sources?.length || message.anchor || message.retrieval
+            ? { sourceBinding: binding }
+            : {}),
+          sources: (message.sources || []).map((source) =>
+            sourceSnapshot(source, version.parse, binding),
+          ),
+          ...(message.anchor
+            ? {
+                legacySource: sourceSnapshot(
+                  { id: 'legacy', anchor: message.anchor },
+                  version.parse,
+                  binding,
+                ),
+              }
+            : {}),
+        };
+      }),
   };
 }
 
@@ -173,6 +224,15 @@ export function exportChat(project, version, format) {
           '',
         );
     }
+    if (message.sourceBinding) {
+      const binding = message.sourceBinding;
+      lines.push(
+        `材料身份：${{ matched: '已保存版本与解析身份一致', mismatch: '版本或解析身份不符，未确认来源', unavailable: '缺少已保存身份，无法确认生成时材料一致' }[binding.status]}`,
+        `已保存版本：${inline(binding.savedVersionId || '未记录')} · 已保存解析：${inline(binding.savedParseId || '未记录')}`,
+        '文字校验范围：仅核对当前解析文本，身份一致也不代表结论已核验。',
+        '',
+      );
+    }
     for (const source of [
       ...message.sources,
       ...(message.legacySource ? [message.legacySource] : []),
@@ -182,7 +242,7 @@ export function exportChat(project, version, format) {
         `### 本条回答的 [${inline(source.id)}] ${inline(a.section)}`,
         '',
         `位置：${a.page ? `第 ${a.page} 页` : a.elementId?.startsWith('table-') ? '表格区块（非 Word 页码）' : `段落 ${a.paragraph ?? '未记录'}`} · 元素 ${inline(a.elementId)} · 偏移 ${a.offset ?? '未记录'}`,
-        `与当前解析原文：${{ exact_match: '逐字匹配', not_found: '未匹配，需人工核对', unavailable: '无法检查，缺少解析' }[source.sourceMatch]} · ${source.cited ? '回答已引用' : '检索提供的片段'}`,
+        `与当前解析原文：${{ exact_match: '逐字匹配', not_found: '未匹配，需人工核对', unavailable: '无法检查，缺少解析', ambiguous: '重复引文缺少明确偏移，未确认位置', identity_mismatch: '版本或解析身份不符，未确认来源' }[source.sourceMatch]} · ${source.cited ? '回答已引用' : '检索提供的片段'}`,
         '',
         literal(a.quote),
         '',
