@@ -10,7 +10,7 @@
 
 参赛开发仓库：[wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，由 `wilsonwuww` 拥有，已按用户明确要求解除 Fork 关联并设为 Private。基础来源为 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)，本地保留为 `upstream`。原项目署名与完整提交历史保留，协作开发者以 GitHub 记录为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
 
-问答支持“为什么”“再详细解释”等简短追问，沿用当前版本最近三条用户问题中的明确主题，并显示检索所沿用的问题。项目右上角“项目操作 → 导出对话与证据”可下载 Markdown 笔记或 JSON 记录，保存问题、回答、原文切片、文件指纹和引用警告。使用与字段说明见[对话研究笔记](docs/conversation-notes.md)。
+问答支持“为什么”“再详细解释”等简短追问，沿用当前版本最近三条用户问题中的明确主题，并显示检索所沿用的问题。项目右上角“项目操作 → 导出对话与证据”可下载 Markdown 笔记或 JSON 记录，保存问题、回答、原文切片、文件指纹和引用警告。使用与字段说明见[对话研究笔记](docs/conversation-notes.md)。 JSON 导出已升级为 `paper-audit-chat@2`，明确重复引文歧义、保存时版本/解析身份不符及缺失身份；旧记录不补造来源，外部读取程序需支持新格式。
 
 ## 运行
 

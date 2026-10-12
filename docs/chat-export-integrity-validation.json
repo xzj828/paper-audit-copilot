@@ -1,0 +1,69 @@
+{
+  "schema": "chat-export-integrity-validation@1",
+  "round": 19,
+  "evaluatedAt": "2026-10-12T04:10:00.155443+00:00",
+  "scope": "Developer-authored export software contracts and an actual two-revision upload/download browser flow; not expert accuracy, identity authentication or model quality",
+  "externalModelRequests": 0,
+  "expertAccuracyComputed": false,
+  "exportSchema": "paper-audit-chat@2",
+  "anchorStrategy": "exact-occurrence@2",
+  "bindingStrategy": "saved-retrieval-identity@1",
+  "controlsLocalCommit": "c6a52af0ac43b228d2c40763377953cfd09f96bd",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 241,
+    "browserPassed": 53,
+    "newNodeTests": 4,
+    "newBrowserFlows": 1,
+    "targetedNodePassed": 9,
+    "fullCheckLogSHA256": "773f6dc3a6c4bdfb945a6885a34caec260a7603e8f90b16ed078f3a9aa2100fb",
+    "targetedNodeLogSHA256": "2a177904274722b07736a6ca02295b968e23b4e1197c399c20f21ffb798cc785",
+    "targetedBrowserLogSHA256": "b9570d8d23adcdd4543cc957a329c66954d34c7e71f551f5ba6ba234d5ca6e94"
+  },
+  "controls": [
+    {
+      "kind": "Finite synthetic Node export contracts",
+      "assertions": [
+        "repeated and overlapping quotes without occurrence offset are ambiguous",
+        "explicit second occurrence matches; negative/fraction/string/unsafe integer/null offsets rejected",
+        "same current text cannot confirm stale saved version or parse identity",
+        "missing legacy identity stays unknown while current text-only check remains explicit",
+        "physical page mismatch rejected when both page identities are present",
+        "source trailing whitespace preserved; LF not replaced by space",
+        "raw anchors, retrieval, source and input version unchanged",
+        "Markdown names ambiguous, stale and missing identity separately"
+      ]
+    },
+    {
+      "kind": "Actual empty workspace, two DOCX uploads, local retrieval, browser JSON and Markdown downloads",
+      "assertions": [
+        "shared sample-size wording retains distinct version, parse and file-hash identities",
+        "both saved retrieval identities bind to their own exported version",
+        "second version mobile JSON/Markdown download",
+        "exact old version download retains first message/source snapshots",
+        "entire original version object unchanged after revision and exports"
+      ]
+    }
+  ],
+  "intermediateFailures": [
+    {
+      "log": "round-nineteen-before.log",
+      "sha256": "9e6c56b720eccf24645103362318cf8b490e44024f74436063968bd5850fec49",
+      "description": "Original production export: four new controls failed; duplicate quote accepted, identity fields absent, old schema."
+    },
+    {
+      "log": "round-nineteen-target-node.log",
+      "sha256": "c41454d38600a1647486e96728558469a451a0f89c0eae9f28586f6f098b1163",
+      "description": "First fix: 8/9 passed. Test compared omitted JSON undefined properties with raw fixture properties; fixture now omits unset page explicitly, without changing export behavior."
+    }
+  ],
+  "implementationSha256": {
+    "server/chat-export.js": "1bd456d1709b99bf813b307d89b5b3386c34491fc2c13b59c02940c84ad07a84",
+    "server/engine.js": "170a764e46494d6ff92dbe644bcb24e91bc88be3933a569bbf772d19ef2df00e",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "tests/chat-export-integrity.test.js": "c6204f9fca849352645b4a26b025931b989a1fe5463834124cbe61ebae5814ce",
+    "tests/chat-export.test.js": "af00a27ac03decc8b2331be2ca718c25d7926bbc767413cb4fde93501b85ec94",
+    "tests/e2e/chat-export-integrity.spec.js": "ab953255500ca60eb1b6c9ffb3bcce773109315f6a25592bcd969b31dadfbe0a",
+    "tests/fixtures.js": "f94e247889a050b38a710d1a9ad5d7eeeb5360bcef5345d6306beb8733c487e0"
+  }
+}
