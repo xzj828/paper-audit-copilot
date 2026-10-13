@@ -811,6 +811,7 @@ async function sendMessage() {
     return;
   }
   if (!project.value || !version.value || !message.value.trim() || sending.value) return;
+  if (uploading.value || version.value.status !== 'ready' || !version.value.parse) return;
   const id = project.value.id,
     versionId = version.value.id,
     text = message.value;
@@ -1494,13 +1495,31 @@ onUnmounted(() => {
               <button
                 type="submit"
                 class="send-button"
-                :disabled="!message.trim() || !version || sending"
+                :disabled="
+                  !message.trim() ||
+                  !version?.parse ||
+                  version.status !== 'ready' ||
+                  uploading ||
+                  sending
+                "
                 aria-label="发送消息"
               >
                 <Icon :name="sending ? 'loading' : 'up'" :class="{ spin: sending }" :size="21" />
               </button>
             </div>
           </form>
+          <p
+            v-if="version && (version.status !== 'ready' || !version.parse)"
+            class="retrieval-scope"
+            role="status"
+            data-chat-readiness
+          >
+            {{
+              version.status === 'failed'
+                ? '论文解析失败，请重试解析后再提问。'
+                : '论文解析尚未就绪，完成后即可发送问题。'
+            }}输入草稿会保留，不会自动发送。
+          </p>
         </section>
       </div>
     </section>

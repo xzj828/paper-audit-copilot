@@ -495,6 +495,13 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
     if (!v || !text || text.length > 4000)
       return res.status(400).json({ error: '请先上传论文，消息长度需为 1–4000 字' });
+    if (v.status !== 'ready' || !v.parse)
+      return res.status(409).json({
+        error:
+          v.status === 'failed'
+            ? '论文解析失败，请重试解析后再提问；本次问题未保存'
+            : '论文解析尚未就绪，请等待解析完成后再提问；本次问题未保存',
+      });
     if (v.messages.length >= 400) return res.status(400).json({ error: '当前版本的对话已达上限' });
     const lock = `${p.id}:${v.id}`;
     if (pendingMessages.has(lock)) return res.status(409).json({ error: '正在生成回答，请稍候' });
