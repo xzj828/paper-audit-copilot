@@ -1273,6 +1273,8 @@ onUnmounted(() => {
                   v-if="item.kind === 'assistant'"
                   :sources="item.sources"
                   :retrieval="item.retrieval"
+                  :version-id="version.id"
+                  :parse-id="version.parse?.id"
                   @locate="locate($event)"
                 />
               </div>
@@ -1322,6 +1324,8 @@ onUnmounted(() => {
                 <EvidenceSources
                   :sources="activeChat.sources"
                   :retrieval="activeChat.retrieval"
+                  :version-id="version.id"
+                  :parse-id="version.parse?.id"
                   @locate="locate($event)"
                 />
               </div>

@@ -2,7 +2,17 @@
 import type { Anchor, EvidenceSource, Retrieval } from '../types';
 import Icon from './Icon.vue';
 import { focusAnchor } from '../../shared/text-highlight.js';
-defineProps<{ sources?: EvidenceSource[]; retrieval?: Retrieval }>();
+import { computed } from 'vue';
+import { sourceBindingStatus } from '../../shared/source-binding.js';
+const props = defineProps<{
+  sources?: EvidenceSource[];
+  retrieval?: Retrieval;
+  versionId?: string;
+  parseId?: string;
+}>();
+const binding = computed(() =>
+  sourceBindingStatus(props.retrieval, props.versionId, props.parseId),
+);
 defineEmits<{ locate: [anchor: Anchor] }>();
 </script>
 
@@ -20,6 +30,15 @@ defineEmits<{ locate: [anchor: Anchor] }>();
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
+    <p class="retrieval-scope" role="status" :data-source-binding="binding">
+      <template v-if="binding === 'mismatch'"
+        >来源版本或解析身份与当前材料不符，已停用定位。请在当前版本重新提问。</template
+      >
+      <template v-else-if="binding === 'unavailable'"
+        >来源身份未核验：记录缺少版本或解析身份。定位仅尝试匹配当前原文，请人工核对。</template
+      >
+      <template v-else>来源版本与解析身份一致；文字位置及回答结论仍需核对。</template>
+    </p>
     <p v-if="retrieval.termMappings?.length" class="retrieval-scope retrieval-terms">
       有限术语映射：
       <span v-for="(mapping, index) in retrieval.termMappings" :key="mapping.id"
@@ -37,7 +56,8 @@ defineEmits<{ locate: [anchor: Anchor] }>();
         :key="source.id"
         class="source-card"
         :aria-label="`定位证据 ${source.id}：${source.anchor.section}`"
-        @click="$emit('locate', focusAnchor(source))"
+        :disabled="binding === 'mismatch'"
+        @click="binding !== 'mismatch' && $emit('locate', focusAnchor(source))"
       >
         <span class="source-label"
           ><b>[{{ source.id }}]</b> {{ source.anchor.section }}
@@ -95,6 +115,10 @@ defineEmits<{ locate: [anchor: Anchor] }>();
 }
 .source-card:hover {
   border-color: var(--blue);
+}
+.source-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 .source-card:focus-visible {
   outline: 2px solid var(--blue);

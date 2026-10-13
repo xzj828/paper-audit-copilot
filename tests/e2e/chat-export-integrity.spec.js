@@ -64,6 +64,7 @@ test('two actual revisions with shared wording export distinct source identities
     'Methods: sample size was 312. The second revision used a different collection protocol.',
   );
   await page.getByRole('button', { name: '保存为新版本', exact: true }).click();
+  await expect(page.getByRole('button', { name: '切换论文版本', exact: true })).toHaveText('v2');
   await expect(page.locator('.parse-metrics')).toBeVisible({ timeout: 20000 });
   await ask(page);
   await page.setViewportSize({ width: 390, height: 844 });
