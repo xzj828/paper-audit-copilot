@@ -84,3 +84,5 @@ AI 子项中的 RAG 采用可复现的词法检索：1000 字符片段、120 字
 v18补充PDF失败恢复演示：原页加载失败时重试，快速翻页不保留旧错误，切换文件期间旧任务不能移除新文档。开发者失败与延迟控制及实际上传503恢复流程见pdf-render-recovery.md、pdf-render-recovery-validation.json；这些回归不作为专家准确率或通用网络可靠性数据。
 
 v19演示补充：两个含相同句子的真实上传版本分别问答和导出，JSON/Markdown保留各自版本、解析与文件指纹。旧重复引文不猜第一处、旧身份缺失或不符明确说明；格式升级paper-audit-chat@2，外部程序应支持新增状态。使用及有限软件控制见conversation-notes.md、chat-export-integrity-validation.json，不作为专家准确率或真实用户迁移效果数据。
+
+v20演示可展示证据卡片身份提示与刷新后的保留状态；未知身份不能讲解为证据已经核验。该能力为软件保护，不是专家准确率。验证及边界见source-binding-status.md。

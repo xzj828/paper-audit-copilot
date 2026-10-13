@@ -1,0 +1,49 @@
+{
+  "schema": "source-binding-validation@1",
+  "round": 20,
+  "evaluatedAt": "2026-10-13T02:02:10.740997+00:00",
+  "scope": "Finite developer software controls; not authentication, expert accuracy or semantic validation",
+  "externalModelRequests": 0,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 242,
+    "browserPassed": 55,
+    "newNodeTests": 1,
+    "identityCombinations": 49,
+    "newBrowserFlows": 2,
+    "fullCheckLogSHA256": "d3dd5be6695be17dce4c3899a2acabb5a5d9e860c47c966abf0fc8fa547e3dd2",
+    "targetedBrowserLogSHA256": "93450929ffca3851f01e592f4211e9725ea14755077a9e4b2f5b5a8f4f1ab7ed"
+  },
+  "intermediateFailures": [
+    {
+      "log": "round-twenty-check.log",
+      "sha256": "613f2a90080e0f024ae39566a6528236c593b011194bef19a3139f088220e5f6",
+      "description": "First full check: build and 242 Node passed, 54/55 browser passed. Existing two-revision export control sent a question before v2 parsing was ready. Added v2 switch readiness wait, no export/source assertions relaxed."
+    },
+    {
+      "log": "round-twenty-target-browser.log",
+      "sha256": "999467044c282a2522a1c4a2c056c052714aa6618361dc94f2ed613996cf5e43",
+      "description": "1/2 passed; actual upload was triggered before project switch completed; network trace had no upload request. Added project heading readiness wait; both passed without product upload change."
+    }
+  ],
+  "implementationSha256": {
+    "shared/source-binding.js": "6765d66621a0ab372bf502f403de10a7967fb9c10b5367f056efd3ba366ef892",
+    "shared/source-binding.d.ts": "0cc840b4cd2da452c539fdf20e602a3de71646d8d5164cab0f14baf5593b8264",
+    "src/components/EvidenceSources.vue": "5f0c2aec75d220931af83824618748daf211a60d45a7a976c35b12e0ebcba460",
+    "src/App.vue": "75a61c80c09627cf961344f9e95854f7c1fdea1431834c39af73b0f3465086be",
+    "server/chat-export.js": "1bd456d1709b99bf813b307d89b5b3386c34491fc2c13b59c02940c84ad07a84",
+    "tests/source-binding.test.js": "935d1fe36caa1100c955182ddc211d4f95258598d573ee48a2fe0f37a1d11829",
+    "tests/e2e/source-binding.spec.js": "1ff84b783ee0307f00a91b65dc0cb63df5857d47539a072dc7ff6f8fe964ba91",
+    "tests/e2e/chat-export-integrity.spec.js": "4478a299a20e100d0aead0f978f53e86a99a4527bf8fec33d752d1b49296421b"
+  },
+  "historicalProofs": {
+    "baselineLocalCommit": "7512174af86298051a273c3071af9f468395f46e",
+    "records": [
+      "docs/human-review-controls.json",
+      "docs/hyphen-candidate-results.json",
+      "docs/pdf-page-swap-validation.json",
+      "docs/chat-export-integrity-validation.json"
+    ],
+    "note": "Existing App.vue fingerprints remain historical v19 fingerprints. This round adds four identity props only in App.vue; Previous chat export browser test fingerprint is also historical: this round adds one v2 readiness wait; other recorded implementations unchanged. Historical proof labels and materials retained."
+  }
+}
