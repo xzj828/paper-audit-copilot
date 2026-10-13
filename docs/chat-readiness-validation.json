@@ -1,0 +1,39 @@
+{
+  "schema": "chat-readiness-validation@1",
+  "round": 21,
+  "evaluatedAt": "2026-10-13T10:15:11.958487+00:00",
+  "scope": "Finite software readiness controls; not parser success rate, expert accuracy or independent semantic evaluation",
+  "externalModelRequests": 0,
+  "localModelCallbacks": 1,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 243,
+    "browserPassed": 56,
+    "newNodeTests": 1,
+    "newBrowserFlows": 1,
+    "unreadyStates": 3,
+    "rejectedJSONAndSSERequests": 6,
+    "fullCheckLogSHA256": "ebe271465e18d5f396c6681305a95c6f5e98cbf48cd0d5d16fec9c730fc0578c",
+    "targetedNodeLogSHA256": "cf7e5ddb906625f306039e5aa6aa508ab8045b0f838c1cbb950b44fd8eb770c0",
+    "targetedBrowserLogSHA256": "58d0fd77fca78dd07566b8760512f82736e8c877e981e59168d2cdae053ac9a5"
+  },
+  "firstAttempt": "Target Node and browser and full final check passed; no new failure hidden",
+  "priorObservedFailure": {
+    "log": "round-twenty-check.log",
+    "sha256": "613f2a90080e0f024ae39566a6528236c593b011194bef19a3139f088220e5f6",
+    "scope": "Historical v20 trace exposed a question saved before v2 parsing completed; previous test readiness repair retained."
+  },
+  "controls": [
+    "Temporary SQLite states exercise real JSON/SSE API; no messages saved and no model callback on rejection",
+    "Ready recovery saves one question and one answer with actual controlled parseId",
+    "Actual DOCX upload with browser GET response held at parsing; Worker is not paused",
+    "Draft, Enter refusal, mobile waiting, manual resume and single retained answer after reload"
+  ],
+  "implementationSha256": {
+    "server/application.js": "71a89f6ba1767cae14a07bd4b3faa34a74534ee333a2e4b50b5f5b9d0054e46c",
+    "src/App.vue": "943e173027627283b01874e9267c2d3cf004f284d70f02595cbe404a218a22e9",
+    "tests/chat-readiness.test.js": "f7dcbf09a583821a0e935ad814d4b24646279b2fceba0d3378b81bb45c4d164a",
+    "tests/e2e/chat-readiness.spec.js": "2ca40224b84a6712aa9c177b45e6c5d6c1ff0124f73881e190b862bdd09b9694"
+  },
+  "historicalProofPolicy": "Prior App.vue/server/application.js hashes refer to v19/v20 byte-verified snapshots. Prior materials and labels are retained; current full regression is recorded separately."
+}
