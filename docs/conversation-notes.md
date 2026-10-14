@@ -60,3 +60,7 @@ v20为已保存回答及正在生成的回答同步展示来源版本/解析身�
 ## 提问的解析前提
 
 v21要求目标版本ready且具有解析对象；未就绪时JSON/SSE请求均409 JSON，问题未保存，页面保留草稿并要求就绪后手动发送。存在解析对象但没有文字仍走原有无命中范围提示，不能等同全文没有证据。详情见chat-readiness.md。
+
+## 英文追问策略
+
+v22的检索元数据新增可选followUpPolicy=bounded-follow-up@1，JSON仍为paper-audit-chat@2，Markdown明确列出策略。旧记录不补造该字段。有限英文短追问可沿用当前版本最近三次用户问题中的明确主题；带新主题的完整问题独立检索。详见english-followups.md。

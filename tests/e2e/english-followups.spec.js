@@ -37,6 +37,13 @@ test('actual uploaded English follow-ups retain user evidence, export policy and
   await page.getByRole('button', { name: '对话', exact: true }).click();
   const close = page.getByRole('button', { name: '关闭提示', exact: true });
   if (await close.isVisible()) await close.click();
+  await expect(page.locator('.toast-message')).toHaveCount(0);
+  const inherited = page
+    .locator('.event-assistant')
+    .last()
+    .getByText('沿用上一轮问题检索：glacier variance');
+  await inherited.scrollIntoViewIfNeeded();
+  await expect(inherited).toBeInViewport();
   await page.screenshot({ path: 'docs/screenshots/english-followups-mobile.png' });
   await page.reload();
   await page.getByRole('button', { name: '对话', exact: true }).click();
@@ -94,13 +101,11 @@ test('a delayed first response does not erase a different follow-up draft typed 
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('追问草稿 · 软件控制');
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
   await expect(page.locator('.conversation-header h1')).toContainText('追问草稿');
-  await page
-    .getByLabel('上传论文文件', { exact: true })
-    .setInputFiles({
-      name: 'draft.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      buffer: docxFixture('Glacier variance used 312 independent samples.'),
-    });
+  await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
+    name: 'draft.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: docxFixture('Glacier variance used 312 independent samples.'),
+  });
   await expect(page.locator('.parse-metrics')).toBeVisible();
   const input = page.getByRole('textbox', { name: '询问 Copilot', exact: true });
   await input.fill('glacier variance');

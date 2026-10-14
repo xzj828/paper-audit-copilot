@@ -1,0 +1,63 @@
+{
+  "schema": "english-followups-validation@1",
+  "round": 22,
+  "evaluatedAt": "2026-10-14T04:14:44.053153+00:00",
+  "scope": "Finite bilingual phrase and browser workflow controls, not general language understanding or expert accuracy",
+  "externalModelRequests": 0,
+  "policy": "bounded-follow-up@1",
+  "exportSchema": "paper-audit-chat@2",
+  "controlsLocalCommit": "d0b6bf38822145cbde704c4063b70dffdee2c09f",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 245,
+    "browserPassed": 58,
+    "newNodeTests": 2,
+    "newBrowserFlows": 2,
+    "positiveEnglishPhrases": 9,
+    "newTopicCounterexamples": 5,
+    "fullCheckLogSHA256": "8c547525ed8fa195f87d9072a6b1a2e73e5b6a4a76686b32a374d87ec6d614cb",
+    "targetedNodeLogSHA256": "816ab2d55d841df92f6a1ba0c2b03cc334f18254fbedba17ede865f9d4d46b7c",
+    "targetedBrowserLogSHA256": "10e23556743ad18353f05e13a31e9e62c55be389c2305eb10d2b0a1693dd24b9",
+    "firstFullCheckLogSHA256": "cee7c040f86f1f3a7cec0797babbcffb12abfab0b783c5f2b159d397223e3d80"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-two-before.log",
+      "sha256": "a44a4d9a6fd93c317704059b483f56a25d73adf1ea81e3366987b3100e2a0826",
+      "description": "Original implementation: 2/2 new Node contracts failed"
+    },
+    {
+      "log": "round-twenty-two-target-browser.log",
+      "sha256": "56d04822846b0cb52546394621de576b34afa17804cd9a5ea58c6926f50bf2a8",
+      "description": "First browser control exposed delayed clearing of a different new draft when waiting only for streaming placeholder"
+    },
+    {
+      "log": "round-twenty-two-target-browser-pass.log",
+      "sha256": "4c120328301ed41f765f0904fa6088943c8e53145f918739377d49fed9f68a6e",
+      "description": "1/2 browser controls passed; main control omitted selecting chat after mobile reload; delayed draft control passed"
+    },
+    {
+      "log": "round-twenty-two-check.log",
+      "sha256": "f4ce85c9c2023796a2132f77270277f612c439b53dfedc1d3ab182f8489e49b5",
+      "description": "Intentionally interrupted with exit 130 after starting before target mobile test correction; not counted as a full pass"
+    },
+    {
+      "log": "round-twenty-two-check-pass.log",
+      "sha256": "cee7c040f86f1f3a7cec0797babbcffb12abfab0b783c5f2b159d397223e3d80",
+      "description": "First complete check passed. Added mobile follow-up viewport visibility and toast absence assertions for the delivered screenshot, then reran complete check successfully."
+    }
+  ],
+  "implementationSha256": {
+    "server/retrieval.js": "5a5b10fd990661be09d27ba671f99050631ae8d37172ae33b1b586b46215f105",
+    "server/chat-export.js": "d98258ebf18e0598579dc31d9b882fa07ba534e392f0955463a4a1476d592c8b",
+    "src/types.ts": "2592a9d87a631c60029580c793d234ef3c43a696c6d56fbbebbc1603a6febdf0",
+    "src/App.vue": "ffb32a284edb59b89223d5b874daaaca00cd3463c5bb326cd5918a3852b0565c",
+    "tests/english-followups.test.js": "ed7bf2f4558fef532639db2fa4ba416412b2a7932aa44e5867f06932d185ec23",
+    "tests/e2e/english-followups.spec.js": "87f36f93fddb06ee8400b528451f342aebf08840e7921b085bc9728f978d8222"
+  },
+  "limits": [
+    "No arbitrary coreference or general semantic understanding",
+    "A same-text retyped draft is indistinguishable from unchanged submitted text",
+    "Historical benchmark fingerprints and labels retained; only current full software regression is claimed"
+  ]
+}
