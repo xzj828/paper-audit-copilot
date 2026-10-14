@@ -283,6 +283,7 @@ const pendingChat = ref<{
   question: string;
   answer: string;
   error: string;
+  cancelled?: boolean;
   sources?: EvidenceSource[];
   retrieval?: Retrieval;
 } | null>(null);
@@ -853,14 +854,21 @@ async function sendMessage() {
       }
       if (!completed) throw new Error('连接中断，回答尚未完成，请重试');
     } catch (e) {
-      pending.error = (e as Error).message;
+      pending.error = pending.cancelled
+        ? '已停止接收回答。若服务端已完成，记录仍可能保留，请刷新核对后重试。'
+        : (e as Error).message;
       if (project.value?.id === id && version.value?.id === versionId && !message.value)
         message.value = text;
-      throw e;
+      if (!pending.cancelled) throw e;
     }
   });
   sending.value = false;
   chatController = null;
+}
+function stopChat() {
+  if (!sending.value || !pendingChat.value || pendingChat.value.cancelled) return;
+  pendingChat.value.cancelled = true;
+  chatController?.abort();
 }
 function askCopilot() {
   if (!finding.value) return;
@@ -1331,7 +1339,8 @@ onUnmounted(() => {
                 />
               </div>
               <p v-if="activeChat.error" class="notice error-notice" role="alert">
-                {{ activeChat.error }}（本次回答未保存，可重新发送。）
+                {{ activeChat.error
+                }}<template v-if="!activeChat.cancelled">（本次回答未保存，可重新发送。）</template>
               </p>
             </article>
           </template>
@@ -1493,6 +1502,18 @@ onUnmounted(() => {
                 @configure="openDialog('model')"
               />
               <button
+                v-if="sending"
+                type="button"
+                class="send-button"
+                aria-label="停止回答"
+                title="停止回答"
+                :disabled="pendingChat?.cancelled"
+                @click="stopChat"
+              >
+                停止
+              </button>
+              <button
+                v-else
                 type="submit"
                 class="send-button"
                 :disabled="
@@ -2475,7 +2496,13 @@ onUnmounted(() => {
         <p class="muted">
           导出问题、回答、原文证据和检索范围，便于整理研究笔记或交给同伴复核。证据编号只在各条回答内有效，文字匹配不代表结论已核验。
         </p>
-        <p v-if="activeChat" class="muted">正在生成的回答尚未保存，本次导出不包含该回答。</p>
+        <p v-if="activeChat" class="muted">
+          {{
+            activeChat.cancelled
+              ? '停止接收的临时回答不在本次导出中；以服务端已保存记录为准。'
+              : '正在生成的回答尚未保存，本次导出不包含该回答。'
+          }}
+        </p>
         <div class="modal-actions">
           <button
             class="secondary-button"

@@ -205,7 +205,8 @@ test('model settings test, save, preserve a hidden key, and route chat through t
     await expect(
       page.locator('.streaming-message strong').filter({ hasText: '第一段已到达' }),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: '发送消息' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: '发送消息' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '停止回答' })).toBeEnabled();
     await expect(page.locator('.streaming-message h2')).toHaveText('方法分析');
     await expect(thinking).toHaveCount(0);
     await expect(page.locator('.streaming-message .message-card')).not.toContainText('**');
