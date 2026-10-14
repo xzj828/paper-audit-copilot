@@ -1,0 +1,55 @@
+{
+  "schema": "chat-cancellation-validation@1",
+  "round": 23,
+  "evaluatedAt": "2026-10-14T16:35:41.329573+00:00",
+  "scope": "Real local API and browser cancellation controls; not universal race coverage, remote compute cancellation or expert accuracy",
+  "externalModelRequests": 0,
+  "localModelCallbacksPerControl": [
+    2,
+    2,
+    1
+  ],
+  "controlsLocalCommit": "35bfc90962dfc26dd316590206179779b8b1f73f",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 246,
+    "browserPassed": 60,
+    "newNodeTests": 1,
+    "newBrowserFlows": 2,
+    "fullCheckLogSHA256": "b4ddf064654999f30499018840a302cdb88223a19f1d962ea544a092351e56de",
+    "targetedNodeLogSHA256": "bb478efcc467d0f19904db06d688339b3cfe672e5dd0be7f1cc1499c32c37f11",
+    "targetedBrowserLogSHA256": "95d824651f894d09ae4111f3a9c0cf036a55df60ba895f218680062752d14758"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-three-target-node.log",
+      "sha256": "902b79b0893e4925fd58bc4607e00682bbcd9a5f6b378a66816e34866e9d5438",
+      "description": "Test assumed next decoded frame must reject immediately after abort; buffered frames are legal. Corrected test draining, no backend code changed."
+    },
+    {
+      "log": "round-twenty-three-before-browser.log",
+      "sha256": "421529dc18922a4240052baa135f0de49d8cc28a4617fe708127117f9b3d6ef6",
+      "description": "Original UI: first browser control failed because no stop control existed; second late-completion control added after implementation."
+    }
+  ],
+  "controls": [
+    "Abort unfinished real API SSE, provider close, complete version unchanged, retry lock released",
+    "Actual mobile upload, partial stop, retained input, empty export, saved manual retry and reload",
+    "Actual completed server answer with delayed browser acknowledgement: stop preserves version and export"
+  ],
+  "implementationSha256": {
+    "src/App.vue": "f63af9e77a2daaf9d147d1cd741e4f8f7a529c7497b5f00d86fd1b448c73d4c5",
+    "server/application.js": "71a89f6ba1767cae14a07bd4b3faa34a74534ee333a2e4b50b5f5b9d0054e46c",
+    "server/models.js": "1e1e9820b4924b54125563b268e8a586216b5db25162794712e6bf00f1b043b9",
+    "shared/sse.js": "936db68ea1b6e2e9e24e7d8892ebdcc599cd3993777cfbee16ac56c1b71e5f67",
+    "tests/chat-cancellation.test.js": "91e3740686223328201ce05c268b6bd11704b7d768ce1845734b5ce493f0601b",
+    "tests/e2e/chat-cancellation.spec.js": "9ae785a1082843f65e70dc4837e475853429c105055facfeafd420d8be8ecda6",
+    "tests/e2e/workspace.spec.js": "214b94333f504f7fb4a8724b00ee9daeca5c03a7c4bc0fda682639a5658a53cb"
+  },
+  "limits": [
+    "Stop is not rollback; a completed server response may already be saved",
+    "Temporary text is not persisted and disappears after reload",
+    "Provider TCP close does not guarantee remote compute or billing stops",
+    "Only the first browser control was executed on the original UI"
+  ]
+}

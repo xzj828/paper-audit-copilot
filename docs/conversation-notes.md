@@ -64,3 +64,7 @@ v21要求目标版本ready且具有解析对象；未就绪时JSON/SSE请求均4
 ## 英文追问策略
 
 v22的检索元数据新增可选followUpPolicy=bounded-follow-up@1，JSON仍为paper-audit-chat@2，Markdown明确列出策略。旧记录不补造该字段。有限英文短追问可沿用当前版本最近三次用户问题中的明确主题；带新主题的完整问题独立检索。详见english-followups.md。
+
+## 停止接收与导出
+
+v23生成期间可停止回答。临时部分文字保留于当前页面，未持久化的临时回答不导出，刷新会丢失；若服务端已在中止前完成，正式记录仍可导出。停止提示要求刷新核对，不声称撤销保存。详见chat-cancellation.md。
