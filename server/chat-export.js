@@ -18,6 +18,7 @@ function retrievalSnapshot(value) {
     'parseId',
     'queryText',
     'followUpTo',
+    'followUpPolicy',
     'totalChunks',
     'selectedChunks',
     'contextCharacters',
@@ -218,6 +219,7 @@ export function exportChat(project, version, format) {
       );
       if (r.followUpTo)
         lines.push(`沿用的问题 ID：${inline(r.followUpTo)}`, '', literal(r.queryText), '');
+      if (r.followUpPolicy) lines.push(`追问策略：${inline(r.followUpPolicy)}`, '');
       for (const mapping of r.termMappings || [])
         lines.push(
           `有限术语映射：${inline(mapping.matched)} → ${mapping.alternatives.map(inline).join('、')} · ${inline(r.terminologyVersion)}`,

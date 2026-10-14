@@ -162,6 +162,7 @@ export interface EvidenceSource {
   cited?: boolean;
 }
 export interface Retrieval {
+  followUpPolicy?: string;
   queryText?: string;
   followUpTo?: string | null;
   strategy: string;

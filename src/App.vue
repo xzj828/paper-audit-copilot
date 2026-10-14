@@ -830,7 +830,7 @@ async function sendMessage() {
       });
       if (!response.ok) throw new Error((await response.json()).error || '发送失败');
       if (!response.body) throw new Error('浏览器未收到响应流');
-      message.value = '';
+      if (message.value === text) message.value = '';
       let completed = false;
       for await (const frame of readSSE(response.body)) {
         const data = JSON.parse(frame);

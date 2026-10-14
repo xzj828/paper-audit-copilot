@@ -104,7 +104,7 @@ export function retrieveEvidence(
   // Only explicit short follow-ups borrow a previous user topic. Never use an
   // assistant's generated claims or another version's messages as a search query.
   const followUp =
-    /^(?:请)?(?:继续(?:解释|分析|说明|展开)?|为什么(?:这样|如此)?|为何|再?(?:详细|具体)(?:一点|些|解释|说明|展开)?|展开(?:说说|解释|说明)?|这(?:个|些|条)(?:结果|结论|数据|意见)(?:可靠吗|可信吗|意味着什么|是什么意思)|能(?:再)?解释一下)[?？!！。\s]*$/;
+    /^(?:(?:请)?(?:继续(?:解释|分析|说明|展开)?|为什么(?:这样|如此)?|为何|再?(?:详细|具体)(?:一点|些|解释|说明|展开)?|展开(?:说说|解释|说明)?|这(?:个|些|条)(?:结果|结论|数据|意见)(?:可靠吗|可信吗|意味着什么|是什么意思)|能(?:再)?解释一下)|(?:please\s+)?(?:continue|go\s+on|tell\s+me\s+more|explain\s+(?:more|further)|elaborate|(?:can|could)\s+you\s+elaborate|why(?:\s+is\s+that)?))[?？!！。.\s]*$/i;
   const topic = followUp.test(question.trim())
     ? version.messages
         ?.filter((m) => m.kind === 'user' && m.text?.trim())
@@ -231,6 +231,7 @@ export function retrieveEvidence(
     parseId: version.parse?.id || null,
     queryText,
     followUpTo: topic?.id || null,
+    followUpPolicy: 'bounded-follow-up@1',
     totalChunks: chunks.length,
     selectedChunks: sources.length,
     contextCharacters: characters,
