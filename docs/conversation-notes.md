@@ -68,3 +68,7 @@ v22的检索元数据新增可选followUpPolicy=bounded-follow-up@1，JSON仍为
 ## 停止接收与导出
 
 v23生成期间可停止回答。临时部分文字保留于当前页面，未持久化的临时回答不导出，刷新会丢失；若服务端已在中止前完成，正式记录仍可导出。停止提示要求刷新核对，不声称撤销保存。详见chat-cancellation.md。
+
+## 页面与导出共用的原文状态
+
+v24把已有导出检查提取到shared/source-match.js，页面显示同样的sourceMatch状态；JSON仍paper-audit-chat@2，matchScope仍current_parse_text_only。文字/位置/页码已知不匹配或重复歧义时停用定位，解析缺失保持未知且身份没有不符时允许人工尝试。当前文字一致不证明生成时材料身份或结论正确。详见source-match.md。

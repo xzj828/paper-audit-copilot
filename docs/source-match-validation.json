@@ -1,0 +1,62 @@
+{
+  "schema": "source-match-validation@1",
+  "round": 24,
+  "evaluatedAt": "2026-10-15T10:43:37.661418+00:00",
+  "scope": "Current raw source text and page identity software contracts; not semantic support, historical authentication or expert accuracy",
+  "externalModelRequests": 0,
+  "exportSchema": "paper-audit-chat@2",
+  "matchScope": "current_parse_text_only",
+  "controlsLocalCommit": "0ac77a2a3d48d648300488521668fc44c56ee491",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 248,
+    "browserPassed": 62,
+    "newNodeTests": 2,
+    "fixedControls": 18,
+    "newBrowserFlows": 2,
+    "targetedNodePassed": 6,
+    "targetedBrowserPassed": 6,
+    "fullCheckLogSHA256": "2feda10168e8d049da78ca6c834070b5e14df0b1c6197d57184207272c822303",
+    "targetedNodeLogSHA256": "07f888cc093be3dbc624cb3e3b1325458a0b07c819890b92d7117dfd0ba20677",
+    "targetedBrowserLogSHA256": "5d9b1fa46a6bbdf291b1850e9433edc6090addb96afe0bb5e24de873c122c199"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-four-check.log",
+      "sha256": "1738f239dbae7d6fd9565784dfd00e0568146606881c075903bbd12e7d8d7aae",
+      "description": "First full check: build and 248 Node passed, 61/62 browser passed; legacy PDF replay tried clicking a now correctly disabled ambiguous source. Assertions adapted to the new entry gate while retaining precise positive geometry and coordinate-free refusal."
+    },
+    {
+      "log": "round-twenty-four-pdf-browser.log",
+      "sha256": "e27484c36c1a30b30de77c49bede3874fbea812bacc5ee831eb5c79c6e8fdcb6",
+      "description": "All 3 focused PDF flows passed after adapting the replay to the deliberate disabled card behavior."
+    },
+    {
+      "log": "round-twenty-four-before-browser.log",
+      "sha256": "68c1ffebe795c97cfb34699c3bc4312bba712e8f702e2cd621f27afed6e3b4bb",
+      "description": "Original UI failed both new controls because current source text statuses were absent."
+    }
+  ],
+  "controls": [
+    "Controlled PDF ambiguity and stale offset stop at disabled cards; valid second occurrence, zoom and coordinate-free refusal retain prior assertions",
+    "Raw trailing whitespace, LF, after text, overlap and malformed offsets",
+    "Both recorded physical pages must agree; a missing legacy page is not invented",
+    "UI and export share the helper and preserve raw messages/parse",
+    "Actual uploaded DOCX text state matches JSON and survives reload without version changes",
+    "Controlled legacy duplicate DOCX now stops at the card; explicit offset still highlights only the second occurrence"
+  ],
+  "implementationSha256": {
+    "shared/source-match.js": "be2313af9f6611eb37b62f384f3b006afe8a4814c9d26fee638ce24461c781b0",
+    "shared/source-match.d.ts": "c7ecff4ef6b185cd75a5f3ee5dc80f16a785110004bf5faa37ea23250d36bfaf",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f",
+    "server/engine.js": "170a764e46494d6ff92dbe644bcb24e91bc88be3933a569bbf772d19ef2df00e",
+    "server/chat-export.js": "9976e810a3a2d6fcf79cb1768b5154ba7804c6b2120d017287a07c8f6f532c27",
+    "src/App.vue": "9896480d489cdc296ab0ee63de890264c769ad2749d843a291fc45a21d835e21",
+    "src/components/EvidenceSources.vue": "c0b8b247c152b3c13ca4347e4fcd6cdbd6a44a0f9032d3d7a1532ae253594b64",
+    "tests/source-match.test.js": "74f8c38f76c1dde533dbbf4cb58145121426dd72cda864b1c15b88457510fa04",
+    "tests/e2e/source-match.spec.js": "55f08639b91bb83c59ef5f8869a30f6c044bdb8305c438b3f6710c3393932b7a",
+    "tests/e2e/anchor-integrity.spec.js": "c1bba79229c8d79f09ee350932ff58413480a9b945a434c6521b77321a3ebb2d",
+    "tests/e2e/pdf-evidence.spec.js": "dbb3836550d1ac851f136caa22ce7bd75bee4c73e5209d89513f851e2f5aa195"
+  },
+  "historicalProofPolicy": "Previous fingerprints retain v19-v23 meanings; no historical score is relabeled as a current or expert result."
+}
