@@ -89,7 +89,7 @@ test('delayed answer headers and completion only clear the originating draft eve
   await expect(page.locator('.event-assistant')).toHaveCount(0);
   const savedB = await (await page.request.get(`/api/projects/${b.id}`)).json();
   expect(savedB.versions).toEqual(b.versions);
-  const savedA = await (await page.request.get(`/api/projects/${a.id}`)).json()).versions[0];
+  const savedA = (await (await page.request.get(`/api/projects/${a.id}`)).json()).versions[0];
   expect(savedA.messages.filter((m) => m.kind === 'assistant')).toHaveLength(1);
   await open(page, a.title);
   await expect(input).toHaveValue('');
