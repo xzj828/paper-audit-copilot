@@ -18,7 +18,11 @@ async function createProject(page, title, texts) {
   }
   return (await (await page.request.get(`/api/projects/${project.id}`)).json());
 }
-const open = (page, title) => page.locator('.project-link').filter({ hasText: title }).click();
+async function open(page, title) {
+  await page.locator('.project-link').filter({ hasText: title }).click();
+  await expect(page.locator('.conversation-header h1')).toHaveText(title);
+  await expect(page.locator('.parse-metrics')).toBeVisible();
+}
 async function select(page, filename) {
   await page.getByRole('button', { name: '切换论文版本', exact: true }).click();
   await page.locator('.version-item').filter({ hasText: filename }).click();
