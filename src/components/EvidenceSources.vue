@@ -1,18 +1,40 @@
 <script setup lang="ts">
-import type { Anchor, EvidenceSource, Retrieval } from '../types';
+import type { Anchor, EvidenceSource, Retrieval, ParseArtifact } from '../types';
 import Icon from './Icon.vue';
 import { focusAnchor } from '../../shared/text-highlight.js';
 import { computed } from 'vue';
 import { sourceBindingStatus } from '../../shared/source-binding.js';
+import { sourceTextMatch } from '../../shared/source-match.js';
 const props = defineProps<{
   sources?: EvidenceSource[];
   retrieval?: Retrieval;
   versionId?: string;
   parseId?: string;
+  parse?: ParseArtifact;
 }>();
 const binding = computed(() =>
   sourceBindingStatus(props.retrieval, props.versionId, props.parseId),
 );
+const checkedSources = computed(() =>
+  (props.sources || []).map((source) => ({
+    source,
+    status: sourceTextMatch(source.anchor, props.parse, binding.value),
+  })),
+);
+const labels = {
+  exact_match: '当前原文出现位置已核对（不代表结论正确）',
+  ambiguous: '原文重复且缺少位置，已停用定位',
+  not_found: '当前原文或页码不匹配，已停用定位',
+  identity_mismatch: '材料身份不符，已停用定位',
+  unavailable: '当前解析不可核对，定位需人工确认',
+};
+function canLocate(source: EvidenceSource) {
+  const status = sourceTextMatch(source.anchor, props.parse, binding.value);
+  return (
+    binding.value !== 'mismatch' &&
+    !['ambiguous', 'not_found', 'identity_mismatch'].includes(status)
+  );
+}
 defineEmits<{ locate: [anchor: Anchor] }>();
 </script>
 
@@ -51,20 +73,24 @@ defineEmits<{ locate: [anchor: Anchor] }>();
     </p>
     <details v-if="sources?.length" class="retrieval-passages" open>
       <summary>查看本次提供的原文 · 引用编号匹配不代表结论已核验</summary>
-      <button
-        v-for="source in sources"
-        :key="source.id"
-        class="source-card"
-        :aria-label="`定位证据 ${source.id}：${source.anchor.section}`"
-        :disabled="binding === 'mismatch'"
-        @click="binding !== 'mismatch' && $emit('locate', focusAnchor(source))"
-      >
-        <span class="source-label"
-          ><b>[{{ source.id }}]</b> {{ source.anchor.section }}
-          <small v-if="source.cited">回答已引用</small><Icon name="arrow" :size="14"
-        /></span>
-        <span class="source-quote">{{ source.excerpt || source.anchor.quote.slice(0, 220) }}</span>
-      </button>
+      <div v-for="{ source, status } in checkedSources" :key="source.id">
+        <button
+          :key="source.id"
+          class="source-card"
+          :aria-label="`定位证据 ${source.id}：${source.anchor.section}`"
+          :disabled="!canLocate(source)"
+          @click="canLocate(source) && $emit('locate', focusAnchor(source))"
+        >
+          <span class="source-label"
+            ><b>[{{ source.id }}]</b> {{ source.anchor.section }}
+            <small v-if="source.cited">回答已引用</small><Icon name="arrow" :size="14"
+          /></span>
+          <span class="source-quote">{{
+            source.excerpt || source.anchor.quote.slice(0, 220)
+          }}</span>
+        </button>
+        <p class="retrieval-scope" :data-source-match="status">{{ labels[status] }}</p>
+      </div>
     </details>
   </section>
 </template>

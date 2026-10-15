@@ -162,13 +162,18 @@ test('legacy DOCX evidence shows ambiguity without a false first highlight and a
       store.db.close();
     }
     await page.reload();
-    await page.getByRole('button', { name: /定位证据 R1/ }).click();
   };
   await persist();
-  await expect(page.locator('.docx-evidence-status')).toContainText('引文在原文中出现多次');
+  await expect(page.locator('[data-source-match]')).toHaveAttribute(
+    'data-source-match',
+    'ambiguous',
+  );
+  await expect(page.getByRole('button', { name: /定位证据 R1/ })).toBeDisabled();
   await expect(page.locator('.docx-paper mark')).toHaveCount(0);
   anchor.offset = section.text.lastIndexOf(quote);
   await persist();
+  await expect(page.getByRole('button', { name: /定位证据 R1/ })).toBeEnabled();
+  await page.getByRole('button', { name: /定位证据 R1/ }).click();
   await expect(page.locator('.docx-evidence-status')).toContainText('已定位到对应引文');
   await expect(page.locator('.docx-paper mark')).toHaveCount(1);
   await expect(page.locator('.docx-paper mark')).toHaveText(quote);

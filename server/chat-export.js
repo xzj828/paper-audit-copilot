@@ -1,4 +1,5 @@
-import { resolveExactTextAnchor, anchorValidationVersion } from './engine.js';
+import { anchorValidationVersion } from './engine.js';
+import { sourceTextMatch } from '../shared/source-match.js';
 
 const limits =
   '仅导出当前版本已保存的问答与来源快照，不包含生成中的回答或正式评审报告。原文匹配只检查文字归属，不代表回答正确或专家核验。未命中不代表全文缺失。证据编号仅在各条回答内有效。文字校验仅核对当前解析文本；缺少已保存身份时不能确认生成时材料一致。';
@@ -74,27 +75,7 @@ function sourceSnapshot(source, parse, binding) {
     'bbox',
     'kind',
   ]);
-  const section = parse?.sections?.find((item) => item.id === anchor.elementId);
-  const text =
-    typeof section?.text === 'string'
-      ? section.text +
-        (typeof section.after === 'string' && section.after ? ` ${section.after}` : '')
-      : '';
-  const wrongPage =
-    section?.page !== undefined && anchor.page !== undefined && section.page !== anchor.page;
-  const first =
-    typeof anchor.quote === 'string' && anchor.quote.trim() ? text.indexOf(anchor.quote) : -1;
-  const sourceMatch = !parse
-    ? 'unavailable'
-    : binding.status === 'mismatch'
-      ? 'identity_mismatch'
-      : wrongPage
-        ? 'not_found'
-        : resolveExactTextAnchor(parse, anchor)
-          ? 'exact_match'
-          : anchor.offset === undefined && first >= 0 && text.indexOf(anchor.quote, first + 1) >= 0
-            ? 'ambiguous'
-            : 'not_found';
+  const sourceMatch = sourceTextMatch(anchor, parse, binding.status);
   return {
     ...pick(source, ['id', 'excerpt', 'focusQuote', 'focusOffset', 'cited']),
     anchor,

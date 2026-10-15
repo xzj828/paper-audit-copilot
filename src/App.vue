@@ -1284,6 +1284,7 @@ onUnmounted(() => {
                   :retrieval="item.retrieval"
                   :version-id="version.id"
                   :parse-id="version.parse?.id"
+                  :parse="version.parse"
                   @locate="locate($event)"
                 />
               </div>
@@ -1335,6 +1336,7 @@ onUnmounted(() => {
                   :retrieval="activeChat.retrieval"
                   :version-id="version.id"
                   :parse-id="version.parse?.id"
+                  :parse="version.parse"
                   @locate="locate($event)"
                 />
               </div>

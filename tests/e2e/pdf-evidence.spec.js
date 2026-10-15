@@ -32,7 +32,6 @@ async function saveControlledRecord(page, project) {
     store.db.close();
   }
   await page.reload();
-  await page.getByRole('button', { name: /定位证据 R1/ }).click();
 }
 
 test('same-page repeated PDF evidence uses the saved occurrence and rejects ambiguous, stale and coordinate-free records', async ({
@@ -53,6 +52,9 @@ test('same-page repeated PDF evidence uses the saved occurrence and rejects ambi
     sources: [{ id: 'R1', anchor }],
   });
   await saveControlledRecord(page, project);
+  const sourceButton = page.getByRole('button', { name: /定位证据 R1/ });
+  await expect(sourceButton).toBeEnabled();
+  await sourceButton.click();
   const box = page.locator('.pdf-quote-box');
   await expect(box).toHaveCount(1);
   await expect(page.locator('.pdf-evidence-status')).toContainText('定位到 1 个文字块');
@@ -77,16 +79,20 @@ test('same-page repeated PDF evidence uses the saved occurrence and rejects ambi
   const ambiguous = structuredClone(project);
   delete ambiguous.versions[0].messages.at(-1).sources[0].anchor.offset;
   await saveControlledRecord(page, ambiguous);
-  await expect(page.locator('.pdf-evidence-status')).toContainText('引文出现多次');
+  await expect(page.locator('[data-source-match="ambiguous"]')).toContainText('原文重复');
+  await expect(sourceButton).toBeDisabled();
   await expect(box).toHaveCount(0);
   const stale = structuredClone(project);
   stale.versions[0].messages.at(-1).sources[0].anchor.offset = offset - 1;
   await saveControlledRecord(page, stale);
-  await expect(page.locator('.pdf-evidence-status')).toContainText('不匹配');
+  await expect(page.locator('[data-source-match="not_found"]')).toContainText('不匹配');
+  await expect(sourceButton).toBeDisabled();
   await expect(box).toHaveCount(0);
   const legacy = structuredClone(project);
   delete legacy.versions[0].parse.pages[0].textMap;
   await saveControlledRecord(page, legacy);
+  await expect(sourceButton).toBeEnabled();
+  await sourceButton.click();
   await expect(page.locator('.pdf-evidence-status')).toContainText('缺少可用文字坐标');
   await expect(box).toHaveCount(0);
 });
