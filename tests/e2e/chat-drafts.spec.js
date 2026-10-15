@@ -21,7 +21,7 @@ async function createProject(page, title, texts) {
 async function open(page, title) {
   await page.locator('.project-link').filter({ hasText: title }).click();
   await expect(page.locator('.conversation-header h1')).toHaveText(title);
-  await expect(page.locator('.parse-metrics')).toBeVisible();
+  await expect(page.locator('.version-chip')).toBeVisible();
 }
 async function select(page, filename) {
   await page.getByRole('button', { name: '切换论文版本', exact: true }).click();
