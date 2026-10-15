@@ -1,0 +1,65 @@
+{
+  "schema": "chat-drafts-validation@1",
+  "round": 25,
+  "evaluatedAt": "2026-10-15T16:37:45.934810+00:00",
+  "scope": "Finite session draft/navigation regression; not model quality, expert accuracy, persistent notes or cross-device synchronization",
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "2458f01f24afabb59e68594e293ad84ed67b8af4",
+  "sessionLimits": {
+    "nonemptyDrafts": 30,
+    "textUTF16CodeUnits": 4000,
+    "key": [
+      "projectId",
+      "versionId"
+    ],
+    "contextAlsoRequires": [
+      "parseId",
+      "existingFindingId"
+    ],
+    "persistentStorage": false
+  },
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 250,
+    "browserPassed": 64,
+    "newNodeTests": 2,
+    "newBrowserFlows": 2,
+    "targetedBrowserPassed": 8,
+    "fullCheckLogSHA256": "015815209ed9a9e9242e5842b5597904f4db31dd7e69b1a91b88d5971ef625ea",
+    "targetedNodeLogSHA256": "d0c9cce5e5df4171d471916a13aa47508d7c4f66c706849947667b0dde690986"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-five-before-browser.log",
+      "sha256": "8648ff7f0ada829d140aaec03ed5646ecc5fb58ad36bdc45430766073b361a11",
+      "description": "Initial registered control expression had a syntax error; no product conclusion."
+    },
+    {
+      "log": "round-twenty-five-before-browser-valid.log",
+      "sha256": "a9ad2698fd0e89dcf87fecf98b3ab4ebb7247c8ab20a8eae3e130bc87cefaa1a",
+      "description": "After syntax correction, first control exposed carried version text; second had an insufficient project readiness wait."
+    },
+    {
+      "log": "round-twenty-five-before-browser-ready.log",
+      "sha256": "fe696439f2eddbad7a7712c1b2f332b1cc32c27a1cce3e37957f6e290591b9a1",
+      "description": "Project title wait was added, but parse metrics are tab-specific; both controls stopped in preparation."
+    },
+    {
+      "log": "round-twenty-five-before-browser-final.log",
+      "sha256": "d40ddb599e45df54d81102c21638096025e4c054bb20c39294e94044463a0011",
+      "description": "Valid original UI run: both controls failed at product behavior, carrying a version draft and clearing another project identical draft."
+    },
+    {
+      "log": "round-twenty-five-target-browser.log",
+      "sha256": "e75343ae3087371adb635becef6fec99f5e77d8f77757ced41100a84ee3401dc",
+      "description": "All 8 targeted browser flows passed before final deletion/storage assertions; final complete check covers final bytes."
+    }
+  ],
+  "implementationSha256": {
+    "src/useChatDrafts.ts": "859bd503e2415d06384900d211e987f5b06b472efbb16f0cf6446eed9a901e38",
+    "src/App.vue": "9ca3dbfce33eb84ef3dc41e6f013fd37494f73e08eab7f18113e2805f46cc9ca",
+    "tests/chat-drafts.test.js": "c14a366842eb443fb623ea5efcad22971028f813954f5169a53fddf447cf564b",
+    "tests/e2e/chat-drafts.spec.js": "b0d3c4d15ea58616706401c59ee444ef59fbb6c6ad2c01300bfa5e82f17596b3"
+  },
+  "historicalProofPolicy": "v19-v24 records retain original labels and fingerprints; prior App.vue fingerprints are checked against their genuine previously byte-verified snapshots."
+}
