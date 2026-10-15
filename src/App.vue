@@ -19,6 +19,7 @@ import ClaimAudit, { type ClaimAuditDraft } from './components/ClaimAudit.vue';
 import WorkspacePages from './components/WorkspacePages.vue';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
+import { useChatDrafts } from './useChatDrafts';
 import { api, json } from './api';
 import { quoteRange } from '../shared/text-highlight.js';
 import { searchRanges, type SearchRange } from '../shared/source-search.js';
@@ -230,9 +231,9 @@ const inspector = ref(true),
 const zoom = ref(100),
   page = ref(1),
   pageCount = ref(1);
-const message = ref(''),
-  contextFinding = ref<Finding | null>(null),
-  sending = ref(false),
+const chatDrafts = useChatDrafts(project, version);
+const { message, contextFinding } = chatDrafts;
+const sending = ref(false),
   uploading = ref(false);
 const initialLoading = ref(true),
   fatalError = ref(''),
@@ -528,8 +529,6 @@ async function openProject(id: string) {
   restoreView();
   menu.value = false;
   dialog.value = '';
-  contextFinding.value = null;
-  message.value = '';
 }
 function restoreView() {
   let view: Record<string, unknown> = {};
@@ -622,6 +621,7 @@ async function deleteProject() {
   busy.value = true;
   await safe(async () => {
     await api(`/projects/${target.id}`, json('DELETE'));
+    chatDrafts.forgetProject(target.id);
     const wasCurrent = project.value?.id === target.id;
     if (wasCurrent) project.value = null;
     await refreshList();
@@ -661,7 +661,6 @@ async function switchVersion(id: string) {
     if (sequence !== requestSequence || project.value?.id !== projectId) return;
     project.value = { ...data, activeVersionId: id };
     restoreView();
-    contextFinding.value = null;
     dialog.value = '';
     await refreshList();
   });
@@ -815,7 +814,10 @@ async function sendMessage() {
   if (uploading.value || version.value.status !== 'ready' || !version.value.parse) return;
   const id = project.value.id,
     versionId = version.value.id,
-    text = message.value;
+    text = message.value,
+    draftKey = chatDrafts.key.value,
+    findingId = contextFinding.value?.id,
+    contextParseId = findingId ? version.value.parse.id : undefined;
   sending.value = true;
   pendingChat.value = { projectId: id, versionId, question: text, answer: '', error: '' };
   mobilePane.value = 'chat';
@@ -825,13 +827,13 @@ async function sendMessage() {
   await safe(async () => {
     try {
       const response = await fetch(`/api/projects/${id}/messages`, {
-        ...json('POST', { text, findingId: contextFinding.value?.id, versionId }),
+        ...json('POST', { text, findingId, versionId }),
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         signal: chatController!.signal,
       });
       if (!response.ok) throw new Error((await response.json()).error || '发送失败');
       if (!response.body) throw new Error('浏览器未收到响应流');
-      if (message.value === text) message.value = '';
+      chatDrafts.clearTextIfUnchanged(draftKey, text);
       let completed = false;
       for await (const frame of readSSE(response.body)) {
         const data = JSON.parse(frame);
@@ -846,7 +848,7 @@ async function sendMessage() {
           if (project.value?.id === id && version.value?.id === versionId)
             project.value = data.project;
           pendingChat.value = null;
-          contextFinding.value = null;
+          chatDrafts.clearContextIfUnchanged(draftKey, findingId, contextParseId);
         }
         await nextTick();
         if (project.value?.id === id && version.value?.id === versionId)
@@ -857,8 +859,7 @@ async function sendMessage() {
       pending.error = pending.cancelled
         ? '已停止接收回答。若服务端已完成，记录仍可能保留，请刷新核对后重试。'
         : (e as Error).message;
-      if (project.value?.id === id && version.value?.id === versionId && !message.value)
-        message.value = text;
+      chatDrafts.restoreTextIfEmpty(draftKey, text);
       if (!pending.cancelled) throw e;
     }
   });
@@ -1531,6 +1532,9 @@ onUnmounted(() => {
               </button>
             </div>
           </form>
+          <p v-if="version" class="muted chat-draft-note">
+            草稿按项目和版本分别保留，仅限当前页面会话；刷新后清除。
+          </p>
           <p
             v-if="version && (version.status !== 'ready' || !version.parse)"
             class="retrieval-scope"

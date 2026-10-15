@@ -5,18 +5,24 @@ async function createProject(page, title, texts) {
   const project = await (await page.request.post('/api/projects', { data: { title } })).json();
   for (const [index, text] of texts.entries()) {
     const result = await page.request.post(`/api/projects/${project.id}/upload`, {
-      multipart: { file: {
-        name: `draft-${index + 1}.docx`,
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        buffer: docxFixture(text),
-      } },
+      multipart: {
+        file: {
+          name: `draft-${index + 1}.docx`,
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          buffer: docxFixture(text),
+        },
+      },
     });
     expect(result.status()).toBe(202);
-    await expect.poll(async () =>
-      (await (await page.request.get(`/api/projects/${project.id}`)).json()).versions.at(-1).status,
-    ).toBe('ready');
+    await expect
+      .poll(
+        async () =>
+          (await (await page.request.get(`/api/projects/${project.id}`)).json()).versions.at(-1)
+            .status,
+      )
+      .toBe('ready');
   }
-  return (await (await page.request.get(`/api/projects/${project.id}`)).json());
+  return await (await page.request.get(`/api/projects/${project.id}`)).json();
 }
 async function open(page, title) {
   await page.locator('.project-link').filter({ hasText: title }).click();
@@ -29,9 +35,14 @@ async function select(page, filename) {
   await expect(page.getByRole('dialog')).toHaveCount(0);
 }
 
-test('actual uploaded projects and versions keep separate session drafts without sending, persisting or copying them', async ({ page }) => {
+test('actual uploaded projects and versions keep separate session drafts without sending, persisting or copying them', async ({
+  page,
+}) => {
   await page.goto('/');
-  const a = await createProject(page, '草稿隔离 A', ['Glacier first version.', 'Glacier second version.']);
+  const a = await createProject(page, '草稿隔离 A', [
+    'Glacier first version.',
+    'Glacier second version.',
+  ]);
   const b = await createProject(page, '草稿隔离 B', ['Wetland measured diversity.']);
   await page.reload();
   await open(page, a.title);
@@ -56,6 +67,11 @@ test('actual uploaded projects and versions keep separate session drafts without
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.locator('.chat-draft-note').scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'docs/screenshots/chat-drafts-mobile.png' });
+  const stored = await page.evaluate(() =>
+    JSON.stringify([Object.values(localStorage), Object.values(sessionStorage)]),
+  );
+  for (const text of ['未发送的第一版问题', '未发送的第二版问题', '另一篇论文的问题'])
+    expect(stored).not.toContain(text);
   for (const original of [a, b]) {
     const saved = await (await page.request.get(`/api/projects/${original.id}`)).json();
     expect(saved.versions).toEqual(original.versions);
@@ -65,15 +81,21 @@ test('actual uploaded projects and versions keep separate session drafts without
   await expect(input).toHaveValue('');
 });
 
-test('delayed answer headers and completion only clear the originating draft even when another project contains identical text', async ({ page }) => {
+test('delayed answer headers and completion only clear the originating draft even when another project contains identical text', async ({
+  page,
+}) => {
   await page.goto('/');
   const a = await createProject(page, '延迟草稿 A', ['Glacier variance used 312 samples.']);
   const b = await createProject(page, '延迟草稿 B', ['Wetland variance used 71 samples.']);
   await page.reload();
   await open(page, a.title);
   let release, started;
-  const held = new Promise((resolve) => { started = resolve; });
-  const gate = new Promise((resolve) => { release = resolve; });
+  const held = new Promise((resolve) => {
+    started = resolve;
+  });
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
   await page.route(`**/api/projects/${a.id}/messages`, async (route) => {
     const response = await route.fetch();
     expect(response.status()).toBe(200);
