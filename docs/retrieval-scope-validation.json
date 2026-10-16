@@ -1,0 +1,63 @@
+{
+  "schema": "retrieval-scope-validation@1",
+  "round": 27,
+  "evaluatedAt": "2026-10-16T16:50:47.117177+00:00",
+  "scope": "Finite explicit single-block retrieval/API/browser controls; not improved model accuracy, expert labels, automatic section detection or full-document coverage",
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "8481414ea295adf6f7117c14b2edc2b8321bf53b",
+  "policy": "single-section@1",
+  "defaultStrategyUnchanged": "bm25-lexical@3",
+  "exportSchemaUnchanged": "paper-audit-chat@2",
+  "limits": {
+    "sectionsPerRequest": 1,
+    "maxSources": 8,
+    "maxContextCharacters": 12000,
+    "historyMessagesSentForScopedModelAnswer": 0
+  },
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 254,
+    "browserPassed": 69,
+    "newNodeTests": 4,
+    "preregisteredCoreNodeTests": 3,
+    "newBrowserFlows": 2,
+    "targetedNodePassed": 15,
+    "targetedBrowserPassed": 5,
+    "fullCheckLogSHA256": "df597ee5a1c9767b86a32454d963d2f7ea3198635368d977cdaa14f7896d81d9",
+    "targetedNodeLogSHA256": "ad8d7e7dd10bb8d79abca2bae8a545dcce3e5f8f426438b147a9fd2b4851a894",
+    "targetedBrowserLogSHA256": "b954b3f209f0f494bee4b83c45e5da9d2af9996a46c33a36531ac2f09fedee4f"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-seven-check.log",
+      "sha256": "7bd12773a790a0e2a746f5d3d5882b882ad2df7afce9cebfafdf1fc5d4768c2d",
+      "description": "First full check: build and 254 Node passed, 68/69 browser passed. New scope control between review budget and composer increased their gap to 33.6px versus the existing 10px layout contract. Control moved inside the composer; original assertions preserved."
+    },
+    {
+      "log": "round-twenty-seven-layout-browser.log",
+      "sha256": "81e396d508df7da58a41ee46ced4e43e88275e8f250613a875a9fb39730008c4",
+      "description": "Scientific review workflow and unchanged budget/composer spacing assertions passed after moving scope UI inside the composer."
+    },
+    {
+      "log": "round-twenty-seven-before-node.log",
+      "sha256": "9d99792e0ee82cd3ad670e2aaece580b1c735db99ed11c25aa790212bf341206",
+      "description": "Original implementation failed all 3 preregistered scope/query/export controls."
+    }
+  ],
+  "implementationSha256": {
+    "server/retrieval-scope.js": "8cb4c3205ab4c283482b0ea987d5b2ef6becfd3d13473727f39da38dff2be56b",
+    "server/retrieval.js": "db78678fe63afb1f8790f61388ec0e3380d6c37ca127e89641ecdc1a08f86347",
+    "server/engine.js": "33bbeed52f1cf9fed5edb89830f678bc5836a505cd9763182d529b80962e8204",
+    "server/models.js": "df831b89c45ed8800101868efd099788b9d6747e5393629d43981ff77c9df151",
+    "server/application.js": "02cf87a1a0ea2f53a737d7536fecacb512f9f8919998e958222921f61180924c",
+    "server/chat-export.js": "2f5a3b981c8c5630cc3ac1f0ccdc8ea1b65727f7b05feb18d32a00af4847f1cf",
+    "src/App.vue": "6a1a887c3635e04b558634a6b750f18df54a67959e36ef11dffc002dae2363d9",
+    "src/components/EvidenceSources.vue": "8030f2549f1a34136c551b9f4fac4045b950b2304332b787a9eef56b5b664d44",
+    "src/style.css": "94d7145f45d4673d913110e6ce27be1e1f2db3de8d4937678857ba7a288227d4",
+    "src/types.ts": "f617ed5eaf5c1e3f42aea04852344696598c170c79539388424feb2538c9e7e3",
+    "tests/retrieval-scope.test.js": "734fc7a8a6c5855c6e7d7a61e481974a7b342cd79772982ae26e17964f985d0a",
+    "tests/retrieval-scope-api.test.js": "03cee3b488f1f5c2f3f9de58d8d1b394ac72f7e0d237bfc6dfbf80a736a52b16",
+    "tests/e2e/retrieval-scope.spec.js": "3249cc6dd06e72c39ded1e0d27d4dda8bd72a45e29fb5e98ecb1f365710620da"
+  },
+  "historicalProofPolicy": "Historical scores and fingerprints keep original meanings. Changed source fingerprints are verified against actual prior byte-verified private snapshots; no developer control becomes an expert accuracy claim."
+}
