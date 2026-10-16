@@ -1,0 +1,50 @@
+{
+  "schema": "inline-citations-validation@1",
+  "round": 26,
+  "evaluatedAt": "2026-10-16T04:38:32.409193+00:00",
+  "scope": "Finite browser citation navigation controls; not semantic support, model quality, historical authentication or expert accuracy",
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "78e42d3bda59d3e63f10530ad84d4a2882591424",
+  "limits": {
+    "buttonsPerAnswer": 200,
+    "uniqueSavedOrTemporarySourceIdsOnly": true,
+    "exportSchemaUnchanged": "paper-audit-chat@2"
+  },
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 250,
+    "browserPassed": 67,
+    "newNodeTests": 0,
+    "newBrowserFlows": 3,
+    "preregisteredBrowserFlows": 2,
+    "initialTargetedBrowserPassed": 8,
+    "finalTargetedNewBrowserPassed": 3,
+    "fullCheckLogSHA256": "0a8d9448a898f6a5a53b1ed25e534c5c928a4cf9da25b4667af4470c3c3d3b9f"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-six-before-browser.log",
+      "sha256": "ee9ff385e85f52204bbd19c13889f1f609eeb9f96b365e1f6fccae31e320e356",
+      "description": "Original UI failed both preregistered controls because inline citation buttons were absent."
+    },
+    {
+      "log": "round-twenty-six-target-browser.log",
+      "sha256": "c092af87c5e35774daaa08bef465bfc0f0302391bb60eace2d6b5d9f80aef8e3",
+      "description": "First 8 targeted browser flows passed."
+    },
+    {
+      "log": "round-twenty-six-target-browser-final.log",
+      "sha256": "261aafeadbfdf881eb0803ef7a69d8ad5e4031c81efedd6f67b73948f492340d",
+      "description": "Three new flows, including real unfinished SSE, passed before final namespace/missing-parse assertions. Final complete check covers final bytes."
+    }
+  ],
+  "implementationSha256": {
+    "src/components/MessageContent.vue": "37d5232982d335fbfbfc5f2d4d1450e9c2387f2fba67b173e396a7badd6c918a",
+    "src/App.vue": "e82e2ec4d8515d848fa8499ee72f5e8951119ce2d426f6b7598afef403846c8b",
+    "tests/e2e/inline-citations.spec.js": "e2b87a71476b7be21b87c05281c922e478355bae1ac0af1fde950efec64cb2d6",
+    "shared/source-match.js": "be2313af9f6611eb37b62f384f3b006afe8a4814c9d26fee638ce24461c781b0",
+    "shared/source-binding.js": "6765d66621a0ab372bf502f403de10a7967fb9c10b5367f056efd3ba366ef892",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f"
+  },
+  "historicalProofPolicy": "Previous validation records retain their original meanings and fingerprints; changed App.vue fingerprints are checked against genuine previously byte-verified snapshots."
+}
