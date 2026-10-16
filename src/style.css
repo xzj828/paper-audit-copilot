@@ -3788,3 +3788,14 @@ progress {
   color: var(--text);
   white-space: normal;
 }
+
+.chat-scope-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+  font-size: 12px;
+}
+.chat-scope-control input { width: 14px; height: 14px; flex: none; }
+.chat-scope-note { margin: 4px 0; font-size: 11px; }

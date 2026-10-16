@@ -162,6 +162,13 @@ export interface EvidenceSource {
   cited?: boolean;
 }
 export interface Retrieval {
+  requestedScope?: {
+    policy: string;
+    parseId: string;
+    elementId: string;
+    section: string;
+    documentChunks: number;
+  };
   followUpPolicy?: string;
   queryText?: string;
   followUpTo?: string | null;

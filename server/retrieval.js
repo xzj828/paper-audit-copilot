@@ -1,5 +1,6 @@
 // Version-scoped lexical RAG. Quotes are source slices; no model generates anchors.
 import { quoteRange } from '../shared/text-highlight.js';
+import { resolveRetrievalScope } from './retrieval-scope.js';
 import {
   mappedTerms,
   mappedQuery,
@@ -98,9 +99,13 @@ export function retrieveEvidence(
   version,
   question,
   findingId,
-  { maxSources = 8, maxCharacters = 12000 } = {},
+  { maxSources = 8, maxCharacters = 12000, retrievalScope } = {},
 ) {
-  const chunks = chunkDocument(version.parse);
+  const requestedScope = resolveRetrievalScope(version, retrievalScope);
+  const allChunks = chunkDocument(version.parse);
+  const chunks = requestedScope
+    ? allChunks.filter((chunk) => chunk.elementId === requestedScope.elementId)
+    : allChunks;
   // Only explicit short follow-ups borrow a previous user topic. Never use an
   // assistant's generated claims or another version's messages as a search query.
   const followUp =
@@ -236,9 +241,14 @@ export function retrieveEvidence(
     selectedChunks: sources.length,
     contextCharacters: characters,
     status: sources.length ? 'matched' : 'no_match',
-    scope: overview
-      ? '全文均匀抽样，不能据此判断全文缺失；未检索图像和附件。'
-      : '在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。',
+    ...(requestedScope
+      ? { requestedScope: { ...requestedScope, documentChunks: allChunks.length } }
+      : {}),
+    scope: requestedScope
+      ? `仅在限定区块「${requestedScope.section}」${overview ? '均匀抽样' : '检索'}；未覆盖其他区块、图像和附件，未命中不能代表全文缺失。`
+      : overview
+        ? '全文均匀抽样，不能据此判断全文缺失；未检索图像和附件。'
+        : '在当前版本全部已解析文本中检索，仅发送选中片段；未检索图像和附件，未覆盖片段不能视为不存在。',
   };
   return {
     sources,

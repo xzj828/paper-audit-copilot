@@ -231,6 +231,24 @@ const inspector = ref(true),
 const zoom = ref(100),
   page = ref(1),
   pageCount = ref(1);
+const retrievalScope = ref<{ parseId: string; elementId: string } | null>(null);
+const locatedScopeSection = computed(() =>
+  version.value?.parse?.sections.find((section) =>
+    version.value?.format === 'pdf'
+      ? section.page === page.value
+      : section.id === textAnchor.value?.elementId,
+  ),
+);
+watch(
+  () => [project.value?.id, version.value?.id, version.value?.parse?.id, locatedScopeSection.value?.id].join(':'),
+  () => { retrievalScope.value = null; },
+);
+function toggleRetrievalScope(event: Event) {
+  retrievalScope.value =
+    (event.target as HTMLInputElement).checked && locatedScopeSection.value && version.value?.parse
+      ? { parseId: version.value.parse.id, elementId: locatedScopeSection.value.id }
+      : null;
+}
 const chatDrafts = useChatDrafts(project, version);
 const { message, contextFinding } = chatDrafts;
 const sending = ref(false),
@@ -827,7 +845,7 @@ async function sendMessage() {
   await safe(async () => {
     try {
       const response = await fetch(`/api/projects/${id}/messages`, {
-        ...json('POST', { text, findingId, versionId }),
+        ...json('POST', { text, findingId, versionId, retrievalScope: retrievalScope.value || undefined }),
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         signal: chatController!.signal,
       });
@@ -873,6 +891,7 @@ function stopChat() {
 }
 function askCopilot() {
   if (!finding.value) return;
+  retrievalScope.value = null;
   contextFinding.value = finding.value;
   message.value = `请解释「${finding.value.title}」，并给出具体修改建议。`;
   mobilePane.value = 'chat';
@@ -1458,6 +1477,14 @@ onUnmounted(() => {
         </div>
         <section class="question-panel">
           <form class="composer" :class="{ dragging }" @submit.prevent="sendMessage">
+          <label class="muted chat-scope-control">
+            <input type="checkbox" aria-label="仅检索已定位区块"
+              :checked="Boolean(retrievalScope)"
+              :disabled="!locatedScopeSection || !version?.parse || version.status !== 'ready' || sending || Boolean(contextFinding)"
+              @change="toggleRetrievalScope" />
+            仅检索已定位区块<span v-if="retrievalScope"> · {{ locatedScopeSection?.title }}</span>
+          </label>
+          <p v-if="retrievalScope" class="muted chat-scope-note">未包含其他区块；切换位置或版本恢复全文检索。</p>
             <textarea
               ref="textarea"
               v-model="message"

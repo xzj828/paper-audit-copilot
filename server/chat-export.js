@@ -39,6 +39,14 @@ function retrievalSnapshot(value) {
         matched: m.matched,
         alternatives: m.alternatives.filter((a) => typeof a === 'string'),
       }));
+  if (value.requestedScope && typeof value.requestedScope === 'object')
+    result.requestedScope = pick(value.requestedScope, [
+      'policy',
+      'parseId',
+      'elementId',
+      'section',
+      'documentChunks',
+    ]);
   return result;
 }
 
@@ -201,6 +209,11 @@ export function exportChat(project, version, format) {
       if (r.followUpTo)
         lines.push(`沿用的问题 ID：${inline(r.followUpTo)}`, '', literal(r.queryText), '');
       if (r.followUpPolicy) lines.push(`追问策略：${inline(r.followUpPolicy)}`, '');
+      if (r.requestedScope)
+        lines.push(
+          `限定区块：${inline(r.requestedScope.section)} · ${inline(r.requestedScope.elementId)} · ${inline(r.requestedScope.policy)}；全文共 ${r.requestedScope.documentChunks} 个片段，当前分母仅为限定范围。`,
+          '',
+        );
       for (const mapping of r.termMappings || [])
         lines.push(
           `有限术语映射：${inline(mapping.matched)} → ${mapping.alternatives.map(inline).join('、')} · ${inline(r.terminologyVersion)}`,

@@ -130,24 +130,24 @@ export function makeStructureReport(version, settings) {
   return { run, report };
 }
 
-export function answerLocally(version, question, findingId) {
-  const finding = version.findings.find((f) => f.id === findingId);
+export function answerLocally(version, question, findingId, options = {}) {
+  const finding = !options.retrievalScope && version.findings.find((f) => f.id === findingId);
   if (finding)
     return {
       text: `${version.format === 'demo' ? '【演示意见解释】' : '【已保存意见】'}${finding.explanation}\n\n修改建议：${finding.suggestion}\n\n以下引用可跳转至原文。此回答整理已保存的意见，没有进行新的专业判断。`,
       anchor: finding.anchor,
       findingId: finding.id,
     };
-  const { sources, retrieval } = retrieveEvidence(version, question);
+  const { sources, retrieval } = retrieveEvidence(version, question, undefined, options);
   if (sources.length)
     return {
-      text: `【原文检索】${retrieval.mode === 'overview' ? '全文抽样' : '按相关性检索'}得到 ${sources.length} 个片段：\n\n${sources.map(({ id, anchor }) => `[${id}] ${anchor.section}\n${anchor.quote}`).join('\n\n')}\n\n当前未接入语言模型，此结果是关键词检索，不构成专业评审意见。`,
+      text: `【原文检索】${retrieval.mode === 'overview' ? (retrieval.requestedScope ? '限定区块抽样' : '全文抽样') : '按相关性检索'}得到 ${sources.length} 个片段：\n\n${sources.map(({ id, anchor }) => `[${id}] ${anchor.section}\n${anchor.quote}`).join('\n\n')}\n\n当前未接入语言模型，此结果是关键词检索，不构成专业评审意见。`,
       sources,
       retrieval,
       anchor: sources[0].anchor,
     };
   return {
-    text: '当前版本未检索到与问题匹配的原文片段。尚未接入语言模型，暂不能对这个问题作出专业判断。请尝试原文中的术语，或点击批注中的“询问 Copilot”。未检索到不代表全文没有相关内容。',
+    text: `${retrieval.requestedScope ? '限定区块' : '当前版本'}未检索到与问题匹配的原文片段。尚未接入语言模型，暂不能对这个问题作出专业判断。请尝试原文中的术语，或点击批注中的“询问 Copilot”。未检索到不代表全文没有相关内容。`,
     sources,
     retrieval,
   };

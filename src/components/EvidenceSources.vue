@@ -46,12 +46,18 @@ defineEmits<{ locate: [anchor: Anchor] }>();
         retrieval.status === 'no_match'
           ? '未找到匹配证据'
           : retrieval.mode === 'overview'
-            ? '全文抽样片段'
+            ? retrieval.requestedScope
+              ? '限定区块抽样片段'
+              : '全文抽样片段'
             : '原文检索证据'
       }}</strong>
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
+    <p v-if="retrieval.requestedScope" class="retrieval-scope">
+      限定区块：{{ retrieval.requestedScope.section }}；全文共
+      {{ retrieval.requestedScope.documentChunks }} 个片段，上方分母仅为限定范围。
+    </p>
     <p class="retrieval-scope" role="status" :data-source-binding="binding">
       <template v-if="binding === 'mismatch'"
         >来源版本或解析身份与当前材料不符，已停用定位。请在当前版本重新提问。</template

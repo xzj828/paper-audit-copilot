@@ -17,6 +17,7 @@ import { exportReport, defaultTemplate } from './reports.js';
 import { createRevisionService } from './revisions.js';
 import { createWorkspaceService } from './workspace.js';
 import { exportChat } from './chat-export.js';
+import { resolveRetrievalScope } from './retrieval-scope.js';
 import { mountReferenceAudit } from './reference-audit.js';
 import { mountDataAudit } from './data-audit.js';
 import { mountClaimAudit } from './claim-audit.js';
@@ -503,6 +504,9 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
             : '论文解析尚未就绪，请等待解析完成后再提问；本次问题未保存',
       });
     if (v.messages.length >= 400) return res.status(400).json({ error: '当前版本的对话已达上限' });
+    const requestedScope = resolveRetrievalScope(v, req.body.retrievalScope);
+    if (requestedScope && req.body.findingId)
+      return res.status(400).json({ error: '限定区块提问前请移除问题上下文；本次问题未保存' });
     const lock = `${p.id}:${v.id}`;
     if (pendingMessages.has(lock)) return res.status(409).json({ error: '正在生成回答，请稍候' });
     pendingMessages.add(lock);
@@ -534,13 +538,16 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
             req.body.findingId,
             streaming
               ? {
+                  retrievalScope: requestedScope || undefined,
                   signal: controller.signal,
                   onDelta: (text) => write({ type: 'delta', text }),
                   onContext: (context) => write({ type: 'context', ...context }),
                 }
-              : {},
+              : { retrievalScope: requestedScope || undefined },
           )
-        : answerLocally(v, text, req.body.findingId);
+        : answerLocally(v, text, req.body.findingId, {
+            retrievalScope: requestedScope || undefined,
+          });
       if (controller.signal.aborted) return;
       if (streaming && !config?.enabled) {
         if (answer.retrieval)
@@ -550,6 +557,13 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       const latest = store.get(req.workspace, p.id);
       if (!latest) throw Object.assign(new Error('项目已删除，回答不再保存'), { status: 404 });
       const target = getVersion(latest, v.id);
+      if (
+        requestedScope &&
+        (target?.parse?.id !== requestedScope.parseId || target.status !== 'ready')
+      )
+        throw Object.assign(new Error('限定区块的解析已变化，回答不再保存，请重新定位后提问'), {
+          status: 409,
+        });
       target.messages.push(event('user', '你', text), {
         ...event('assistant', 'Copilot'),
         ...answer,
