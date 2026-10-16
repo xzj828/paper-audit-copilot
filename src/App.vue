@@ -1269,6 +1269,11 @@ onUnmounted(() => {
                 <MessageContent
                   v-if="item.kind === 'assistant' || item.kind === 'review-result'"
                   :text="item.text"
+                  :sources="item.kind === 'assistant' ? item.sources : undefined"
+                  :retrieval="item.kind === 'assistant' ? item.retrieval : undefined"
+                  :version-id="version.id"
+                  :parse="version.parse"
+                  @locate="locate($event)"
                 />
                 <template v-else>{{ item.text }}</template
                 ><button
@@ -1322,7 +1327,15 @@ onUnmounted(() => {
             <article class="event-assistant streaming-message" aria-live="polite">
               <strong>Copilot</strong>
               <div class="message-card">
-                <MessageContent v-if="activeChat.answer" :text="activeChat.answer" /><span
+                <MessageContent
+                  v-if="activeChat.answer"
+                  :text="activeChat.answer"
+                  :sources="activeChat.sources"
+                  :retrieval="activeChat.retrieval"
+                  :version-id="version.id"
+                  :parse="version.parse"
+                  @locate="locate($event)"
+                /><span
                   v-else-if="sending && !activeChat.error"
                   class="review-thinking"
                   role="status"
