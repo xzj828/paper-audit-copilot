@@ -123,6 +123,7 @@ export function chatSnapshot(project, version, exportedAt = new Date().toISOStri
             'at',
             'model',
             'citationWarning',
+            'citationPolicy',
             'findingId',
           ]),
           ...(message.retrieval
@@ -198,6 +199,8 @@ export function exportChat(project, version, format) {
       '',
     );
     if (message.citationWarning) lines.push(`引用提示：${inline(message.citationWarning)}`, '');
+    if (message.citationPolicy)
+      lines.push(`引用编号策略：${inline(message.citationPolicy)}；仅检查编号，不判断结论支持度。`, '');
     if (message.retrieval) {
       const r = message.retrieval;
       lines.push(

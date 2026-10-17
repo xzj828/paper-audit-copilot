@@ -152,6 +152,7 @@ export interface Message {
   sources?: EvidenceSource[];
   retrieval?: Retrieval;
   citationWarning?: string | null;
+  citationPolicy?: string;
 }
 export interface EvidenceSource {
   id: string;

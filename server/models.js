@@ -324,6 +324,7 @@ export function createModelService(db, directory) {
           cited: citations.cited.includes(source.id),
         })),
         citationWarning: citations.warning,
+        citationPolicy: citations.policy,
         ...(finding ? { anchor: finding.anchor, findingId: finding.id } : {}),
       };
     },

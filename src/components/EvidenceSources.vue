@@ -11,6 +11,7 @@ const props = defineProps<{
   versionId?: string;
   parseId?: string;
   parse?: ParseArtifact;
+  citationPolicy?: string;
 }>();
 const binding = computed(() =>
   sourceBindingStatus(props.retrieval, props.versionId, props.parseId),
@@ -54,6 +55,13 @@ defineEmits<{ locate: [anchor: Anchor] }>();
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
+    <p
+      v-if="citationPolicy === 'markdown-body-labels@1'"
+      class="retrieval-scope"
+      :data-citation-policy="citationPolicy"
+    >
+      仅统计正文证据编号；代码、引述、链接及原始 HTML 中的示例不计入。编号匹配不代表结论已核验。
+    </p>
     <p v-if="retrieval.requestedScope" class="retrieval-scope">
       限定区块：{{ retrieval.requestedScope.section }}；全文共
       {{ retrieval.requestedScope.documentChunks }} 个片段，上方分母仅为限定范围。

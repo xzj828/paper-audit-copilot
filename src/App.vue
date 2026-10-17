@@ -1305,6 +1305,7 @@ onUnmounted(() => {
                 </button>
                 <EvidenceSources
                   v-if="item.kind === 'assistant'"
+                  :citation-policy="item.citationPolicy"
                   :sources="item.sources"
                   :retrieval="item.retrieval"
                   :version-id="version.id"

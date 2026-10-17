@@ -1,6 +1,7 @@
 // Version-scoped lexical RAG. Quotes are source slices; no model generates anchors.
 import { quoteRange } from '../shared/text-highlight.js';
 import { resolveRetrievalScope } from './retrieval-scope.js';
+import { bodyCitationLabels, citationPolicy } from './citation-labels.js';
 import {
   mappedTerms,
   mappedQuery,
@@ -260,10 +261,11 @@ export function retrieveEvidence(
 }
 
 export function checkCitations(text, sources) {
-  const labels = [...new Set([...text.matchAll(/\[(R\d+)\]/g)].map((match) => match[1]))];
+  const labels = bodyCitationLabels(text);
   const known = new Set(sources.map((source) => source.id));
   const unknown = labels.filter((id) => !known.has(id));
   return {
+    policy: citationPolicy,
     cited: labels.filter((id) => known.has(id)),
     unknown,
     warning: unknown.length
