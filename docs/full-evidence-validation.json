@@ -1,0 +1,51 @@
+{
+  "schema": "full-evidence-validation@1",
+  "round": 28,
+  "evaluatedAt": "2026-10-17T04:48:13.611675+00:00",
+  "scope": "Finite browser source-passage display controls; not whole-page/document coverage, historical authentication or expert accuracy",
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "c8979fc3cc675baccb25c10d2f5d92e4c31f12f9",
+  "limits": {
+    "displayUTF16CodeUnits": 10000,
+    "scrollHeightPixels": 240,
+    "defaultExpanded": false,
+    "persistExpandedState": false,
+    "sourceField": "anchor.quote",
+    "exportSchemaUnchanged": "paper-audit-chat@2"
+  },
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 254,
+    "browserPassed": 71,
+    "newNodeTests": 0,
+    "newBrowserFlows": 2,
+    "targetedBrowserPassed": 8,
+    "fullCheckLogSHA256": "4fcb5b0cb52c2c050c982f14087ad38fcba1f6740148423b063b345fc5121850",
+    "targetedBrowserLogSHA256": "d7e82e8a127a3822c3a7564b051d6a0ebd712d49b16ae8ad6aa1cba3068fb947",
+    "mobilePassageViewportRatioTolerance": 0.99
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-eight-before-browser.log",
+      "sha256": "d6144c8d8e6f41ba62fd079f8ff780d16ebea128491d30d8185b47c790a15b25",
+      "description": "Original UI failed both preregistered controls because full source disclosure was absent."
+    },
+    {
+      "log": "round-twenty-eight-check.log",
+      "sha256": "bb57b246b044d483486ab8767ab6e010995575923d6f96ba214c188b608c8207",
+      "description": "First complete build/254 Node/71 browser passed before adding explicit full-text viewport screenshot assertion."
+    },
+    {
+      "log": "round-twenty-eight-check-final.log",
+      "sha256": "c4a0010b15038bcc7f6dbd8b94c96823d62e0637e71bd5020656c486d4083186",
+      "description": "Additional exact 1.0 viewport assertion failed at 0.99492186 due native fractional scroll border clipping (about 1.2px). Build/254 Node passed, 70/71 browser passed. Test uses 0.99 border tolerance; no product change."
+    }
+  ],
+  "implementationSha256": {
+    "src/components/EvidenceSources.vue": "36f33ff35ab4dc62d427f592b92489755bd8b9c16fd36ba3d3f346ee76e075ee",
+    "tests/e2e/full-evidence.spec.js": "65011edbdbdb69230e48ca56319cb38df71847942c6fbfa29fe8ca1ec2ec3615",
+    "shared/source-match.js": "be2313af9f6611eb37b62f384f3b006afe8a4814c9d26fee638ce24461c781b0",
+    "shared/source-binding.js": "6765d66621a0ab372bf502f403de10a7967fb9c10b5367f056efd3ba366ef892"
+  },
+  "historicalProofPolicy": "Previous results retain their original labels and fingerprints; changed EvidenceSources.vue fingerprints are checked against genuine prior byte-verified private snapshots."
+}

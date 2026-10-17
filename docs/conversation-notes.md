@@ -84,3 +84,7 @@ v26在保存及生成中回答的普通正文内，将本条回答唯一存在�
 ## 单区块检索范围
 
 v27可选requestedScope(single-section@1)，包含当前解析ID、区块ID、名称和全文片段数；totalChunks分母仅为限定范围。JSON仍paper-audit-chat@2，Markdown及界面显示范围，不给旧消息补造范围。切换项目/版本/解析/位置或刷新恢复全文；限定请求不发送历史问答，解析中途变化拒绝保存。范围限制不是科学结论核验，详见retrieval-scope.md。
+
+## 查看完整来源片段
+
+v28证据卡片的默认关闭详情显示原anchor.quote，以文字保留空白、换行和制表符，不解释HTML或Markdown。展开不导航、不保存状态；刷新收起，JSON/Markdown保持既有完整来源。失配记录可阅读但继续停用定位；超过10000代码单元提示导出，不把局部展示称为完整。详见full-evidence.md。

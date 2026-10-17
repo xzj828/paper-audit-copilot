@@ -124,7 +124,9 @@ test('actual long DOCX offers the complete retrieved passage on mobile and reset
     source.anchor.quote,
   );
   await expect(page.locator('.toast-message')).toHaveCount(0);
-  await disclosure.locator('summary').scrollIntoViewIfNeeded();
+  await disclosure.locator('.source-full-text').scrollIntoViewIfNeeded();
+  // Native rounded scroll offsets can clip about 1 px of the 240 px border.
+  await expect(disclosure.locator('.source-full-text')).toBeInViewport({ ratio: 0.99 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/full-evidence-mobile.png' });
   expect((await (await page.request.get(`/api/projects/${id}`)).json()).versions[0]).toEqual(
