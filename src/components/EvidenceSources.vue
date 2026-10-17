@@ -96,6 +96,18 @@ defineEmits<{ locate: [anchor: Anchor] }>();
           }}</span>
         </button>
         <p class="retrieval-scope" :data-source-match="status">{{ labels[status] }}</p>
+        <details class="source-full-passage">
+          <summary>查看完整来源片段 · {{ source.anchor.quote.length }} 字符</summary>
+          <p class="retrieval-scope">
+            这是本条回答提供的来源片段，不是整页或全文；请结合材料身份、原文状态及上下文核对。
+          </p>
+          <pre v-if="source.anchor.quote.length <= 10000" class="source-full-text">{{
+            source.anchor.quote
+          }}</pre>
+          <p v-else class="retrieval-scope">
+            片段超过10000字符展示上限，请导出对话与证据查看完整内容。
+          </p>
+        </details>
       </div>
     </details>
   </section>
@@ -174,5 +186,31 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   font-size: 11px;
   line-height: 1.7;
   overflow-wrap: anywhere;
+}
+.source-full-passage {
+  margin-top: 6px;
+}
+.source-full-passage summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-size: 11px;
+}
+.source-full-text {
+  box-sizing: border-box;
+  max-height: 240px;
+  max-width: 100%;
+  overflow: auto;
+  padding: 10px;
+  margin: 6px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
 }
 </style>
