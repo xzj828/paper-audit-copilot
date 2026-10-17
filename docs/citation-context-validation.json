@@ -1,0 +1,47 @@
+{
+  "schema": "citation-context-validation@1",
+  "round": 29,
+  "evaluatedAt": "2026-10-17T16:42:03.826872+00:00",
+  "scope": "Finite Markdown citation-label accounting controls; not semantic claim support, HTML5 DOM equivalence, historical authentication or expert accuracy",
+  "citationPolicy": "markdown-body-labels@1",
+  "exportSchemaUnchanged": "paper-audit-chat@2",
+  "externalModelRequests": 0,
+  "controlledLoopbackModelResponses": 3,
+  "controlsLocalCommit": "3ab3065c8f56093778ff18d22e65af37418a150b",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 257,
+    "browserPassed": 72,
+    "newNodeTests": 3,
+    "newBrowserFlows": 1,
+    "targetedNodePassed": 19,
+    "targetedBrowserPassed": 6,
+    "fullCheckLogSHA256": "975c252a505f438189722d86f862105035c6afb286cd8fa42347badccf553e6f",
+    "targetedNodeLogSHA256": "de4993af27d1f3b3c5f3f80c0934f7fc2f6cfde1d6b793a4b87480fab2e8321a",
+    "targetedBrowserLogSHA256": "c9646914a28897a231b522f77c0a06db0b206339d5bb9af8c72dcb659590885e"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-twenty-nine-before-node.log",
+      "sha256": "bb4ed8c1a53bc0c54bf69d12ec89f898e8df9850485810b3a27de0c26824abb7",
+      "description": "Original raw-regex implementation failed all three preregistered citation-context/export controls."
+    },
+    {
+      "log": "round-twenty-nine-before-browser.log",
+      "sha256": "0aa10cf110467b914611b49e3f54d506085a2b07fdd1bc6ba308995b07c13f96",
+      "description": "Actual upload and loopback SSE reached the saved answer; original implementation failed the missing citation-policy assertion. Not a model-quality evaluation."
+    }
+  ],
+  "implementationSha256": {
+    "server/citation-labels.js": "a24f408d597525d85bdba34b0a70bd6fe0e03eb92ff83eafbf647356ab23774a",
+    "server/retrieval.js": "a003957c3f481a8f3ea46cd95675b9d03cb4f430427c50541c6cc86ba3790656",
+    "server/models.js": "18edf8f971cb981b8abb77226693c4965264e92c8f1d3fa140ee532086a8a5d1",
+    "server/chat-export.js": "95d84d0dfbbf24240770d48f74dbac6c7dfb813b465de634e00012787686a9dd",
+    "src/App.vue": "607e7005fbaeabb527294568e95ed70ca1e3bbbb031b0a6af41451d4df5160d5",
+    "src/types.ts": "c200800f13b6e5bb7d5ce5656533720048a17a8d03926b5bfc6ab329a68e0f48",
+    "src/components/EvidenceSources.vue": "a95a725141bd429b5eeb9be017c5e8878792af1b4034327101010cd2c3f254b3",
+    "tests/citation-context.test.js": "d2d24fb97f45f057d1983e16295978efba80d242e59729a5ae69d2c6ae4db308",
+    "tests/e2e/citation-context.spec.js": "1cad7465931cb67ee721e3cf3aaf215cfc6eb8686571e1237633565b358280c2"
+  },
+  "historicalProofPolicy": "Previous citation/source snapshots and validation records retain their original labels and fingerprints; changed source fingerprints are checked against genuine prior byte-verified private snapshots."
+}

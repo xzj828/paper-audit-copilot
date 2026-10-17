@@ -88,3 +88,7 @@ v27可选requestedScope(single-section@1)，包含当前解析ID、区块ID、�
 ## 查看完整来源片段
 
 v28证据卡片的默认关闭详情显示原anchor.quote，以文字保留空白、换行和制表符，不解释HTML或Markdown。展开不导航、不保存状态；刷新收起，JSON/Markdown保持既有完整来源。失配记录可阅读但继续停用定位；超过10000代码单元提示导出，不把局部展示称为完整。详见full-evidence.md。
+
+## 引用编号语境策略
+
+v29新完成的模型回答保存citationPolicy(markdown-body-labels@1)，只统计正文连续编号，排除代码、引用块、链接等例子；编号匹配不是结论支持度。JSON仍paper-audit-chat@2，Markdown记录策略，未记录策略的旧问答不回算/不补造。临时流和本地检索不声称完成该策略，详见citation-context.md。
