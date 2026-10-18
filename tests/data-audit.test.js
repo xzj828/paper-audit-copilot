@@ -80,6 +80,7 @@ test('description uses only finite decimal values and records missing and illega
       sampleSD: 1,
       min: 1,
       max: 3,
+      quantiles: { method: 'R-type-7', q1: 1.5, median: 2, q3: 2.5, iqr: 1 },
       warnings: [],
     },
   );

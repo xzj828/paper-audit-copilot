@@ -1,6 +1,6 @@
 import { Document, Packer, Paragraph, HeadingLevel } from 'docx';
 import { chromium } from 'playwright';
-import { dataAuditSummary } from './data-audit.js';
+import { dataAuditSummary, quantileSummary } from './data-audit.js';
 import { referenceAuditSummary } from './reference-audit.js';
 import { claimAuditSummary } from './claim-audit.js';
 import { pdfDiagnosticsLines } from '../shared/pdf-diagnostics.js';
@@ -186,6 +186,7 @@ export function reportBlocks(report, projectTitle) {
         add(
           `分组 ${group.name ?? '空白'}：记录 ${group.records}，有效 ${group.valid}，缺失 ${group.missing}，非法 ${group.invalid}；均值 ${group.mean ?? '不可计算'}，样本标准差 ${group.sampleSD ?? '不可计算'}，最小 ${group.min ?? '不可计算'}，最大 ${group.max ?? '不可计算'}。`,
         );
+        if (group.quantiles) add(`分组 ${group.name ?? '空白'} 分位数：${quantileSummary(group)}`);
         group.warnings.forEach(add);
       }
       if (data.idCheck) {

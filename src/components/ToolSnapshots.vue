@@ -45,6 +45,15 @@ function lastReview(snapshot: ClaimAuditSnapshot, relationId: string) {
         {{ snapshots.data.overall.mean ?? '不可计算' }}，样本标准差
         {{ snapshots.data.overall.sampleSD ?? '不可计算' }}。
       </p>
+      <p v-if="snapshots.data.overall.quantiles">
+        中位数 {{ snapshots.data.overall.quantiles.median ?? '不可计算' }}， Q1
+        {{ snapshots.data.overall.quantiles.q1 ?? '不可计算' }}， Q3
+        {{ snapshots.data.overall.quantiles.q3 ?? '不可计算' }}， 四分位距
+        {{ snapshots.data.overall.quantiles.iqr ?? '不可计算' }} （{{
+          snapshots.data.overall.quantiles.method
+        }}）；仅为描述统计。
+      </p>
+      <p v-else class="small muted">此快照未记录分位数。</p>
       <p v-if="snapshots.data.comparison">
         论文输入均值 {{ snapshots.data.comparison.expectedMean }}，绝对容差
         {{ snapshots.data.comparison.tolerance }}；{{

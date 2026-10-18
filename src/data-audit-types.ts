@@ -13,6 +13,13 @@ export interface DataAuditStats {
   sampleSD: number | null;
   min: number | null;
   max: number | null;
+  quantiles?: {
+    method: 'R-type-7';
+    q1: number | null;
+    median: number | null;
+    q3: number | null;
+    iqr: number | null;
+  };
   warnings: string[];
 }
 export interface DataAuditSnapshot {

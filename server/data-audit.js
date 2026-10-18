@@ -154,6 +154,38 @@ function validateMapping(input, csv, version) {
   return { valueColumn, groupColumn, idColumn, expectedMean, tolerance, anchor };
 }
 
+function describeQuantiles(values, warnings) {
+  // R type 7: zero-based h=(n-1)*p, linearly interpolate adjacent order
+  // statistics. Source: R stats::quantile documentation. Never sort caller data.
+  const sorted = [...values].sort((a, b) => a - b);
+  const at = (p) => {
+    if (!sorted.length) return null;
+    const h = (sorted.length - 1) * p,
+      index = Math.floor(h),
+      weight = h - index;
+    const a = sorted[index],
+      b = sorted[Math.min(index + 1, sorted.length - 1)];
+    if (!weight || a === b) return a;
+    // Opposite-sign endpoint subtraction may overflow. Interpolate on one
+    // half of the interval around its finite midpoint instead.
+    if (a < 0 && b > 0) {
+      const middle = a / 2 + b / 2;
+      return weight <= 0.5
+        ? a + (middle - a) * (2 * weight)
+        : middle + (b - middle) * (2 * weight - 1);
+    }
+    return a + (b - a) * weight;
+  };
+  const q1 = at(0.25),
+    median = at(0.5),
+    q3 = at(0.75);
+  const spread = q1 === null ? null : q3 - q1;
+  const iqr = spread !== null && Number.isFinite(spread) ? spread : null;
+  if (spread !== null && !Number.isFinite(spread))
+    warnings.push('四分位距超过数值表示范围，无法返回有限结果');
+  return { method: 'R-type-7', q1, median, q3, iqr };
+}
+
 export function describeValues(rawValues) {
   let missing = 0,
     invalid = 0;
@@ -169,6 +201,7 @@ export function describeValues(rawValues) {
   }
   const count = values.length,
     warnings = [];
+  const quantiles = describeQuantiles(values, warnings);
   if (!count)
     return {
       records: rawValues.length,
@@ -179,6 +212,7 @@ export function describeValues(rawValues) {
       sampleSD: null,
       min: null,
       max: null,
+      quantiles,
       warnings,
     };
   let min = values[0],
@@ -212,6 +246,7 @@ export function describeValues(rawValues) {
     sampleSD: sd !== null && Number.isFinite(sd) ? sd : null,
     min,
     max,
+    quantiles,
     warnings,
   };
 }
@@ -276,7 +311,7 @@ export function auditData(
   }
   return {
     id: randomUUID(),
-    executor: 'csv-descriptive-audit@1',
+    executor: 'csv-descriptive-audit@2',
     anchorValidation: anchorValidationVersion,
     createdAt,
     versionId: version.id,
@@ -298,13 +333,20 @@ export function auditData(
     comparison,
     limits: { ...limits },
     notice:
-      '本工具在当前部署服务内确定性复算，不调用模型。CSV 原文仅在本次请求内处理，不写入项目；保存文件指纹、列映射及统计快照（含分组名称、重复 ID 示例和可选论文引用）。空白为缺失；其他非有限十进制数值为非法值并排除。全表及分组结果均为非加权描述统计，样本标准差分母为 n−1，n<2 时不可计算。未检验显著性、采样独立性或因果关系。',
+      '本工具在当前部署服务内确定性复算，不调用模型。CSV 原文仅在本次请求内处理，不写入项目；保存文件指纹、列映射及统计快照（含分组名称、重复 ID 示例和可选论文引用）。空白为缺失；其他非有限十进制数值为非法值并排除。全表及分组结果均为非加权描述统计，样本标准差分母为 n−1，n<2 时不可计算。分位数采用 R type 7 线性插值，四分位距为 Q3−Q1；有限双精度计算，无有效值时不计算。未检验显著性、采样独立性或因果关系。',
   };
+}
+
+export function quantileSummary(stats) {
+  const q = stats.quantiles;
+  return q
+    ? `中位数 ${q.median ?? '不可计算'}，Q1 ${q.q1 ?? '不可计算'}，Q3 ${q.q3 ?? '不可计算'}，四分位距 ${q.iqr ?? '不可计算'}（${q.method}）。`
+    : '';
 }
 
 export function dataAuditSummary(snapshot) {
   const stats = snapshot.overall;
-  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
+  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${quantileSummary(stats)}${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
 }
 
 export function mountDataAudit(app, { project, save, limits: overrides = {} }) {

@@ -31,6 +31,17 @@ const snapshots = computed(() =>
 const selected = computed(
   () => snapshots.value.find((item) => item.id === selectedId.value) || snapshots.value.at(-1),
 );
+const quantileRows = computed(() =>
+  selected.value
+    ? [
+        { name: '全表', stats: selected.value.overall },
+        ...selected.value.groups.map((group) => ({
+          name: group.name ?? '（空白分组）',
+          stats: group,
+        })),
+      ]
+    : [],
+);
 const section = computed(() =>
   props.version.parse?.sections.find((item) => item.id === elementId.value),
 );
@@ -188,7 +199,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
     <h3>CSV 描述统计复算</h3>
     <p class="audit-note">
       上传论文对应的 UTF-8
-      CSV，选择数值列，复算非加权均值与样本标准差。数据会发送到当前部署服务，不发送给模型；保存文件指纹与统计快照，含分组名称、重复
+      CSV，选择数值列，复算非加权均值、样本标准差与分位数。数据会发送到当前部署服务，不发送给模型；保存文件指纹与统计快照，含分组名称、重复
       ID 示例及可选论文引用。
     </p>
     <form class="data-form" @submit.prevent="calculate">
@@ -375,6 +386,37 @@ function exportUrl(snapshot: DataAuditSnapshot) {
           </tbody>
         </table>
       </div>
+      <template v-if="selected.overall.quantiles">
+        <p class="audit-note">
+          分位数方法：R type 7 线性插值；Q1 为 25%、中位数为 50%、Q3 为 75% 分位数，四分位距为
+          Q3−Q1。 同样只使用有效数值，不自动判断异常原因或显著性。
+        </p>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="分位数与四分位距">
+          <table>
+            <thead>
+              <tr>
+                <th>范围</th>
+                <th>Q1</th>
+                <th>中位数</th>
+                <th>Q3</th>
+                <th>四分位距</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, index) in quantileRows" :key="index">
+                <th>{{ row.name }}</th>
+                <td>{{ row.stats.quantiles ? format(row.stats.quantiles.q1) : '未记录' }}</td>
+                <td>{{ row.stats.quantiles ? format(row.stats.quantiles.median) : '未记录' }}</td>
+                <td>{{ row.stats.quantiles ? format(row.stats.quantiles.q3) : '未记录' }}</td>
+                <td>{{ row.stats.quantiles ? format(row.stats.quantiles.iqr) : '未记录' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <p v-else class="audit-note">
+        此快照未记录分位数；重新复算后可查看，不从旧均值或标准差推算。
+      </p>
       <p v-for="warning in selected.overall.warnings" :key="warning" class="audit-warning">
         {{ warning }}
       </p>

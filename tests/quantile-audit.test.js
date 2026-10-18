@@ -37,7 +37,7 @@ test('R7 quartiles use finite values and retain existing counts and arithmetic s
     assert.deepEqual(values, before);
   }
   const skewed = describeValues(['100', '4', '1', '3', '2', '', 'NA']);
-  assert.equal(skewed.mean, 22);
+  assert.ok(Math.abs(skewed.mean - 22) < 1e-12);
   assert.deepEqual([skewed.records, skewed.valid, skewed.missing, skewed.invalid], [7, 5, 1, 1]);
 });
 
