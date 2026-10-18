@@ -1,0 +1,53 @@
+{
+  "schema": "quantile-audit-validation@1",
+  "round": 31,
+  "evaluatedAt": "2026-10-18T16:47:19.013063+00:00",
+  "scope": "Finite developer numerical and data-flow controls; not scientific validity, independent expert accuracy, arbitrary precision or real-user historical migration",
+  "executor": "csv-descriptive-audit@2",
+  "quantileMethod": "R-type-7",
+  "methodSource": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html",
+  "runsR": false,
+  "externalModelRequests": 0,
+  "newFields": "overall.quantiles and each groups[].quantiles; legacy absence retained",
+  "controlsLocalCommit": "a77b520823cde5e6e89c4426072e07d08f9b45dd",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 261,
+    "browserPassed": 76,
+    "newNodeTests": 4,
+    "newBrowserFlows": 2,
+    "targetedNodePassed": 10,
+    "targetedBrowserPassed": 4,
+    "fullCheckLogSHA256": "04e50ed783ce16b143b211fcdd9daf8b38e5e484436fa5cdb64a3fee0cf0dcf1",
+    "targetedNodeLogSHA256": "6c9b3248d37aed5fa6bbb0cd34e923ac2b7795ac6a8e5366d2ee3a488f739b85",
+    "targetedBrowserLogSHA256": "7cccd1d464a82dcc0b58c7d7d8d2bfd87f2ac80201b7fd73b907e644b27f5923"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-one-before-node.log",
+      "sha256": "1744fe7b619badcf196b38260034be0d1f5d3a292fbf5e2fc550535e2a830498",
+      "description": "Original implementation failed all four preregistered quartile/data-flow controls."
+    },
+    {
+      "log": "round-thirty-one-before-browser.log",
+      "sha256": "25d0bc960b984fcb52be3734c37a746905e3cfe180352f80302672591e2bc814",
+      "description": "Original production components failed both registered new/legacy UI controls."
+    },
+    {
+      "log": "round-thirty-one-target-node.log",
+      "sha256": "bba115adfda886a2b4491be1445cadb306efe5101859e4df3201e44849a3d0a9",
+      "description": "9/10 passed. New test incorrectly required the unchanged Welford mean to equal integer 22 exactly; corrected to 1e-12 tolerance (actual 22.000000000000004). No mean-algorithm change."
+    }
+  ],
+  "implementationSha256": {
+    "server/data-audit.js": "b61990d8b73972416cb16670d8c9a384e1cc114190165576cf0637d98b3b444b",
+    "server/reports.js": "c434af7522b59dea3315b28030d91864a81c8ddc14142a000a6e7fb974655748",
+    "src/components/DataAudit.vue": "aae994673ac9a10b01975ced397e512bc900ab7709a8a6099c0bf3d80b6dbc87",
+    "src/components/ToolSnapshots.vue": "744398483a7751dea437ef028461cce8d1573fd91f65cf229f2a0aec8dc58246",
+    "src/data-audit-types.ts": "d28c426c40fd9bfebecb9d9ecfe87191f7ceaa4d1d12de668518ce2bcc999da1",
+    "tests/data-audit.test.js": "fb1f765b3fdbc74fcb0abaa74a9a5a6ec04c891d89633e2adcf9b4502517f406",
+    "tests/quantile-audit.test.js": "0b9965d71e32199bc38b8d4dde98a63536a8fe7f85f85ec8bb98256ff273ad97",
+    "tests/e2e/quantile-audit.spec.js": "7cf1a34c0c3c30fe66bf02ce35261f3d5ae6442cda1d9117117749257b8a9427"
+  },
+  "historicalProofPolicy": "Previous results retain original labels/fingerprints and historical source bytes; no reinterpretation as expert accuracy."
+}
