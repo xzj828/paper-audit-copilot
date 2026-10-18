@@ -1,0 +1,50 @@
+{
+  "schema": "search-navigation-validation@1",
+  "round": 30,
+  "evaluatedAt": "2026-10-18T04:48:01.352634+00:00",
+  "scope": "Finite read-only navigation of first 60 displayed source occurrences; not whole-document occurrence totals, semantic retrieval quality or expert accuracy",
+  "sourceSearchVersionUnchanged": "source-occurrences@1",
+  "displayedResultLimit": 60,
+  "wrapAround": false,
+  "persistNavigation": false,
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "77f68a1a003b5bd506bb003f2d5c68566d1aebd1",
+  "controlRefinement": "After the original missing-navigation failures, added keyboard-focus and HTTP upload-status assertions. Corrected duplicate DOCX fixture bytes; old deduplication behavior was correct.",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 257,
+    "browserPassed": 74,
+    "newNodeTests": 0,
+    "newBrowserFlows": 2,
+    "targetedBrowserPassed": 4,
+    "fullCheckLogSHA256": "67d34eec15083252062160e3cc71a7ae9789f1d3c9bab318994efffab993caa5",
+    "targetedBrowserLogSHA256": "e345ac4979ae908f380821f9a1791567a038e142f74c7d8a7d23c0a766fdbd6a"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-before-browser.log",
+      "sha256": "b5fd786994c0a0b52dad6bc5e2e5a1dc1939f562771836586d8e53169ed1340c",
+      "description": "Original UI failed both preregistered uploaded-document controls because navigation was absent."
+    },
+    {
+      "log": "round-thirty-target-browser.log",
+      "sha256": "a1bff1c3ce2fe0e577cdae4afd4da96ed6cc13e4c4e3e4e1dffacbeab5e2daa7",
+      "description": "Three of four controls passed; DOCX test incorrectly uploaded identical bytes under a new filename and waited for v2 after server deduplication rejected it. Corrected fixture with distinct bytes and required HTTP 202; no product deduplication change."
+    }
+  ],
+  "implementationSha256": {
+    "src/App.vue": "03281f6aaf6b5071c8289a95690f131628d2d27d2529e022d998f33b49a11122",
+    "src/style.css": "53dde902ebed4b2bea3e49f68c701c3981c7ef1b6211ff1ef1defb649d29bd68",
+    "tests/e2e/search-navigation.spec.js": "36220770f5576d5a669102b6e59209cca61439f60e1b194cd159a797e2b2ac4c",
+    "shared/source-search.js": "de78734c17667c03216ba41a77e330e9b231dcbb3602aa1b4865f9320fa8e7a5",
+    "shared/text-highlight.js": "4b10a12405454094fc4157a6ece1b68ae84f6f46b26fdad1af7cb1624fe6ee3f"
+  },
+  "testSourceAudit": {
+    "file": "tests/e2e/workspace.spec.js",
+    "cachedInlineSourceMapSourceEqualsCurrent": true,
+    "sourceSHA256": "214b94333f504f7fb4a8724b00ee9daeca5c03a7c4bc0fda682639a5658a53cb",
+    "reportedLocationUsesTransformedOffsets": true,
+    "note": "The unchanged workspace test reports transformed line numbers. Cached source-map sourcesContent matches current committed source exactly; no source replacement or product fix was needed."
+  },
+  "historicalProofPolicy": "Previous reports retain their original labels and fingerprints; changed App/style fingerprints are checked against genuine prior byte-verified private snapshots."
+}

@@ -92,3 +92,7 @@ v28证据卡片的默认关闭详情显示原anchor.quote，以文字保留空�
 ## 引用编号语境策略
 
 v29新完成的模型回答保存citationPolicy(markdown-body-labels@1)，只统计正文连续编号，排除代码、引用块、链接等例子；编号匹配不是结论支持度。JSON仍paper-audit-chat@2，Markdown记录策略，未记录策略的旧问答不回算/不补造。临时流和本地检索不声称完成该策略，详见citation-context.md。
+
+## 原文搜索连续浏览
+
+v30是原搜索结果的页面导航，前60处、原文偏移和断词候选范围不变；不属于问答生成策略，也不增加JSON字段。切换材料、查询或定位退出，刷新清除；不写问答/报告/解析，详见search-navigation.md。
