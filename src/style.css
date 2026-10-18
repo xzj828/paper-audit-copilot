@@ -898,6 +898,47 @@ kbd {
   gap: 1px;
   overflow: hidden;
 }
+.source-search-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 11px;
+}
+.source-search-navigation > span {
+  flex: 1 1 130px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.source-search-navigation small {
+  white-space: nowrap;
+}
+.source-search-navigation > div {
+  display: flex;
+  gap: 5px;
+}
+.source-search-navigation button {
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--blue);
+  font: inherit;
+}
+.source-search-navigation button:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.source-search-navigation button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
 .paper-scroll {
   overflow: auto;
   flex: 1;

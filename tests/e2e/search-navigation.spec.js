@@ -60,6 +60,7 @@ test('actual DOCX search traverses exact occurrences within the displayed 60, ke
   await previous.focus();
   await page.keyboard.press('Enter');
   await expect(nav(page)).toContainText('59 / 60');
+  await expect(previous).toBeFocused();
   expect(await markOffset(page)).toBe(offsets[58]);
   expect(await read()).toEqual(initial);
   await page.getByRole('button', { name: '搜索论文', exact: true }).click();
@@ -74,15 +75,16 @@ test('actual DOCX search traverses exact occurrences within the displayed 60, ke
   await expect(page.getByRole('textbox', { name: '原文搜索关键词', exact: true })).toHaveValue('');
   await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
   await search(page, 'Glacier marker');
-  await page.request.post(`/api/projects/${id}/upload`, {
+  const added = await page.request.post(`/api/projects/${id}/upload`, {
     multipart: {
       file: {
         name: 'new.docx',
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        buffer: docxFixture(text),
+        buffer: docxFixture(text + ' New revision.'),
       },
     },
   });
+  expect(added.status()).toBe(202);
   await expect.poll(async () => (await read()).at(-1).status).toBe('ready');
   await page.locator('.project-link').filter({ hasText: '连续查找' }).click();
   await expect(page.locator('.version-chip')).toHaveText('v2');
@@ -119,11 +121,12 @@ test('actual PDF search moves between repeated and physical-page matches on mobi
   await page.getByRole('button', { name: '下一页', exact: true }).click();
   await expect(nav(page)).toHaveCount(0);
   expect(await read()).toEqual(initial);
-  await page.request.post(`/api/projects/${id}/upload`, {
+  const added = await page.request.post(`/api/projects/${id}/upload`, {
     multipart: {
       file: { name: 'pages.pdf', mimeType: 'application/pdf', buffer: multipagePdfFixture(3) },
     },
   });
+  expect(added.status()).toBe(202);
   await expect.poll(async () => (await read()).at(-1).status).toBe('ready');
   await page.locator('.project-link').filter({ hasText: '连续查找' }).click();
   await expect(page.locator('.version-chip')).toHaveText('v2');
@@ -137,6 +140,7 @@ test('actual PDF search moves between repeated and physical-page matches on mobi
   await next.focus();
   await page.keyboard.press('Enter');
   await expect(nav(page)).toContainText('2 / 3');
+  await expect(next).toBeFocused();
   await expect(page.getByRole('spinbutton', { name: 'PDF 页码', exact: true })).toHaveValue('2');
   await expect(page.locator('#page-2 .pdf-quote-box')).toHaveCount(1);
   await expect(page.locator('.pdf-evidence-status')).toContainText('引文已逐字核对');

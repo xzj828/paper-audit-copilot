@@ -53,6 +53,7 @@ watch(managementPage, (value) => {
 });
 const readingPreferences = ref<Preferences>({ ...defaultPreferences });
 function jumpToSection(section: { id: string; page?: number }) {
+  searchNavigationKey.value = null;
   page.value = section.page || page.value;
   void nextTick(() =>
     document.getElementById(section.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }),
@@ -442,6 +443,72 @@ const searchResults = computed(() => {
   }
   return results;
 });
+const searchNavigationKey = ref<string | null>(null);
+const searchContextKey = computed(() =>
+  JSON.stringify([
+    project.value?.id, version.value?.id, version.value?.parse?.id, version.value?.status,
+  ]),
+);
+const searchResultIndex = computed(() => {
+  const anchor = textAnchor.value;
+  if (
+    searchNavigationKey.value !== searchContextKey.value ||
+    !anchor ||
+    version.value?.status !== 'ready' ||
+    (version.value.format === 'pdf' && anchor.page !== page.value)
+  )
+    return -1;
+  return searchResults.value.findIndex(
+    ({ section, range }) =>
+      section.id === anchor.elementId && range.start === anchor.offset &&
+      section.text.slice(range.start, range.end) === anchor.quote,
+  );
+});
+watch(searchContextKey, () => {
+  searchNavigationKey.value = null;
+});
+watch(page, () => {
+  if (version.value?.format === 'pdf' && textAnchor.value?.page !== page.value)
+    searchNavigationKey.value = null;
+});
+async function selectSearchResult(result: SearchResult) {
+  const key = searchContextKey.value,
+    query = searchInput.value,
+    candidates = searchHyphenCandidates.value;
+  if (version.value?.status !== 'ready') return;
+  // Re-read the current result and untouched text; a queued click must not reuse
+  // a stale range after a parse, query or document change.
+  const current = searchResults.value.find(
+    ({ section, range }) =>
+      section.id === result.section.id && range.start === result.range.start &&
+      range.end === result.range.end && range.matchKind === result.range.matchKind &&
+      section.text.slice(range.start, range.end) ===
+        result.section.text.slice(result.range.start, result.range.end),
+  );
+  if (!current) return;
+  const anchor = searchAnchor(current);
+  await locate(anchor, undefined, true);
+  if (
+    key === searchContextKey.value && query === searchInput.value &&
+    candidates === searchHyphenCandidates.value &&
+    textAnchor.value?.elementId === anchor.elementId && textAnchor.value?.offset === anchor.offset &&
+    textAnchor.value?.quote === anchor.quote
+  )
+    searchNavigationKey.value = key;
+}
+function stepSearchResult(direction: -1 | 1) {
+  const index = searchResultIndex.value;
+  const target = searchResults.value[index + direction];
+  if (index >= 0 && target) void selectSearchResult(target);
+}
+function endSearchNavigation() {
+  searchNavigationKey.value = null;
+  searchInput.value = '';
+  searchHyphenCandidates.value = false;
+  textAnchor.value = null;
+  evidenceQuote.value = '';
+  visualAnchor.value = null;
+}
 const activeHyphenCandidate = computed(() =>
   searchResults.value.some(
     ({ section, range }) =>
@@ -465,6 +532,7 @@ function searchPreview({ section, range }: SearchResult) {
   return section.text.slice(start, Math.max(start + 200, range.end));
 }
 watch([searchInput, searchHyphenCandidates], () => {
+  searchNavigationKey.value = null;
   textAnchor.value = null;
   evidenceQuote.value = '';
   visualAnchor.value = null;
@@ -897,7 +965,8 @@ function askCopilot() {
   mobilePane.value = 'chat';
   nextTick(() => textarea.value?.focus());
 }
-async function locate(anchor: Anchor, findingId?: string) {
+async function locate(anchor: Anchor, findingId?: string, keepSearchNavigation = false) {
+  if (!keepSearchNavigation) searchNavigationKey.value = null;
   evidenceQuote.value = anchor.kind === 'visual' ? '' : anchor.quote;
   textAnchor.value = anchor.kind === 'visual' ? null : anchor;
   visualAnchor.value = anchor.kind === 'visual' ? anchor : null;
@@ -1704,6 +1773,20 @@ onUnmounted(() => {
           </button>
         </div>
       </header>
+
+      <nav
+        v-if="version && tab === 'annotations' && searchResultIndex >= 0"
+        class="source-search-navigation"
+        aria-label="原文匹配导航"
+      >
+        <span :title="searchInput">查找：{{ searchInput.slice(0, 32) }}{{ searchInput.length > 32 ? '…' : '' }}</span>
+        <small role="status" aria-live="polite">匹配 {{ searchResultIndex + 1 }} / {{ searchResults.length }} · 最多 60 处</small>
+        <div>
+          <button :disabled="searchResultIndex <= 0" aria-label="上一处匹配" @click="stepSearchResult(-1)">上一处</button>
+          <button :disabled="searchResultIndex >= searchResults.length - 1" aria-label="下一处匹配" @click="stepSearchResult(1)">下一处</button>
+          <button aria-label="结束连续查找" @click="endSearchNavigation">结束查找</button>
+        </div>
+      </nav>
 
       <div v-if="!version" class="workspace-empty">
         <div class="empty-paper"><Icon name="book" :size="44" /><i></i><i></i><i></i></div>
@@ -2641,7 +2724,7 @@ onUnmounted(() => {
           v-for="result in searchResults"
           :key="`${result.section.id}:${result.range.start}`"
           class="search-result"
-          @click="locate(searchAnchor(result))"
+          @click="selectSearchResult(result)"
         >
           <strong>{{ result.section.title }} · 原文位置 {{ result.range.start + 1 }}</strong>
           <p>
