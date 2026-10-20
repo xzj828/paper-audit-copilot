@@ -1,0 +1,13 @@
+# CSV均值比较的数值范围
+
+新复算的comparison保存policy=finite-difference@1，CSV描述统计执行器仍为@2。对有限复算均值与有限论文输入相减：有有限差值时，绝对差值不大于用户绝对容差为within_tolerance，否则difference；差值为null的结果不能得到这两种容差判定。
+
+没有有效值：status=unavailable、difference=null、unavailableReason=no_valid_values。两个有限输入相减超出双精度有限范围：status=unavailable、difference=null、unavailableReason=difference_overflow。界面明确显示差值超出有限数值范围，提示核对单位或缩放后复算。不能把不可计算解释为两值相等，也未用任意精度恢复差值。
+
+旧逻辑在两个相反方向的极端有限输入下，将差值保存为null却用Infinity继续生成difference状态。本轮在生成结果的源头统一有限性门槛，并保存原因。CSV过滤、有限值计数、均值、样本标准差、分位数和原始数据保留边界不变，没有新增模型调用。
+
+JSON下载是实际保存对象；报告摘要、面板和Markdown附录读取已冻结的原因与说明。以后复算不改旧快照、报告或消息。policy和unavailableReason为可选字段：历史@1/@2记录缺失时不补造、不回算原因，原status保留；这不是旧错误快照的自动修复或真实用户迁移验证。
+
+两项Node与一项浏览器先登记在fcb4ad0。原Node2/2失败；第一次浏览器上传早于项目创建完成，增加明确标题等待后才复现原状态错误。两次失败日志均保留。修复后目标11项Node/3项浏览器通过，完整生产构建263项Node/77项浏览器通过。
+
+控制数据由开发者构造，包括双向溢出、最大有限容差、普通有限比较和无有效值；实际浏览器经上传、服务端保存、JSON下载、报告冻结与Markdown、手机和刷新。没有外部模型请求，不是科学金标准、专家准确率或实测产品成效。实现指纹、日志哈希和边界见comparison-range-validation.json。

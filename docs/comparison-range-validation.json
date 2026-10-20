@@ -1,0 +1,48 @@
+{
+  "schema": "comparison-range-validation@1",
+  "round": 32,
+  "evaluatedAt": "2026-10-20T05:48:52.721637+00:00",
+  "scope": "Finite developer software controls; not expert accuracy, arbitrary precision, statistical inference or real-user migration",
+  "executor": "csv-descriptive-audit@2",
+  "comparisonPolicy": "finite-difference@1",
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "fcb4ad050297040270c98448a98bd8a78e8f15c4",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 263,
+    "browserPassed": 77,
+    "newNodeTests": 2,
+    "newBrowserFlows": 1,
+    "targetedNodePassed": 11,
+    "targetedBrowserPassed": 3,
+    "fullCheckLogSHA256": "fa12a9693b3ea93a0a474585ace25ce73d8f05cf4045e71533d496a188b452df",
+    "targetedNodeLogSHA256": "cb8765358941e9253116c8e5f8ae8bf2347ed8ad50a19974959957a9a9ec9db3",
+    "targetedBrowserLogSHA256": "86cefbb366655e9685db2149fdca2b0a437e3eb73932ce3cf62bd4208332feb4"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-two-before-node.log",
+      "sha256": "dd03a59e259de146202e08225d362860454b44b35ba6dcf4ad92a25203113f71",
+      "description": "Original implementation fails both registered controls."
+    },
+    {
+      "log": "round-thirty-two-before-browser.log",
+      "sha256": "aa03d4cb9d09151595c8e48e7b87d9a3994487ddd4e7a678d932129f887db255",
+      "description": "First browser attempt failed before target assertion: upload occurred before project creation completed."
+    },
+    {
+      "log": "round-thirty-two-before-browser-final.log",
+      "sha256": "98ec9332739a3a22fc2b02be1b0054c01f010c7d6a53477e0fcc9eb70c54ad10",
+      "description": "After adding explicit project heading wait, original product fails at the contradictory difference verdict."
+    }
+  ],
+  "implementationSha256": {
+    "server/data-audit.js": "e276e466430745432b7ea08233787d39caeb2561002906ceffec04ce4c8afe60",
+    "src/components/DataAudit.vue": "40ff44864d25d568b1d15489a614669030edde7ec19db74bf84285c039e22d2b",
+    "src/components/ToolSnapshots.vue": "bde667b37b615785625ff129614e9b6c8ed2f825ea05a9b199b6bff1ab8fbcea",
+    "src/data-audit-types.ts": "c40da574efc14d5b6bbdee402411d3efec521f5bd8b02a24e8c4f821de005d50",
+    "tests/comparison-range.test.js": "22e318485e7e3e9a0742eaae7ce27993d07c20faa25fe11e3de779a819c0b83c",
+    "tests/e2e/comparison-range.spec.js": "f05cc520fa9f4d5ddb0e5f8306f9d63c2706f106c9487f1cfbb7575fab608d85"
+  },
+  "historicalProofPolicy": "Retain prior results and original fingerprints; verify original bytes against prior genuinely published snapshots. Old comparisons are not recalculated or backfilled."
+}

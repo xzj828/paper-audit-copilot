@@ -327,3 +327,15 @@ JSON升级paper-audit-chat@2：保留原问答和字段，新增sourceBinding与
 新增浏览器实际上传合成DOCX及CSV，验证均值22与中位数3并列、无有效值分组、实际JSON下载、报告冻结及全表/分组Markdown、再次复算后原报告/原快照/原消息不变、手机及刷新。另挂载真实DataAudit和ToolSnapshots组件检查旧@1开发者fixture未记录且原对象不变。没有真实专家或模型效果评估，不把开发者fixture称为真实历史用户迁移。
 
 最终完整生产构建、261项Node和76项浏览器通过，零外部模型请求。手机截图已查看，技术PDF另逐页检查；历史材料与指纹保持，并核对先前真实远端源码。旧v30交付原字节归档，只更新个人Private仓库，每12小时继续。当前方法、边界及记录见quantile-audit.md和quantile-audit-validation.json。
+
+## 2026-10-20 v32 CSV差值的有限范围判定
+
+本地基线90885aa、个人Private远端f60336a，初始工作树干净，无重复进程或协作者前进。复现有限均值-1.7976931348623157e308减论文输入+1.7976931348623157e308时，差值溢出为Infinity；旧代码保存difference=null，却继续用原Infinity判status=difference，界面同时显示发现差异和不可计算。
+
+新均值比较保存policy=finite-difference@1。相减没有有限结果时保存status=unavailable、difference=null及unavailableReason=difference_overflow，明确差值超出有限数值范围、没有给出容差判定，并提示核对单位/缩放后复算。无有效数值单独记录no_valid_values；有限差值仍沿用绝对差值<=用户容差的原规则，不改变CSV过滤、均值、标准差或分位数算法。它不使用任意精度，也不声称证明两个输入相等或给出显著性结论。
+
+DataAudit与报告快照显示明确原因，JSON保留实际策略和原因，报告摘要及Markdown附录带上同一冻结说明。新可选字段不迁移或反推旧@1/@2记录；旧快照及已保存报告的原status和字段保持，不会凭旧空值猜测原因。CSV执行器仍@2，比较子策略单独版本化。
+
+两项Node与一项实际浏览器控制在fcb4ad0登记。旧Node2/2失败；首次浏览器因未等项目创建就上传而未到达目标断言，补充项目标题等待后，原实现明确在旧差异提示处失败。保留两次日志，不把测试准备问题当产品缺陷。修复后目标11项Node、3项浏览器通过，完整生产构建263项Node/77项浏览器通过，零外部模型请求。
+
+手算开发者控制覆盖双向溢出、最大有限容差、恰好容差/超出容差、负差、零差及无有效值。浏览器真实上传合成DOCX/CSV并保存，验证手机、下载JSON、报告面板与Markdown、后续正常复算、旧快照/原文/消息/报告不变和刷新。它们是软件行为控制，不是专家准确率、用户历史迁移或独立科学效能评估。手机截图与技术PDF逐页检查，旧v31交付原字节归档；仅发布个人Private仓库。详见comparison-range.md及comparison-range-validation.json。
