@@ -61,7 +61,9 @@ function lastReview(snapshot: ClaimAuditSnapshot, relationId: string) {
             ? '发现数值差异，待人工核对'
             : snapshots.data.comparison.status === 'within_tolerance'
               ? '在所设容差内'
-              : '无法比较'
+              : snapshots.data.comparison.unavailableReason === 'difference_overflow'
+                ? '差值超出有限数值范围，无法比较'
+                : '无法比较'
         }}。
       </p>
       <button

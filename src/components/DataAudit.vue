@@ -450,7 +450,9 @@ function exportUrl(snapshot: DataAuditSnapshot) {
             ? '发现数值差异，待人工核对'
             : selected.comparison.status === 'within_tolerance'
               ? '均值在所设容差内'
-              : '有效值不足，无法比较'
+              : selected.comparison.unavailableReason === 'difference_overflow'
+                ? '差值超出有限数值范围，无法比较'
+                : '有效值不足，无法比较'
         }}</strong>
         <p>
           论文均值 {{ format(selected.comparison.expectedMean) }} · 容差

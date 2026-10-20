@@ -294,18 +294,28 @@ export function auditData(
   let comparison = null;
   if (mapping.expectedMean !== null) {
     const difference = overall.mean === null ? null : overall.mean - mapping.expectedMean;
+    const unavailableReason =
+      difference === null
+        ? 'no_valid_values'
+        : !Number.isFinite(difference)
+          ? 'difference_overflow'
+          : null;
     comparison = {
+      policy: 'finite-difference@1',
       expectedMean: mapping.expectedMean,
       tolerance: mapping.tolerance,
       difference: difference !== null && Number.isFinite(difference) ? difference : null,
-      status:
-        difference === null
-          ? 'unavailable'
-          : Math.abs(difference) <= mapping.tolerance
-            ? 'within_tolerance'
-            : 'difference',
+      status: unavailableReason
+        ? 'unavailable'
+        : Math.abs(difference) <= mapping.tolerance
+          ? 'within_tolerance'
+          : 'difference',
+      ...(unavailableReason ? { unavailableReason } : {}),
       anchor: mapping.anchor,
       notice:
+        (unavailableReason === 'difference_overflow'
+          ? '复算均值与论文均值的差值超出有限数值范围，未给出容差判定；请核对单位或缩放后重新复算。'
+          : '') +
         '仅比较全部有效数值的非加权算术均值。数值差异需核对数据版本、筛选条件、权重、单位及舍入；不判断数据造假或论文结论。',
     };
   }
@@ -346,7 +356,7 @@ export function quantileSummary(stats) {
 
 export function dataAuditSummary(snapshot) {
   const stats = snapshot.overall;
-  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${quantileSummary(stats)}${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
+  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${quantileSummary(stats)}${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : snapshot.comparison.unavailableReason === 'difference_overflow' ? '差值超出有限数值范围，无法比较' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
 }
 
 export function mountDataAudit(app, { project, save, limits: overrides = {} }) {

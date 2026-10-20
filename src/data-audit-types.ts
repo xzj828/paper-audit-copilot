@@ -51,6 +51,8 @@ export interface DataAuditSnapshot {
     notice: string;
   } | null;
   comparison: {
+    policy?: 'finite-difference@1';
+    unavailableReason?: 'no_valid_values' | 'difference_overflow';
     expectedMean: number;
     tolerance: number;
     difference: number | null;

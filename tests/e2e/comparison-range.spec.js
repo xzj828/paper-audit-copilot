@@ -9,6 +9,7 @@ test('actual CSV range failure explains saved JSON and frozen reports across ano
   await page.getByRole('button', { name: '新建项目', exact: true }).first().click();
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('差值范围 · 开发者控制');
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
+  await expect(page.locator('.conversation-header h1')).toHaveText('差值范围 · 开发者控制');
   await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
     name: 'range-control.docx',
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -21,13 +22,11 @@ test('actual CSV range failure explains saved JSON and frozen reports across ano
   const initial = await read();
   await page.getByRole('tab', { name: '证据工具', exact: true }).click();
   const csv = page.getByRole('region', { name: 'CSV 描述统计复算', exact: true });
-  await csv
-    .locator('input[type=file]')
-    .setInputFiles({
-      name: 'overflow.csv',
-      mimeType: 'text/csv',
-      buffer: Buffer.from('value\n-1.7976931348623157e308'),
-    });
+  await csv.locator('input[type=file]').setInputFiles({
+    name: 'overflow.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('value\n-1.7976931348623157e308'),
+  });
   await csv.getByLabel('数值列（必选）').selectOption('0');
   await csv.getByLabel('论文报告的全表均值（可选）').fill('1.7976931348623157e308');
   await csv.getByLabel('允许的绝对差值（容差）').fill('0');
