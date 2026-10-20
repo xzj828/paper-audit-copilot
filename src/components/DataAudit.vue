@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
 import { api } from '../api';
 import type { Anchor, Project, Version } from '../types';
 import type { DataAuditColumn, DataAuditSnapshot } from '../data-audit-types';
+import CsvExclusions from './CsvExclusions.vue';
 
 const props = defineProps<{
   projectId: string;
@@ -386,6 +387,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
           </tbody>
         </table>
       </div>
+      <CsvExclusions :diagnostics="selected.excludedRecords" />
       <template v-if="selected.overall.quantiles">
         <p class="audit-note">
           分位数方法：R type 7 线性插值；Q1 为 25%、中位数为 50%、Q3 为 75% 分位数，四分位距为

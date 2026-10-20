@@ -172,6 +172,11 @@ export function reportBlocks(report, projectTitle) {
     const data = report.toolAudits?.data;
     if (data) {
       add(dataAuditSummary(data));
+      if (data.excludedRecords) {
+        add(`${data.excludedRecords.policy}：${data.excludedRecords.notice}`);
+        for (const record of data.excludedRecords.records)
+          add(`CSV数据记录 ${record.record}：${record.kind === 'missing' ? '缺失' : '非法'}。`);
+      }
       add(
         `复算 ${data.id}；时间 ${data.createdAt}；原文版本 ${data.versionId}；解析 ${data.parseId}；论文 SHA-256 ${data.contentHash || '未记录'}。`,
       );

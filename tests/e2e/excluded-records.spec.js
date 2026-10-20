@@ -10,13 +10,11 @@ test('actual CSV exclusions retain logical record identity, bounds, JSON and fro
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('排除记录 · 开发者控制');
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
   await expect(page.locator('.conversation-header h1')).toHaveText('排除记录 · 开发者控制');
-  await page
-    .getByLabel('上传论文文件', { exact: true })
-    .setInputFiles({
-      name: 'record-control.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      buffer: docxFixture('Developer CSV record control, not a scientific dataset.'),
-    });
+  await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
+    name: 'record-control.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: docxFixture('Developer CSV record control, not a scientific dataset.'),
+  });
   await expect(page.locator('.parse-metrics')).toBeVisible();
   const id = (await (await page.request.get('/api/projects')).json())[0].id;
   const read = async () =>
@@ -29,20 +27,23 @@ test('actual CSV exclusions retain logical record identity, bounds, JSON and fro
     ...Array.from({ length: 25 }, (_, i) => `b,x,${i % 2 ? 'NA' : ''}`),
     'a,x,4',
   ];
-  await csv
-    .locator('input[type=file]')
-    .setInputFiles({
-      name: 'exclusions.csv',
-      mimeType: 'text/csv',
-      buffer: Buffer.from('g,note,value\n' + records.join('\n')),
-    });
+  await csv.locator('input[type=file]').setInputFiles({
+    name: 'exclusions.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('g,note,value\n' + records.join('\n')),
+  });
   await csv.getByLabel('数值列（必选）').selectOption('2');
   await csv.getByLabel('分组列（可选，最多 100 组）').selectOption('0');
   await csv.getByRole('button', { name: '复算并保存快照', exact: true }).click();
   const exclusions = csv.getByRole('region', { name: '数值列排除记录', exact: true });
   await expect(exclusions).toBeVisible({ timeout: 1500 });
   await expect(exclusions).toContainText('共 25 条排除记录；已列出 20 条，另有 5 条未列出');
-  await exclusions.getByText('查看记录序号与原因', { exact: true }).click();
+  const toggle = exclusions.getByRole('button', { name: '查看记录序号与原因', exact: true });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(exclusions.getByRole('row')).toHaveCount(0);
+  await toggle.focus();
+  await toggle.press('Enter');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(exclusions.getByRole('row')).toHaveCount(21);
   await expect(exclusions.getByRole('row').nth(1)).toHaveText('2缺失');
   await expect(exclusions.getByRole('row').nth(20)).toHaveText('21非法');
@@ -59,7 +60,7 @@ test('actual CSV exclusions retain logical record identity, bounds, JSON and fro
   await page.getByRole('button', { name: '保存工具快照到报告', exact: true }).click();
   await page.locator('.tool-snapshots summary').click();
   const report = page.getByRole('region', { name: '报告中的数据复算快照', exact: true });
-  await expect(report).toContainText('排除记录 25 条；列出 20 条；未列出 5 条');
+  await expect(report).toContainText('共 25 条排除记录；已列出 20 条，另有 5 条未列出');
   const reported = await read();
   const markdown = page.waitForEvent('download');
   await page.getByRole('button', { name: '导出 Markdown', exact: true }).click();

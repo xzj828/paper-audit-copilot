@@ -19,6 +19,33 @@ function finiteNumber(raw) {
   const value = Number(text);
   return Number.isFinite(value) ? value : null;
 }
+function readNumericCell(raw) {
+  if (!String(raw).trim()) return { kind: 'missing' };
+  const value = finiteNumber(raw);
+  return value === null ? { kind: 'invalid' } : { kind: 'valid', value };
+}
+
+function excludedRecordDiagnostics(rows, valueColumn) {
+  const limit = 20,
+    records = [];
+  let total = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const { kind } = readNumericCell(rows[i][valueColumn]);
+    if (kind === 'valid') continue;
+    total++;
+    if (records.length < limit) records.push({ record: i + 1, kind });
+  }
+  return {
+    policy: 'csv-record-exclusions@1',
+    valueColumn,
+    limit,
+    total,
+    omitted: total - records.length,
+    records,
+    notice:
+      '数据记录序号从 1 开始，不含标题；引号字段内换行不另计记录。仅针对所选数值列，最多列出前 20 条被排除记录；本清单不保存单元格原始内容。',
+  };
+}
 function displayFilename(raw) {
   let name = String(raw || 'data.csv');
   // Multipart headers may have been decoded as Latin-1 by the upload parser.
@@ -191,13 +218,10 @@ export function describeValues(rawValues) {
     invalid = 0;
   const values = [];
   for (const raw of rawValues) {
-    if (!String(raw).trim()) {
-      missing++;
-      continue;
-    }
-    const value = finiteNumber(raw);
-    if (value === null) invalid++;
-    else values.push(value);
+    const cell = readNumericCell(raw);
+    if (cell.kind === 'missing') missing++;
+    else if (cell.kind === 'invalid') invalid++;
+    else values.push(cell.value);
   }
   const count = values.length,
     warnings = [];
@@ -337,6 +361,7 @@ export function auditData(
     columns: csv.headers.map((name, index) => ({ index, name })),
     mapping,
     totalRows: csv.rows.length,
+    excludedRecords: excludedRecordDiagnostics(csv.rows, mapping.valueColumn),
     overall,
     groups,
     idCheck,
@@ -356,7 +381,7 @@ export function quantileSummary(stats) {
 
 export function dataAuditSummary(snapshot) {
   const stats = snapshot.overall;
-  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${quantileSummary(stats)}${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : snapshot.comparison.unavailableReason === 'difference_overflow' ? '差值超出有限数值范围，无法比较' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
+  return `CSV 描述统计复算（${snapshot.executor}）：${snapshot.file.filename}，SHA-256 ${snapshot.file.sha256}；${snapshot.totalRows} 条记录，有效 ${stats.valid}，缺失 ${stats.missing}，非法 ${stats.invalid}；均值 ${stats.mean ?? '不可计算'}，样本标准差 ${stats.sampleSD ?? '不可计算'}。${quantileSummary(stats)}${snapshot.excludedRecords ? `排除记录 ${snapshot.excludedRecords.total} 条；列出 ${snapshot.excludedRecords.records.length} 条；未列出 ${snapshot.excludedRecords.omitted} 条。` : ''}${snapshot.comparison ? `论文均值比较：${snapshot.comparison.status === 'difference' ? '数值差异，待人工核对' : snapshot.comparison.status === 'within_tolerance' ? '在所设容差内' : snapshot.comparison.unavailableReason === 'difference_overflow' ? '差值超出有限数值范围，无法比较' : '不可计算'}。` : ''}仅为用户提供 CSV 的描述统计，不判断显著性、独立性或因果。`;
 }
 
 export function mountDataAudit(app, { project, save, limits: overrides = {} }) {

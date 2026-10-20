@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Anchor, Report } from '../types';
 import type { ClaimAuditSnapshot } from '../claim-types';
+import CsvExclusions from './CsvExclusions.vue';
 defineProps<{
   snapshots: NonNullable<Report['toolAudits']> & { claims?: ClaimAuditSnapshot | null };
   parseId?: string;
@@ -45,6 +46,7 @@ function lastReview(snapshot: ClaimAuditSnapshot, relationId: string) {
         {{ snapshots.data.overall.mean ?? '不可计算' }}，样本标准差
         {{ snapshots.data.overall.sampleSD ?? '不可计算' }}。
       </p>
+      <CsvExclusions :diagnostics="snapshots.data.excludedRecords" />
       <p v-if="snapshots.data.overall.quantiles">
         中位数 {{ snapshots.data.overall.quantiles.median ?? '不可计算' }}， Q1
         {{ snapshots.data.overall.quantiles.q1 ?? '不可计算' }}， Q3

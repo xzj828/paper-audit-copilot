@@ -40,6 +40,15 @@ export interface DataAuditSnapshot {
     anchor: Anchor | null;
   };
   totalRows: number;
+  excludedRecords?: {
+    policy: 'csv-record-exclusions@1';
+    valueColumn: number;
+    limit: number;
+    total: number;
+    omitted: number;
+    records: { record: number; kind: 'missing' | 'invalid' }[];
+    notice: string;
+  };
   overall: DataAuditStats;
   groups: (DataAuditStats & { name: string | null })[];
   idCheck: {

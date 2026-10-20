@@ -25,7 +25,7 @@ test('exclusions use logical data record positions and the same numeric filter w
       { record: 8, kind: 'invalid' },
     ],
     notice:
-      '数据记录序号从 1 开始，不含标题；引号字段内换行不另计记录。仅针对所选数值列，最多列出前 20 条被排除记录；不保存这些单元格的原始内容。',
+      '数据记录序号从 1 开始，不含标题；引号字段内换行不另计记录。仅针对所选数值列，最多列出前 20 条被排除记录；本清单不保存单元格原始内容。',
   });
   assert.equal(snapshot.totalRows, 9);
   assert.deepEqual(
