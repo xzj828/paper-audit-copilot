@@ -1,0 +1,72 @@
+{
+  "schema": "excluded-records-validation@1",
+  "round": 33,
+  "evaluatedAt": "2026-10-20T17:50:36.371808+00:00",
+  "scope": "Finite developer software controls, not scientific or expert accuracy, independent quality evaluation or real-user migration",
+  "executor": "csv-descriptive-audit@2",
+  "policy": "csv-record-exclusions@1",
+  "maximumExamples": 20,
+  "retainsRawExcludedCellContents": false,
+  "externalModelRequests": 0,
+  "controlsLocalCommit": "87b527947beeede383cd25ece68025219c19bf20",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 265,
+    "browserPassed": 79,
+    "newNodeTests": 2,
+    "newBrowserFlows": 2,
+    "targetedNodePassed": 13,
+    "targetedBrowserPassed": 5,
+    "fullCheckLogSHA256": "e3b31449e9c12f4deff0cd3447e1cf49d47a9fe97184d1adca2325738e5dfd6c",
+    "targetedNodeLogSHA256": "5d048f38cd9251a27700f198972c09ee63999750831de005ad9bdd17f147d0e1",
+    "targetedBrowserLogSHA256": "62bb8558c2078c5c3653b0f0d6ba79e0fc463ad88c8cfe80a4708a3be58d3577"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-three-before-node.log",
+      "sha256": "513d3a1f7af4af23146205a0c46e9bfa049dd7c4407b965e75f0307f57a4090b",
+      "description": "Original implementation fails both controls: missing exclusion diagnostics."
+    },
+    {
+      "log": "round-thirty-three-before-browser.log",
+      "sha256": "2a0143311a63008c0e9a8cb9e44c77c5fb2f0f9799634a363c036dae83cec350",
+      "description": "Original components fail both new and legacy UI controls."
+    },
+    {
+      "log": "round-thirty-three-target-node.log",
+      "sha256": "343af477766985bbad3039051713be30c4ae5ca9c5f2fce1d96b29d921b8a92a",
+      "description": "Initial targeted Node run passes 13 controls."
+    },
+    {
+      "log": "round-thirty-three-check-initial.log",
+      "sha256": "851650deaf3636f5403d8bc60c2a05bc4ce1e80f6f6a78351577991b32d22282",
+      "description": "First full build and 265 Node pass; browser 78/79. Existing DOCX scope flow passes business assertions then times out waiting 10 seconds for a task-update toast to disappear. No implementation or assertion changed."
+    },
+    {
+      "log": "round-thirty-three-scope-recheck.log",
+      "sha256": "96af0b9c6b96b9f5727413e1870d004422bfd907a6444c4733be238965165304",
+      "description": "Unchanged scope flows pass 2/2 separately. Toast timeout not reproduced reliably; no root-cause repair claim."
+    },
+    {
+      "log": "round-thirty-three-target-browser.log",
+      "sha256": "06b773548b7443bcb94f692a018d04c84e6f290c397c7f53d8f06fb1e0f08e42",
+      "description": "3/5 browser flows pass. Nested summary made existing report disclosure selector ambiguous; corrected new control to independent button, without weakening record/count assertions."
+    },
+    {
+      "log": "round-thirty-three-target-browser-final.log",
+      "sha256": "382216af80a3d9073dea8e16cf7d8893a70c816de2a33a67dff6869d0e038acb",
+      "description": "5/5 pass after UI correction. Added explicit keyboard/default-collapse checks before the final complete targeted run."
+    }
+  ],
+  "implementationSha256": {
+    "server/data-audit.js": "f84c98b97814eddd9ebae4a65dd9777a87122024fa5b13cb7438251d14bb79d0",
+    "server/reports.js": "f27183c5420a8791ed77b15c3d15785b0ef3d4df7f3b34bc8e2d15483fd0d40e",
+    "src/components/CsvExclusions.vue": "a7a29860f3d0080d339b22ee87b8001d87497ebf15cc0344ab7b28965200094c",
+    "src/components/DataAudit.vue": "0cb4786bc9faadbe312852ec898822aeb9247efe5fb0f846175db6914e4641bd",
+    "src/components/ToolSnapshots.vue": "8b9b3388b5832d7cbd25c94c3c19797f5bed9784ab35ac09a365daaa77672c4c",
+    "src/data-audit-types.ts": "b73285b4f260b6bf8a822e078aba1c986485ca363c3092ce3e386c2a12958d64",
+    "tests/excluded-records.test.js": "dbe34e0ec3e0426a217005d7a9869c034008c08055203d4409ebb61fcaeff11c",
+    "tests/e2e/excluded-records.spec.js": "4c94ccf1d62d14cd3e65313bf17715ab3a2af5cc86febeff4314e04572d2f9d5"
+  },
+  "historicalProofPolicy": "Previous results retain labels and fingerprints, checked against genuinely byte-verified prior remote snapshots. No record positions inferred for legacy snapshots."
+}
