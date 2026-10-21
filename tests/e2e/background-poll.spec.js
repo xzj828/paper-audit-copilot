@@ -60,22 +60,26 @@ async function holdPoll(page, project) {
   const pattern = `**/api/projects/${project.id}`;
   await page.route(pattern, async (route) => {
     if (route.request().method() !== 'GET') return route.continue();
-    const response = await route.fetch();
-    expect(response.status()).toBe(200);
-    const json = await response.json();
     if (!opened) {
       opened = true;
+      const response = await route.fetch();
+      const json = await response.json();
+      json.title = project.title + ' · 待更新';
       json.versions.find((v) => v.id !== json.activeVersionId).status = 'parsing';
       return route.fulfill({ response, json });
     }
-    reads++;
-    if (reads === 1) signalStarted();
+    const position = ++reads;
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    const json = await response.json();
+    if (position === 1) signalStarted();
     await gate;
     await route.fulfill({ response, json });
-    if (reads === 1) signalFinished();
+    if (position === 1) signalFinished();
   });
   await page.locator('.project-link').filter({ hasText: project.title }).click();
   await expect(page.locator('.version-chip')).toHaveText('v2');
+  await expect(page.locator('.conversation-header h1')).toHaveText(project.title + ' · 待更新');
   await page.clock.runFor(1100);
   await started;
   return { release, finished, reads: () => reads, pattern };
@@ -87,7 +91,10 @@ test('one pending background read per unchanged project, with recovery after a f
   const { project, read } = await setup(page);
   const hold = await holdPoll(page, project);
   try {
-    await page.clock.runFor(3100);
+    for (let tick = 0; tick < 3; tick++) {
+      await page.clock.runFor(1100);
+      await page.evaluate(() => fetch('/api/health').then((response) => response.json()));
+    }
     expect(hold.reads()).toBe(1);
   } finally {
     hold.release();
@@ -110,11 +117,13 @@ test('one pending background read per unchanged project, with recovery after a f
       json = await response.json();
     if (open) {
       open = false;
+      json.title = project.title + ' · 重试控制';
       json.versions.find((v) => v.id !== json.activeVersionId).status = 'parsing';
     } else recovered = true;
     await route.fulfill({ response, json });
   });
   await page.locator('.project-link').filter({ hasText: project.title }).click();
+  await expect(page.locator('.conversation-header h1')).toHaveText(project.title + ' · 重试控制');
   await page.clock.runFor(1100);
   await expect.poll(() => failed).toBe(true);
   await page.clock.runFor(1100);
@@ -155,10 +164,12 @@ test('a held old poll cannot erase a completed answer or frozen report from the 
       const reported = await read();
       const reportId = reported.versions.at(-1).reports.at(-1).id;
       expect(reportId).toBeTruthy();
+      await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
       reportHold.release();
       await reportHold.finished;
       await page.clock.runFor(200);
       await expect(page.locator('.event-assistant:not(.streaming-message)')).toHaveCount(1);
+      await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
       // Selecting the report tab and exporting still reads the latest saved report.
       await expect(page.getByRole('button', { name: '导出 Markdown', exact: true })).toBeEnabled();
       expect((await read()).versions).toEqual(reported.versions);

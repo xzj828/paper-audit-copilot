@@ -556,6 +556,7 @@ const fileSize = (size: number) =>
 let toastTimer: ReturnType<typeof setTimeout>,
   pollTimer: ReturnType<typeof setInterval>,
   requestSequence = 0;
+const pollingProjects = new WeakSet<Project>();
 function notify(text: string) {
   toast.value = text;
   clearTimeout(toastTimer);
@@ -800,23 +801,30 @@ function onDrop(event: DragEvent) {
   if (file) requestUpload(file);
 }
 async function poll() {
+  const before = project.value;
   if (
-    !project.value?.versions.some(
+    !before ||
+    pollingProjects.has(before) ||
+    !before.versions.some(
       (v) => v.status === 'parsing' || v.runs?.some((r) => r.status === 'running'),
     )
   )
     return;
-  const id = project.value.id;
+  // One read per unchanged browser snapshot. A different project or a newly
+  // accepted result can progress without waiting for an obsolete request.
+  pollingProjects.add(before);
+  const id = before.id;
   const revision = settingsRevision;
   const navigation = requestSequence;
-  const activeVersionId = project.value.activeVersionId;
+  const activeVersionId = before.activeVersionId;
   try {
     const follow =
       timeline.value &&
       timeline.value.scrollHeight - timeline.value.scrollTop - timeline.value.clientHeight < 100;
     const data = await api<Project>(`/projects/${id}`);
     if (
-      project.value?.id === id &&
+      project.value === before &&
+      project.value.id === id &&
       revision === settingsRevision &&
       navigation === requestSequence &&
       project.value.activeVersionId === activeVersionId &&
@@ -824,8 +832,10 @@ async function poll() {
       !busy.value
     ) {
       project.value = { ...data, activeVersionId };
+      const applied = project.value;
       if (follow) {
         await nextTick();
+        if (project.value !== applied || navigation !== requestSequence) return;
         timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
       }
       if (
@@ -834,11 +844,19 @@ async function poll() {
         )
       ) {
         await refreshList();
+        if (
+          project.value !== applied ||
+          navigation !== requestSequence ||
+          revision !== settingsRevision
+        )
+          return;
         notify('任务状态已更新，可查看报告');
       }
     }
   } catch {
     /* Preserve current data; a later poll retries. */
+  } finally {
+    pollingProjects.delete(before);
   }
 }
 async function startReview(retryId?: string, budget?: ReviewBudget) {
