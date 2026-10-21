@@ -1,0 +1,43 @@
+{
+  "schema": "background-poll-validation@1",
+  "round": 34,
+  "evaluatedAt": "2026-10-21T05:51:04.626080+00:00",
+  "scope": "Finite developer browser state controls, not expert accuracy, backend write concurrency, real Worker latency or proof of the unique cause of the earlier toast timeout",
+  "externalModelRequests": 0,
+  "pollIntervalMs": 1000,
+  "databaseOrExportSchemaChanges": false,
+  "addsNetworkTimeout": false,
+  "controlsLocalCommit": "312ad554d110d0282bb72014fd84dade96f7845a",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 265,
+    "browserPassed": 81,
+    "newNodeTests": 0,
+    "newBrowserFlows": 2,
+    "targetedBrowserPassed": 4,
+    "fullCheckLogSHA256": "5a3c65649459fe135e4ffa390ed3f4eb18d31934afd089bc20983457e8645044",
+    "targetedBrowserLogSHA256": "f4266e292f163d79856dac615e8e117c2d0d2ca6a2142f5a07a0aa3f64e942e3"
+  },
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-four-before-browser.log",
+      "sha256": "0ad9f9a163760ec9ae99812739dbd89e50a60fbe0341b4aaf5840904ea9af469",
+      "description": "Test preparation failed on retry synchronization and a completion signal using a mutable request counter; not presented as a product failure."
+    },
+    {
+      "log": "round-thirty-four-before-browser-final.log",
+      "sha256": "41f0af1fe9799f0974528d57bdf1c884d5f8afe1c1879397ca39386557fa89cc",
+      "description": "After fixed request sequence and applied-title synchronization, 1/2 pass; actual held old GET removes the visible stored answer."
+    },
+    {
+      "log": "round-thirty-four-before-browser-complete.log",
+      "sha256": "27494f12e796dc10d00cd6c6e4ddfe24e521d5ada23d6abdcd5985aa4c826125",
+      "description": "After browser HTTP turns drain request events, original implementation fails both controls: four concurrent reads instead of one, and zero visible answers instead of one."
+    }
+  ],
+  "implementationSha256": {
+    "src/App.vue": "b70809b6a16bb84ca5f3e6ec60cec54a3a34867aee467c8a758643356d3632e8",
+    "tests/e2e/background-poll.spec.js": "0f33fa9f6e2fe90e22b9ad59bc797bcf85b8ce08d83dbb5fb82e6b4935a90ec3"
+  },
+  "historicalProofPolicy": "Keep old fingerprints and labels, verified using genuine prior byte-checked remote source. No reclassification as expert accuracy."
+}
