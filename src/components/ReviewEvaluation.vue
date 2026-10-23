@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { api, json } from '../api';
 const props = defineProps<{ projectId: string; versionId: string; reportId: string }>();
 interface Comparison {
@@ -25,6 +25,17 @@ const filenames = ref(['', '']);
 const error = ref(''),
   busy = ref(false),
   result = ref<Comparison | null>(null);
+const caseFilter = ref('all');
+const visibleCases = computed(() =>
+  (result.value?.cases || []).filter(
+    (item) => caseFilter.value === 'all' || item.status === caseFilter.value,
+  ),
+);
+// A replacement record invalidates the comparison. A new result starts in the
+// complete view; filtering never changes the downloaded result or its counts.
+watch(result, () => {
+  caseFilter.value = 'all';
+});
 let active = true;
 const revisions = [0, 0];
 onUnmounted(() => {
@@ -166,10 +177,28 @@ async function compare() {
       <button class="secondary-button" @click="download(result, '人工复核比对.json')">
         下载完整复核比对
       </button>
-      <article v-for="item in result.cases" :key="item.caseId">
+      <label class="review-case-filter">
+        复核结果筛选
+        <select v-model="caseFilter" aria-label="复核结果筛选">
+          <option value="all">全部问题</option>
+          <option value="needs_adjudication">需要裁决</option>
+          <option value="insufficient_material">双方无法判断</option>
+          <option value="agreement">选择一致</option>
+        </select>
+      </label>
+      <p role="status">当前显示 {{ visibleCases.length }} / {{ result.cases.length }} 条</p>
+      <p v-if="!visibleCases.length" class="muted">
+        当前筛选下没有复核问题。可切换“全部问题”查看完整清单；问题条数不代表全文没有缺陷。
+      </p>
+      <article v-for="item in visibleCases" :key="item.caseId">
         <strong>{{ item.caseId }} · {{ item.title }} · {{ labels[item.status] }}</strong>
-        <p v-for="(label, key) in fields" :key="key">
+        <p
+          v-for="(label, key) in fields"
+          :key="key"
+          :class="{ 'review-field-disagreement': item.differingFields.includes(key) }"
+        >
           {{ label }}：A {{ labels[item.left[key]] }} / B {{ labels[item.right[key]] }}
+          <span v-if="item.differingFields.includes(key)">（存在分歧）</span>
         </p>
         <p>记录 A：{{ item.left.note || '未附说明' }}</p>
         <p>记录 B：{{ item.right.note || '未附说明' }}</p>
@@ -216,5 +245,20 @@ input {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+}
+.review-case-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+}
+.review-case-filter select {
+  max-width: 100%;
+}
+.review-field-disagreement {
+  font-weight: 600;
+  border-left: 3px solid var(--blue);
+  padding-left: 8px;
 }
 </style>
