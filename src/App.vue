@@ -817,12 +817,17 @@ async function poll() {
   const revision = settingsRevision;
   const navigation = requestSequence;
   const activeVersionId = before.activeVersionId;
+  // Bound only the background status read, including consumption of its body.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
     const follow =
       timeline.value &&
       timeline.value.scrollHeight - timeline.value.scrollTop - timeline.value.clientHeight < 100;
-    const data = await api<Project>(`/projects/${id}`);
+    const data = await api<Project>(`/projects/${id}`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (
+      !controller.signal.aborted &&
       project.value === before &&
       project.value.id === id &&
       revision === settingsRevision &&
@@ -856,6 +861,7 @@ async function poll() {
   } catch {
     /* Preserve current data; a later poll retries. */
   } finally {
+    clearTimeout(timeout);
     pollingProjects.delete(before);
   }
 }

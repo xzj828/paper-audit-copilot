@@ -216,6 +216,11 @@ test('a stalled background read aborts at 15 seconds, retries and preserves save
   });
   const hold = await holdPoll(page, saved, true);
   try {
+    // Reopening a project intentionally clears the report selection. Select the
+    // saved report in this fresh page before checking that polling preserves it.
+    await page.getByRole('tab', { name: '评审报告', exact: true }).click();
+    await page.getByLabel('选择历史报告').selectOption(reportId);
+    await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
     // Entry zero is opening the project; entry one is the held background GET.
     const startedAt = await page.evaluate(() => window.backgroundReadStarts[1]);
     expect(Number.isFinite(startedAt)).toBe(true);
