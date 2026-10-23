@@ -42,7 +42,7 @@ async function setup(page) {
 
 // The Worker really completes both uploads. Only the initial browser GET marks
 // the inactive version pending to exercise polling; storage stays untouched.
-async function holdPoll(page, project) {
+async function holdPoll(page, project, retryAfterFirst = false) {
   let opened = false,
     reads = 0,
     release,
@@ -73,7 +73,9 @@ async function holdPoll(page, project) {
     expect(response.status()).toBe(200);
     const json = await response.json();
     if (position === 1) signalStarted();
-    await gate;
+    if (retryAfterFirst)
+      json.title = project.title + (position === 1 ? ' · 迟到响应' : ' · 已恢复');
+    if (!retryAfterFirst || position === 1) await gate;
     await route.fulfill({ response, json });
     if (position === 1) signalFinished();
   });
@@ -180,6 +182,69 @@ test('a held old poll cannot erase a completed answer or frozen report from the 
     } finally {
       reportHold.release();
     }
+  } finally {
+    hold.release();
+  }
+});
+
+test('a stalled background read aborts at 15 seconds, retries and preserves saved results', async ({
+  page,
+}) => {
+  const { project, read } = await setup(page);
+  await page.locator('.project-link').filter({ hasText: project.title }).click();
+  await page.getByRole('textbox', { name: '询问 Copilot', exact: true }).fill('glacier variance');
+  await page.getByRole('button', { name: '发送消息', exact: true }).click();
+  await expect(page.locator('.event-assistant:not(.streaming-message)')).toHaveCount(1);
+  await page.getByRole('tab', { name: '证据工具', exact: true }).click();
+  await page.getByRole('button', { name: '保存工具快照到报告', exact: true }).click();
+  const saved = await read();
+  const reportId = saved.versions.at(-1).reports.at(-1).id;
+  await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
+  // Record the actual browser start time without altering fetch or its signal.
+  await page.evaluate((id) => {
+    const original = window.fetch;
+    window.backgroundReadStarts = [];
+    window.fetch = function (...args) {
+      if (args[0] === `/api/projects/${id}` && !args[1]?.method)
+        window.backgroundReadStarts.push(Date.now());
+      return original.apply(this, args);
+    };
+  }, project.id);
+  const failures = [];
+  page.on('requestfailed', (request) => {
+    if (request.url().endsWith(`/api/projects/${project.id}`)) failures.push(request.failure());
+  });
+  const hold = await holdPoll(page, saved, true);
+  try {
+    // Entry zero is opening the project; entry one is the held background GET.
+    const startedAt = await page.evaluate(() => window.backgroundReadStarts[1]);
+    expect(Number.isFinite(startedAt)).toBe(true);
+    await page.clock.runFor(startedAt + 14999 - (await page.evaluate(() => Date.now())));
+    await page.evaluate(() => fetch('/api/health').then((response) => response.json()));
+    expect(hold.reads()).toBe(1);
+    expect(failures).toHaveLength(0);
+    await expect(page.locator('.event-assistant:not(.streaming-message)')).toHaveCount(1);
+    // One millisecond reaches the deadline. The next original interval may retry.
+    await page.clock.runFor(1);
+    await expect.poll(() => failures.length).toBe(1);
+    expect(failures[0].errorText).toContain('ERR_ABORTED');
+    await page.clock.runFor(1100);
+    await expect(page.locator('.conversation-header h1')).toHaveText(project.title + ' · 已恢复');
+    expect(hold.reads()).toBe(2);
+    await expect(page.locator('.event-assistant:not(.streaming-message)')).toHaveCount(1);
+    await page.getByRole('tab', { name: '评审报告', exact: true }).click();
+    await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
+    hold.release();
+    await hold.finished;
+    await page.evaluate(() => fetch('/api/health').then((response) => response.json()));
+    await expect(page.locator('.conversation-header h1')).toHaveText(project.title + ' · 已恢复');
+    // A completed project stops polling even when the old response arrives late.
+    await page.clock.runFor(16000);
+    await page.evaluate(() => fetch('/api/health').then((response) => response.json()));
+    expect(hold.reads()).toBe(2);
+    await expect(page.locator('.event-assistant:not(.streaming-message)')).toHaveCount(1);
+    await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
+    expect((await read()).versions).toEqual(saved.versions);
   } finally {
     hold.release();
   }
