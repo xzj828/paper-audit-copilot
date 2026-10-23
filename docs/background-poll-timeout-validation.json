@@ -1,0 +1,51 @@
+{
+  "schema": "background-poll-timeout-validation@1",
+  "round": 35,
+  "evaluatedAt": "2026-10-23T01:32:02.084595+00:00",
+  "scope": "Finite developer browser controls, not expert accuracy, server-side cancellation, performance or real wall-clock availability guarantees",
+  "externalModelRequests": 0,
+  "timeoutMs": 15000,
+  "pollIntervalMs": 1000,
+  "timeoutScope": "Only the background project GET and JSON body read inside poll; not refreshList or other API calls",
+  "databaseOrExportSchemaChanges": false,
+  "controlsLocalCommit": "af73f878a850cde5ed3afff601719328437d0972",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 265,
+    "browserPassed": 82,
+    "newNodeTests": 0,
+    "newBrowserFlows": 1,
+    "targetedBrowserPassed": 5,
+    "fullCheckLogSHA256": "0f23f333e8f7529a00d902bbdf886ca7615a8c9e5b62844dc7ebcea1daa29f04",
+    "targetedBrowserLogSHA256": "da6e3ba8de7be292ac6577715dafb19a1cd338aa1f311d7bcdd632b2a51f3ea9"
+  },
+  "controls": [
+    "14999 milliseconds from actual browser background GET start: one read, no native cancellation",
+    "15000 milliseconds: native ERR_ABORTED, original interval recovers",
+    "Saved offline answer, selected frozen report and full stored versions unchanged",
+    "Delayed old response cannot roll back title; ready status stops future polling"
+  ],
+  "notIndependentlyControlled": [
+    "Headers received but response body stalled",
+    "Browser throttling or system sleep",
+    "Persistent outage backoff",
+    "Server-side task cancellation"
+  ],
+  "intermediateRecords": [
+    {
+      "log": "round-thirty-five-before-browser.log",
+      "sha256": "2df6f07df77a31ac6e05a4839996810137f935a8b1a4c41cf10cdacf70f55afd",
+      "description": "Original implementation fails expected native abort at 15 seconds: expected 1, actual 0."
+    },
+    {
+      "log": "round-thirty-five-target-browser-initial.log",
+      "sha256": "5b091c53b37ca80d712371d7038bc1ec5699ff623a27b07264010b787728d32f",
+      "description": "After implementation 3/4 pass. Timeout and retry pass; report-selection expectation failed because reopening intentionally resets selection. Final test explicitly selects the saved report in the fresh page first. Incorrect navigation filename corrected to the actual file in final target command."
+    }
+  ],
+  "implementationSha256": {
+    "src/App.vue": "906deb697aa4a37d64985d3319220999c3c3497ad697d060cf05a2d1404804da",
+    "tests/e2e/background-poll.spec.js": "94b6ebd2694d3cb75938572188e2b9ab92d29037096f0225df7463d87fd975d1"
+  },
+  "historicalProofPolicy": "Keep v34 and older fingerprints and labels unchanged, checking genuine previously byte-verified remote source."
+}
