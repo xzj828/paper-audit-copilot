@@ -1,0 +1,61 @@
+{
+  "schema": "human-review-triage-validation@1",
+  "round": 36,
+  "evaluatedAt": "2026-10-23T13:24:58.967344+00:00",
+  "scope": "Finite developer UI and software controls; not expert accuracy, independent review data, identity authentication, scientific truth or issue recall",
+  "externalModelRequests": 0,
+  "serverOrComparisonSchemaChanges": false,
+  "viewOnly": true,
+  "filterStatuses": [
+    "all",
+    "needs_adjudication",
+    "insufficient_material",
+    "agreement"
+  ],
+  "fullExportPreserved": true,
+  "controlsLocalCommit": "9153ec27bd32dfc68f09e0b936845a71367c9a83",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 265,
+    "browserPassed": 83,
+    "newNodeTests": 0,
+    "newBrowserFlows": 1,
+    "extendedExistingBrowserFlows": 1,
+    "targetedBrowserPassed": 3,
+    "fullCheckLogSHA256": "dacd63ed2717d97c5f5f7aa726e467e031fffb4cb7f530922704bd3822472cd6",
+    "targetedBrowserLogSHA256": "4fa9c218787e02e8005464f360b8557fd688c9814a6b83f2185f742034ca75c4"
+  },
+  "baseline": {
+    "log": "round-thirty-six-before-browser.log",
+    "sha256": "a0f93f6655c5baedc68cd6105d44f2884910d36c929634359ea72fde0ba9f8de",
+    "result": "Both controls fail on the original UI due to absent filter/status controls. No claim of incorrect original scientific judgments."
+  },
+  "browserControls": [
+    {
+      "type": "Actual upload and API workflow",
+      "data": "Three developer-controlled findings in isolated E2E database",
+      "checks": [
+        "all three states and original order",
+        "differing severity row only",
+        "complete three-case JSON while one case is displayed",
+        "replacement import resets to all",
+        "mobile overflow, report switching and frozen storage unchanged"
+      ]
+    },
+    {
+      "type": "Production component mounted through Vite with controlled HTTP response",
+      "data": "Empty findings; response computed using genuine compareReviewAnnotations",
+      "checks": [
+        "0/0 and explicit empty state for all filters",
+        "download exactly equals original comparator result"
+      ],
+      "limitation": "Not a second actual API route or expert review test"
+    }
+  ],
+  "implementationSha256": {
+    "src/components/ReviewEvaluation.vue": "6422e891fecd21ae4fb3f5479206ba911426be299279c631bee83199af5aea1f",
+    "tests/e2e/human-review.spec.js": "8c484ccb413547f8915fa3f85218c86cd18726f320d9aaf3b6eed7aa04814498",
+    "server/review-evaluation.js": "7b5ea3c8ba289a853ef85a2214af468f612fa9d84c0d5506895ef34e9bda1a2c"
+  },
+  "historicalProofPolicy": "Keep prior labels, counts and fingerprints unchanged, checking genuine previously byte-verified remote source."
+}

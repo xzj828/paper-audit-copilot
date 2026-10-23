@@ -219,3 +219,5 @@ CSV复算新增[排除记录定位](docs/excluded-records.md)：按逻辑数据�
 [后台刷新隔离](docs/background-poll.md)修复延迟GET覆盖较新页面快照的问题：同一快照只有一条进行中查询，已保存回答和报告被接受后，旧响应不能回退页面。
 
 [后台读取超时恢复](docs/background-poll-timeout.md)：后台项目状态GET在15秒调度阈值后中止并释放读取锁，保留已显示内容，沿用原轮询自动重试。该范围不含模型问答或服务器任务。
+
+[人工复核分歧筛选](docs/human-review-triage.md)：按裁决状态浏览比对结果，并标出具体分歧字段；筛选不裁剪完整JSON或改写历史报告。
