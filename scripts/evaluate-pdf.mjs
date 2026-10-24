@@ -31,16 +31,23 @@ async function parsePdf(sourcePath) {
   }
 }
 
-export async function evaluatePublishedPdf() {
-  const fixture = new URL('../tests/fixtures/published-pdf/beule-2021.pdf', import.meta.url);
-  const manifestBytes = await readFile(
+export async function evaluatePublishedPdf({
+  manifestPath = fileURLToPath(
     new URL('../tests/fixtures/published-pdf/source.json', import.meta.url),
-  );
+  ),
+} = {}) {
+  const manifestBytes = await readFile(manifestPath);
   const source = JSON.parse(manifestBytes);
+  if (
+    typeof source.filename !== 'string' ||
+    !/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/.test(source.filename)
+  )
+    throw new Error('Manifest filename must be a plain PDF basename');
+  const fixture = path.resolve(path.dirname(manifestPath), source.filename);
   const bytes = await readFile(fixture);
   if (bytes.length !== source.bytes || sha256(bytes) !== source.sha256)
     throw new Error('Original PDF does not match the registered source bytes');
-  const parse = await parsePdf(fileURLToPath(fixture));
+  const parse = await parsePdf(fixture);
   const diagnostics = pdfDiagnosticsSnapshot(parse.pdfDiagnostics);
   const items = parse.pages.flatMap((page) => page.items);
   const itemOffsetsValid = parse.pages.every((page) =>
@@ -195,7 +202,7 @@ export function pdfValidationMarkdown(result) {
     '',
     `实际运行时间：${result.evaluatedAt}。状态：${result.status}。`,
     '',
-    '使用一份 PLOS 出版商原始 CC BY 4.0 PDF（20物理页），三条开发者预先登记的查询。未调用模型；不是专家标注、独立保留集或审稿准确率。',
+    `使用一份 PLOS 出版商原始 CC BY 4.0 PDF（${result.parse.pageCount}物理页），${result.summary.registeredQuestions}条开发者预先登记的查询。未调用模型；不是专家标注、独立保留集或审稿准确率。`,
     '',
     `原文件 SHA-256：${result.source.sha256}。解析器：${result.parse.parser}。`,
     '',
@@ -224,11 +231,23 @@ export function pdfValidationMarkdown(result) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  if (args.length && (args.length !== 2 || args[0] !== '--output' || !args[1]))
-    throw new Error('Usage: npm run evaluate:pdf -- [--output DIRECTORY]');
-  const result = await evaluatePublishedPdf();
-  if (args.length) {
-    const output = path.resolve(args[1]);
+  const options = {};
+  for (let i = 0; i < args.length; i += 2) {
+    const key = args[i];
+    if (
+      !['--output', '--manifest'].includes(key) ||
+      !args[i + 1] ||
+      args[i + 1].startsWith('--') ||
+      options[key]
+    )
+      throw new Error('Usage: npm run evaluate:pdf -- [--manifest FILE] [--output DIRECTORY]');
+    options[key] = path.resolve(args[i + 1]);
+  }
+  const result = await evaluatePublishedPdf(
+    options['--manifest'] ? { manifestPath: options['--manifest'] } : {},
+  );
+  if (options['--output']) {
+    const output = options['--output'];
     await mkdir(output, { recursive: true });
     await writeFile(
       path.join(output, 'pdf-validation-results.json'),

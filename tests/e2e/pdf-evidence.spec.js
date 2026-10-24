@@ -224,16 +224,19 @@ test('second publisher PDF uploads unchanged and retains late conclusion evidenc
   const question = manifest.questions[2];
   await page.getByRole('textbox', { name: '询问 Copilot' }).fill(question.question);
   await page.getByRole('button', { name: '发送消息' }).click();
-  const sourceButton = page
-    .getByRole('button', { name: /定位证据 R\d+：第 13 页/ })
-    .filter({ hasText: question.expectedPhrase });
-  await expect(sourceButton).toHaveCount(1);
-  await sourceButton.click();
-  await expect(page.locator('.pdf-evidence-status')).toContainText('引文已逐字核对，定位到');
+  await expect(page.getByRole('button', { name: /定位证据 R\d+：第 13 页/ }).first()).toBeVisible();
   const saved = await (await page.request.get(`/api/projects/${project.id}`)).json();
   const source = saved.versions[0].messages
     .at(-1)
     .sources.find((s) => s.anchor.page === 13 && s.anchor.quote.includes(question.expectedPhrase));
+  expect(source).toBeTruthy();
+  const sourceButton = page.getByRole('button', {
+    name: `定位证据 ${source.id}：第 13 页`,
+    exact: true,
+  });
+  await expect(sourceButton).toHaveCount(1);
+  await sourceButton.click();
+  await expect(page.locator('.pdf-evidence-status')).toContainText('引文已逐字核对，定位到');
   const expected = pdfQuoteBoxes(version.parse.pages[12], focusAnchor(source));
   expect(expected.status).toBe('matched');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -241,6 +244,7 @@ test('second publisher PDF uploads unchanged and retains late conclusion evidenc
   await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
   await page.screenshot({ path: 'docs/screenshots/second-pdf-mobile.png' });
   await page.reload();
+  await page.getByRole('button', { name: '对话', exact: true }).click();
   await sourceButton.click();
   await page.getByRole('button', { name: '论文工作区', exact: true }).click();
   await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
