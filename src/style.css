@@ -1893,6 +1893,34 @@ progress {
   background: white;
   box-shadow: 0 2px 8px #0002;
 }
+.pdf-fit-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 20px;
+  font-size: 12px;
+}
+.pdf-fit-controls span {
+  color: var(--muted);
+}
+.pdf-reader-fit-width {
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+.pdf-reader-fit-width .pdf-current-page,
+.pdf-reader-fit-width .pdf-comparison-page,
+.pdf-reader-fit-width .pdf-continuous-page,
+.pdf-reader-fit-width .pdf-page-stage {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.pdf-reader-fit-width canvas {
+  width: 100% !important;
+  height: auto !important;
+}
 .pdf-page-stage {
   position: relative;
   width: max-content;
@@ -1935,6 +1963,9 @@ progress {
     display: grid;
     grid-template-columns: max-content max-content;
     align-items: start;
+  }
+  .pdf-reader-fit-width.pdf-reader-comparing {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .pdf-reader-comparing > .empty-state,
   .pdf-reader-comparing > .error-notice {

@@ -8,6 +8,7 @@ const props = defineProps<{
   url: string;
   page: number;
   zoom: number;
+  fitWidth?: boolean;
   query?: string;
   bbox?: number[];
   continuous?: boolean;
@@ -40,7 +41,11 @@ const evidenceStatus = computed(() => {
       return '';
   }
 });
-const emit = defineEmits<{ pages: [count: number]; navigate: [page: number] }>();
+const emit = defineEmits<{
+  pages: [count: number];
+  navigate: [page: number];
+  'update:fitWidth': [enabled: boolean];
+}>();
 let pdf: import('pdfjs-dist').PDFDocumentProxy | undefined;
 const continuousPdf = shallowRef<import('pdfjs-dist').PDFDocumentProxy>();
 const comparing = ref(false);
@@ -194,10 +199,17 @@ async function render() {
       error.value = e.message;
   }
 }
-watch(() => props.url, load, { immediate: true });
+watch(
+  () => props.url,
+  () => {
+    emit('update:fitWidth', false);
+    void load();
+  },
+  { immediate: true },
+);
 watch(() => [props.page, props.zoom, props.query, props.bbox], render);
 watch(
-  () => [props.textAnchor, renderedPage.value],
+  () => [props.textAnchor, renderedPage.value, props.fitWidth],
   async () => {
     await nextTick();
     if (renderedPage.value === props.page && evidence.value?.status === 'matched')
@@ -217,6 +229,17 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
+  <div v-if="continuousPdf" class="pdf-fit-controls">
+    <button
+      class="secondary-button"
+      :aria-pressed="!!fitWidth"
+      :disabled="loading || !!error || renderedPage !== page"
+      @click="emit('update:fitWidth', !fitWidth)"
+    >
+      适合宽度
+    </button>
+    <span v-if="fitWidth">再次点击恢复手动比例；原文与证据位置不变。</span>
+  </div>
   <p v-if="evidenceStatus" class="notice pdf-evidence-status" role="status">
     <span v-if="searchCandidate">换行断词候选，词义与拼写需人工核对。 </span>{{ evidenceStatus }}
   </p>
@@ -249,7 +272,10 @@ onBeforeUnmount(() => {
   </section>
   <div
     class="pdf-reader"
-    :class="{ 'pdf-reader-comparing': comparing && continuousPdf && continuousPdf.numPages > 1 }"
+    :class="{
+      'pdf-reader-comparing': comparing && continuousPdf && continuousPdf.numPages > 1,
+      'pdf-reader-fit-width': fitWidth,
+    }"
   >
     <div v-if="loading" class="empty-state" role="status">
       <Icon name="loading" class="spin" />正在渲染原文…

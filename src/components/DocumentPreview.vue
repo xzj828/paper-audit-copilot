@@ -14,7 +14,8 @@ const project = ref<Project>(),
   error = ref('');
 const page = ref(1),
   pages = ref(1),
-  zoom = ref(props.preferences.zoom);
+  zoom = ref(props.preferences.zoom),
+  fitWidth = ref(false);
 const scroller = ref<HTMLElement>();
 const version = computed(() => project.value?.versions.find((v) => v.id === props.versionId));
 const url = computed(() => `/api/projects/${props.projectId}/versions/${props.versionId}/file`);
@@ -66,19 +67,27 @@ onUnmounted(() => {
         <button
           class="square-button"
           aria-label="缩小文档"
-          :disabled="zoom <= 50"
+          :disabled="fitWidth || zoom <= 50"
           @click="changeZoom(-25)"
         >
           <Icon name="minus" /></button
-        ><output aria-label="文档缩放比例">{{ zoom }}%</output
+        ><output aria-label="文档缩放比例">{{ fitWidth ? '适合宽度' : `${zoom}%` }}</output
         ><button
           class="square-button"
           aria-label="放大文档"
-          :disabled="zoom >= 300"
+          :disabled="fitWidth || zoom >= 300"
           @click="changeZoom(25)"
         >
           <Icon name="plus" /></button
-        ><button class="text-button" @click="zoom = 100">重置缩放</button>
+        ><button
+          class="text-button"
+          @click="
+            fitWidth = false;
+            zoom = 100;
+          "
+        >
+          重置缩放
+        </button>
       </div>
       <div
         v-if="version?.format === 'pdf' && version.status === 'ready'"
@@ -147,6 +156,7 @@ onUnmounted(() => {
         </details>
         <PdfReader
           v-if="version.format === 'pdf' && version.status === 'ready'"
+          v-model:fit-width="fitWidth"
           :url="url"
           :page="page"
           :zoom="zoom"

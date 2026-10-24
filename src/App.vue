@@ -232,6 +232,13 @@ const inspector = ref(true),
 const zoom = ref(100),
   page = ref(1),
   pageCount = ref(1);
+const pdfFitWidth = ref(false);
+watch(
+  () => version.value?.id,
+  () => {
+    pdfFitWidth.value = false;
+  },
+);
 const retrievalScope = ref<{ parseId: string; elementId: string } | null>(null);
 const locatedScopeSection = computed(() =>
   version.value?.parse?.sections.find((section) =>
@@ -1752,15 +1759,22 @@ onUnmounted(() => {
           <div v-if="tab === 'annotations'" class="zoom-control">
             <button
               aria-label="缩小"
-              :disabled="zoom <= 70"
+              :disabled="pdfFitWidth || zoom <= 70"
               @click="zoom = Math.max(70, zoom - 10)"
             >
               <Icon name="minus" :size="15" /></button
-            ><button class="zoom-label" aria-label="重置缩放" @click="zoom = 100">
-              {{ zoom }}%</button
+            ><button
+              class="zoom-label"
+              aria-label="重置缩放"
+              @click="
+                pdfFitWidth = false;
+                zoom = 100;
+              "
+            >
+              {{ pdfFitWidth ? '适合宽度' : `${zoom}%` }}</button
             ><button
               aria-label="放大"
-              :disabled="zoom >= 170"
+              :disabled="pdfFitWidth || zoom >= 170"
               @click="zoom = Math.min(170, zoom + 10)"
             >
               <Icon name="plus" :size="15" />
@@ -1841,6 +1855,7 @@ onUnmounted(() => {
           <template v-if="version.status === 'ready'"
             ><PdfReader
               v-if="version.format === 'pdf'"
+              v-model:fit-width="pdfFitWidth"
               :key="version.id"
               :url="uploadUrl"
               :page="page"
