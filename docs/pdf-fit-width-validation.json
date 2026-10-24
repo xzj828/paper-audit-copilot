@@ -1,0 +1,46 @@
+{
+  "schema": "pdf-fit-width-validation@1",
+  "round": 38,
+  "evaluatedAt": "2026-10-24T15:31:41.393387+00:00",
+  "scope": "Finite developer browser geometry controls, not scientific accuracy, all-device conformance, increased bitmap resolution or glyph-level measurement",
+  "externalModelRequests": 0,
+  "persistentPreferenceChanges": false,
+  "serverOrExportSchemaChanges": false,
+  "controlsLocalCommit": "9138bd46759e7afede0a7d6561da1296fa4ddb11",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 267,
+    "browserPassed": 86,
+    "newNodeTests": 0,
+    "newBrowserFlows": 2,
+    "targetedBrowserPassed": 2,
+    "fullCheckLogSHA256": "009ac088bda747c8ac83aca7b6cd1f442d6b8519e44ca4e8fc52b9b340754605",
+    "targetedBrowserLogSHA256": "87a3554e2bc710bb1da50f2a8e07cdbc5f4e05efdd34310a80f67009ae4b8011"
+  },
+  "baseline": {
+    "log": "round-thirty-eight-before-browser.log",
+    "sha256": "dfb6dc1d445f2cd8f178fdb173cdff34131b95d80e9e88c2281e161f043544cc",
+    "description": "Both registered browser flows fail on absent fit-width button in the original UI; no claim of malformed source or parser failure."
+  },
+  "controlledWidths": [
+    320,
+    390,
+    1488
+  ],
+  "checks": [
+    "Canvas and scroller bounds at 320/390",
+    "Saved UTF-16 offset and normalized text-box geometry",
+    "Continuous page and neighboring-page view",
+    "Desktop two-column and mobile stacked rotated page, ratio 720/560",
+    "Toolbar mode, reset to 100%, preview reopen and reload reset",
+    "Stored full version unchanged"
+  ],
+  "implementationSha256": {
+    "src/App.vue": "4e754a89f584c7684ec2d219251954f13c52cea621d5a6d32c6a7fbd905e4f63",
+    "src/components/PdfReader.vue": "016156e2995a873e5bffaa90ee512073daeaf15a10076cef815bdcc476a4a508",
+    "src/components/DocumentPreview.vue": "be4efa7be5018ec1414c23c19d083e6e5c9ac2a9d22e520ff46e31b7e89d7431",
+    "src/style.css": "83bd54f90d24108f1737b6fd35fbdb1b3d04b6634f4cd9959fd1c9168ee46ece",
+    "tests/e2e/pdf-fit-width.spec.js": "f9cd2bec23de29f3343513b4ddccf2c14939aa84154a877e5a22a905a518059f"
+  },
+  "historicalProofPolicy": "Keep old fingerprints and labels unchanged; compare changed files with genuine earlier byte-verified source."
+}
