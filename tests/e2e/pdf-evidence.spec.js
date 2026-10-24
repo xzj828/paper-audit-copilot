@@ -203,3 +203,53 @@ test('publisher-original PDF retrieves late supporting material, renders mapped 
   await expect(page.locator('#page-16 .pdf-quote-box')).toHaveCount(expected.boxes.length);
   expect(errors).toEqual([]);
 });
+
+test('second publisher PDF uploads unchanged and retains late conclusion evidence on mobile reload', async ({
+  page,
+}) => {
+  const manifest = JSON.parse(
+    await readFile(
+      new URL('../fixtures/published-pdf/he-2016-source.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const project = await uploadPdf(
+    page,
+    await readFile(new URL('../fixtures/published-pdf/he-2016.pdf', import.meta.url)),
+    'PLOS 原始 PDF · He 等 2016',
+  );
+  const version = project.versions[0];
+  expect(version.contentHash).toBe(manifest.sha256);
+  expect(version.parse.pages).toHaveLength(16);
+  const question = manifest.questions[2];
+  await page.getByRole('textbox', { name: '询问 Copilot' }).fill(question.question);
+  await page.getByRole('button', { name: '发送消息' }).click();
+  const sourceButton = page
+    .getByRole('button', { name: /定位证据 R\d+：第 13 页/ })
+    .filter({ hasText: question.expectedPhrase });
+  await expect(sourceButton).toHaveCount(1);
+  await sourceButton.click();
+  await expect(page.locator('.pdf-evidence-status')).toContainText('引文已逐字核对，定位到');
+  const saved = await (await page.request.get(`/api/projects/${project.id}`)).json();
+  const source = saved.versions[0].messages
+    .at(-1)
+    .sources.find((s) => s.anchor.page === 13 && s.anchor.quote.includes(question.expectedPhrase));
+  const expected = pdfQuoteBoxes(version.parse.pages[12], focusAnchor(source));
+  expect(expected.status).toBe('matched');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: '论文工作区', exact: true }).click();
+  await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
+  await page.screenshot({ path: 'docs/screenshots/second-pdf-mobile.png' });
+  await page.reload();
+  await sourceButton.click();
+  await page.getByRole('button', { name: '论文工作区', exact: true }).click();
+  await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
+  await expect(page.locator('#page-13 .pdf-quote-box').first()).toHaveAttribute(
+    'data-source-offset',
+    String(expected.boxes[0].offset),
+  );
+  const after = await (await page.request.get(`/api/projects/${project.id}`)).json();
+  expect(after.versions[0].parse).toEqual(saved.versions[0].parse);
+  expect(after.versions[0].messages).toEqual(saved.versions[0].messages);
+  expect(after.versions[0].reports).toEqual(saved.versions[0].reports);
+});

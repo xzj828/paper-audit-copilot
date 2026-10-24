@@ -1,0 +1,45 @@
+{
+  "schema": "publisher-pdf-fixed-case@1",
+  "filename": "he-2016.pdf",
+  "title": "Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest",
+  "authors": [
+    "Tongxin He",
+    "Qingkui Wang",
+    "Silong Wang",
+    "Fangyue Zhang"
+  ],
+  "year": 2016,
+  "doi": "10.1371/journal.pone.0155881",
+  "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0155881&type=printable",
+  "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+  "license": "CC BY 4.0",
+  "licenseURL": "https://creativecommons.org/licenses/by/4.0/",
+  "copyright": "© 2016 He et al.",
+  "licenseCheckedAt": "2026-10-24",
+  "bytes": 2720776,
+  "sha256": "1734c47f695ed7ec57a1ce3a8208e810e76a84b0dab26c5b804ed6f08fe82eb4",
+  "pageCount": 16,
+  "changed": false,
+  "expectedLabelOrigin": "Developer-fixed short phrases and physical pages checked using independent pypdf extraction and rendered original pages before production retrieval; not expert labels or held-out data",
+  "scope": "Second original licensed publisher PDF from an article already present in the three-paper XML pilot. Actual PDF parsing, fixed lexical retrieval and text-item coordinate mapping; not a fourth unique paper, semantic support, layout correctness or expert accuracy.",
+  "questions": [
+    {
+      "id": "he-pdf-design",
+      "question": "Six plots experimental design plantation June 2012",
+      "expectedPage": 3,
+      "expectedPhrase": "Six plots"
+    },
+    {
+      "id": "he-pdf-mbc",
+      "question": "Soil MBC fumigation extraction method",
+      "expectedPage": 4,
+      "expectedPhrase": "fumigation extraction method"
+    },
+    {
+      "id": "he-pdf-conclusion",
+      "question": "In conclusion N addition girdling Rs microbial",
+      "expectedPage": 13,
+      "expectedPhrase": "several important findings"
+    }
+  ]
+}
