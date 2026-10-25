@@ -96,7 +96,7 @@ test('PDF case registration rejects invalid identities, bounds and vacuous targe
 });
 
 test('PDF evaluation exposes pass gates and retains failed targets, exact slices and source-declared provenance', async () => {
-  await control(async ({ manifestPath, source, save }) => {
+  await control(async ({ directory, manifestPath, source, save }) => {
     const good = await evaluatePublishedPdf({ manifestPath });
     assert.equal(good.schema, 'published-pdf-validation@2');
     assert.equal(good.passPolicy, 'registered-pdf-gates@1');
@@ -131,6 +131,30 @@ test('PDF evaluation exposes pass gates and retains failed targets, exact slices
     assert.equal(failed.summary.exactSlices, failed.summary.returnedSlices);
     assert.equal(failed.questions[0].expectedPhrasePresent, false);
     assert.match(pdfValidationMarkdown(failed), /physicalPageCount/);
+    // Move one text item partly beyond the physical page. Same byte length keeps
+    // the hand-written PDF xref and stream lengths valid; no parser is mocked.
+    const clipped = Buffer.from(
+      positionedPdfFixture().toString().replace('330 700 Td', '600 700 Td'),
+    );
+    await writeFile(path.join(directory, source.filename), clipped);
+    await save({
+      ...source,
+      bytes: clipped.length,
+      sha256: createHash('sha256').update(clipped).digest('hex'),
+      questions: [{ ...source.questions[0], question: 'Rotated target 128 Repeated sample 312' }],
+    });
+    const unmapped = await evaluatePublishedPdf({ manifestPath });
+    assert.equal(unmapped.checks.registeredTargetsRetrieved, true);
+    assert.equal(unmapped.checks.registeredTargetsMapped, true);
+    assert.equal(unmapped.checks.fullSourceSlicesExact, true);
+    assert.equal(unmapped.checks.focusedSourceSlicesExact, true);
+    assert.equal(unmapped.parse.unmappedNonWhitespaceItems, 1);
+    assert.equal(unmapped.summary.returnedSlices, 2);
+    assert.equal(unmapped.status, 'failed');
+    assert.deepEqual(unmapped.failedChecks, [
+      'fullSourceSlicesMapped',
+      'focusedSourceSlicesMapped',
+    ]);
   });
 });
 
