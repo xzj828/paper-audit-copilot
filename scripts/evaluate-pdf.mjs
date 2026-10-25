@@ -9,6 +9,58 @@ import { focusAnchor } from '../shared/text-highlight.js';
 import { pdfDiagnosticsSnapshot, pdfDiagnosticsLines } from '../shared/pdf-diagnostics.js';
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+function validateManifest(source) {
+  if (!source || typeof source !== 'object' || Array.isArray(source))
+    throw new Error('Manifest object is required');
+  if (source.schema !== 'publisher-pdf-fixed-case@1')
+    throw new Error('Manifest schema must be publisher-pdf-fixed-case@1');
+  if (
+    typeof source.filename !== 'string' ||
+    !/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/.test(source.filename)
+  )
+    throw new Error('Manifest filename must be a plain PDF basename');
+  if (!Number.isSafeInteger(source.bytes) || source.bytes < 1)
+    throw new Error('Manifest bytes must be a positive safe integer');
+  if (typeof source.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(source.sha256))
+    throw new Error('Manifest sha256 must be 64 lowercase hexadecimal characters');
+  if (!Number.isSafeInteger(source.pageCount) || source.pageCount < 1 || source.pageCount > 500)
+    throw new Error('Manifest pageCount must be an integer from 1 to 500');
+  if (
+    !Array.isArray(source.questions) ||
+    source.questions.length < 1 ||
+    source.questions.length > 100
+  )
+    throw new Error('Manifest questions must contain from 1 to 100 registered cases');
+  const ids = new Set();
+  for (const [index, question] of source.questions.entries()) {
+    if (!question || typeof question !== 'object' || Array.isArray(question))
+      throw new Error(`Manifest questions[${index}] must be an object`);
+    for (const [field, limit] of [
+      ['id', 100],
+      ['question', 2000],
+      ['expectedPhrase', 1000],
+    ]) {
+      if (
+        typeof question[field] !== 'string' ||
+        !question[field].trim() ||
+        question[field].length > limit
+      )
+        throw new Error(
+          `Manifest questions[${index}].${field} must be nonblank and at most ${limit} UTF-16 characters`,
+        );
+    }
+    if (ids.has(question.id)) throw new Error(`Manifest questions[${index}] has a duplicate id`);
+    ids.add(question.id);
+    if (
+      !Number.isSafeInteger(question.expectedPage) ||
+      question.expectedPage < 1 ||
+      question.expectedPage > source.pageCount
+    )
+      throw new Error(
+        `Manifest questions[${index}].expectedPage must be within the registered physical pages`,
+      );
+  }
+}
 async function parsePdf(sourcePath) {
   const worker = new Worker(new URL('../server/parser.js', import.meta.url), {
     workerData: { path: sourcePath, format: 'pdf' },
@@ -38,11 +90,7 @@ export async function evaluatePublishedPdf({
 } = {}) {
   const manifestBytes = await readFile(manifestPath);
   const source = JSON.parse(manifestBytes);
-  if (
-    typeof source.filename !== 'string' ||
-    !/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/.test(source.filename)
-  )
-    throw new Error('Manifest filename must be a plain PDF basename');
+  validateManifest(source);
   const fixture = path.resolve(path.dirname(manifestPath), source.filename);
   const bytes = await readFile(fixture);
   if (bytes.length !== source.bytes || sha256(bytes) !== source.sha256)
@@ -109,17 +157,23 @@ export async function evaluatePublishedPdf({
     };
   });
   const slices = questions.flatMap((question) => question.slices);
-  const passed =
-    diagnostics?.pageCount === source.pageCount &&
-    parse.pages.length === source.pageCount &&
-    itemOffsetsValid &&
-    questions.every(
-      (question) =>
-        question.expectedPhrasePresent &&
-        question.retrieved &&
-        question.expectedCoordinateStatus === 'matched',
-    ) &&
-    slices.every((slice) => slice.exact && slice.focusExact);
+  const checks = {
+    physicalPageCount:
+      diagnostics?.pageCount === source.pageCount && parse.pages.length === source.pageCount,
+    itemOffsetsValid,
+    registeredTargetsRetrieved:
+      questions.length > 0 && questions.every((q) => q.expectedPhrasePresent && q.retrieved),
+    registeredTargetsMapped:
+      questions.length > 0 && questions.every((q) => q.expectedCoordinateStatus === 'matched'),
+    returnedSourcesPresent: slices.length > 0,
+    fullSourceSlicesExact: slices.length > 0 && slices.every((slice) => slice.exact),
+    focusedSourceSlicesExact: slices.length > 0 && slices.every((slice) => slice.focusExact),
+    fullSourceSlicesMapped:
+      slices.length > 0 && slices.every((slice) => slice.fullCoordinateStatus === 'matched'),
+    focusedSourceSlicesMapped:
+      slices.length > 0 && slices.every((slice) => slice.focusCoordinateStatus === 'matched'),
+  };
+  const failedChecks = Object.keys(checks).filter((name) => !checks[name]);
   const codeFiles = [
     'server/parser.js',
     'shared/pdf-text.js',
@@ -139,8 +193,11 @@ export async function evaluatePublishedPdf({
     ),
   );
   return {
-    schema: 'published-pdf-validation@1',
-    status: passed ? 'passed' : 'failed',
+    schema: 'published-pdf-validation@2',
+    passPolicy: 'registered-pdf-gates@1',
+    status: failedChecks.length ? 'failed' : 'passed',
+    checks,
+    failedChecks,
     evaluatedAt: new Date().toISOString(),
     labelOrigin: source.expectedLabelOrigin,
     scope: source.scope,
@@ -202,8 +259,22 @@ export function pdfValidationMarkdown(result) {
     '',
     `实际运行时间：${result.evaluatedAt}。状态：${result.status}。`,
     '',
-    `使用一份 PLOS 出版商原始 CC BY 4.0 PDF（${result.parse.pageCount}物理页），${result.summary.registeredQuestions}条开发者预先登记的查询。未调用模型；不是专家标注、独立保留集或审稿准确率。`,
+    `使用清单指定的 PDF（${result.parse.pageCount}物理页），${result.summary.registeredQuestions}条开发者预先登记的查询。未调用模型；不是专家标注、独立保留集或审稿准确率。`,
     '',
+    `清单声明标题：${result.source.title || '未提供'}。清单声明许可：${result.source.license || '未提供'}。文件字节与指纹匹配不独立认证来源或使用许可。`,
+    '',
+    `通过策略：${result.passPolicy || '历史版本未记录'}。${result.failedChecks?.length ? `失败条件：${result.failedChecks.join('、')}。` : result.checks ? '全部已登记条件通过。' : '历史记录未列出逐项通过条件。'}`,
+    '',
+    ...(result.checks
+      ? [
+          '| 通过条件 | 实际结果 |',
+          '| --- | --- |',
+          ...Object.entries(result.checks).map(
+            ([name, passed]) => `| ${name} | ${passed ? '通过' : '失败'} |`,
+          ),
+          '',
+        ]
+      : []),
     `原文件 SHA-256：${result.source.sha256}。解析器：${result.parse.parser}。`,
     '',
     `实际固定问题召回 ${result.summary.retrievedQuestions}/${result.summary.registeredQuestions}；预期短语坐标可映射 ${result.summary.expectedPhrasesMapped}/${result.summary.registeredQuestions}。`,
@@ -224,7 +295,7 @@ export function pdfValidationMarkdown(result) {
     '',
     ...pdfDiagnosticsLines(result.parse.pdfDiagnostics).flatMap((line) => [line, '']),
     '',
-    `[原始论文与版权](https://journals.plos.org/plosone/article?id=${result.source.doi}) · [CC BY 4.0](${result.source.licenseURL})`,
+    '来源声明、链接与许可字段保留在 JSON；请按原材料记录独立核对。',
     '',
   ].join('\n');
 }
