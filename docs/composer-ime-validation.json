@@ -1,0 +1,65 @@
+{
+  "schema": "composer-ime-validation@1",
+  "round": 41,
+  "evaluatedAt": "2026-10-26T15:53:12.132952+00:00",
+  "scope": "Chromium browser-event software controls, not real OS IME/hardware certification, all-browser conformance, language recognition or scientific accuracy",
+  "externalModelRequests": 0,
+  "serverDatabaseOrExportChanges": false,
+  "inputSignals": [
+    "KeyboardEvent.isComposing === true",
+    "KeyboardEvent.keyCode === 229"
+  ],
+  "controlsLocalCommit": "329564ab1e70e391479f24fe2a787985e5b85dd3",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 272,
+    "browserPassed": 90,
+    "newNodeTests": 0,
+    "newBrowserFlows": 3,
+    "targetedBrowserPassed": 8,
+    "fullCheckLogSHA256": "ad0ed15ffb27832908cb87df41f7fd7ca7db2775ece8fff04bc536d0d3fbff87",
+    "targetedBrowserLogSHA256": "cb9fe2d099be06ace98f90dd6bd17f86f6746449d15c20843a5674768081e4c1"
+  },
+  "baseline": {
+    "log": "round-forty-one-before-browser.log",
+    "sha256": "971c04e768e54724b697a6175d15398d46e8e416541274530a0505e07d519425",
+    "failed": 3,
+    "description": "All dispatched IME Enter defaults were prevented. Captured original traces show one actual message POST in each standard/229 case and a shortcut dialog in the slash case.",
+    "requestEvidenceSHA256": "b6934d31f7b6b73bbfe5e915f5effd8ca6f2faa87d8ca37051e91e4d86b5917c",
+    "capturedEvidence": {
+      "origin": "Playwright captured original implementation failure traces; only request counts and dialog presence extracted, not browser credentials",
+      "cases": [
+        {
+          "case": "composer-ime-composing-sla-045a9-licit-sending-remain-usable",
+          "messagePOSTs": 0,
+          "shortcutDialogInFailureSnapshot": true,
+          "capturedTraceSHA256": "4d02503ff0b375a8d5069e68a1c1cff1a68413b28844fd2c5ffb183aa51be595"
+        },
+        {
+          "case": "composer-ime-legacy-229-En-829f0-ry-Enter-sends-exactly-once",
+          "messagePOSTs": 1,
+          "shortcutDialogInFailureSnapshot": false,
+          "capturedTraceSHA256": "b50653dde9a6887fe274f4c875658de46c135edf950545811d9c3199e5227eae"
+        },
+        {
+          "case": "composer-ime-standard-comp-84c8d-ry-Enter-sends-exactly-once",
+          "messagePOSTs": 1,
+          "shortcutDialogInFailureSnapshot": false,
+          "capturedTraceSHA256": "865494b27224bee42a31a2d99970dfd5af9e474d490857e92d282998bd47fb55"
+        }
+      ]
+    }
+  },
+  "checks": [
+    "IME Enter leaves native default available, emits no message POST, keeps draft and full stored version",
+    "Next ordinary Enter sends exactly once; parse/report unchanged and saved version survives reload",
+    "Composing slash opens no dialog; ordinary slash still opens original shortcuts",
+    "Shift Enter preserves newline, Ctrl/Meta Enter do not send, explicit button sends original multiline question once",
+    "Existing readiness, separate project/version drafts and stop flows pass"
+  ],
+  "implementationSha256": {
+    "src/App.vue": "c5d2943e3042df064f6ed2c4c894e250db248fbaf4a692adbbaffe421a152b4a",
+    "tests/e2e/composer-ime.spec.js": "64b6ffd2d5ddbec027c1f14308f487914dee0981a398150dfaa93a4a0f324ac7"
+  },
+  "historicalProofPolicy": "Keep old fingerprints and labels unchanged; compare changed implementations with genuine earlier byte-verified source."
+}

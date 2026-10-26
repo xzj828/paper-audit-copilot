@@ -549,3 +549,17 @@ Markdown采用实际清单声明的标题与许可，不再把任意输入固定
 目标8项Node（包含三份原PDF及既有失败门槛）和1项浏览器通过；完整生产构建、272项Node与87项浏览器通过，较v39增加1Node/1浏览器。Du2014已是既有三篇XML案例之一，PDF和XML不是相互独立的研究，不能算新增第四篇论文、独立保留集或专家准确率。原两份PDF及历史@1/@2记录/预期原字节保持。
 
 详见third-pdf.md与third-pdf-validation.json，许可、材料、独立登记和实现指纹齐备。技术PDF压缩重复历史说明为7页，完整逐轮账本/证明保持并逐页检查；v39交付按原字节归档，只发布个人Private仓库并更新源码包。真实独立领域复核者、许可清楚的留出样本和完整漏检清单仍待补齐，本轮固定检查不能替代这些工作。
+
+## 2026-10-26 v41 输入法Enter保护
+
+基线为本地cdb4143、个人Private远端15b7a72，工作树干净，无重复执行或协作者前进，远端private=true、fork=false、owner=wilsonwuww。原输入框keydown.enter.exact.prevent直接调用sendMessage，未检查输入法状态；另有一条keydown可直接打开键盘快捷键弹窗。329564a先登记三项浏览器控制，原实现3/3失败：标准isComposing与旧229事件的默认动作均被阻止，失败trace各有1条实际消息POST；斜线控制0条POST但实际快照打开键盘快捷键弹窗。只从独立测试trace提取请求数与弹窗角色，原trace哈希与日志保留。
+
+新增composerEnter作为已有textarea的Enter入口，先检查event.isComposing或keyCode===229，遇到输入法信号即返回，不preventDefault、不发送或打开快捷键弹窗。普通Enter才preventDefault并调用原sendMessage；保留.exact，Shift+Enter继续原生换行，Ctrl/Meta+Enter不进入发送。移除冗余的第二个keydown斜线入口；普通斜线Enter继续由既有sendMessage打开同一菜单。发送按钮、表单、4000字符限制、就绪保护、流式接收和停止路径不改。
+
+只修改App.vue八增两删，没有新数据库字段、接口、导出或服务端取消规则，也不改变草稿存储。输入法事件本身不产生消息；后续显式发送仍是正常保存流程。并不把所有keydown都停用，也不拦截原生选词默认动作。
+
+修复后目标8浏览器通过，覆盖三项新增控制、已有就绪保护、两项草稿和两项停止控制。新流程实际创建项目并上传合成DOCX，生产Worker完成；标准和229事件后无POST、草稿及整个保存版本不变，随后普通Enter各产生恰好1条实际请求，原解析/报告不变且刷新保持。第三项验证输入法斜线不打开快捷键弹窗、普通斜线打开、Shift换行及Ctrl/Meta不发送，最后按钮显式发送包含换行的原问题一次。
+
+完整生产构建272Node/90浏览器通过，本轮新增0Node/3浏览器，外部模型请求0。390px截图已查看。事件由Playwright在Chromium派发，证明有限浏览器事件契约；不是真实OS输入法候选窗、Safari/Firefox、各中文/日文/韩文输入法或硬件键盘的全面实机认证。没有输入法信号的非标准事件序列不在本次保证内，不声称自动识别语言或提高科学结论质量。
+
+使用与边界见composer-ime.md及composer-ime-validation.json。技术PDF逐页检查，v40交付按原字节归档；旧证明计数和指纹保留，按对应历史真实源码核对，只更新个人Private仓库与下载包。
