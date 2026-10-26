@@ -921,6 +921,13 @@ async function retry() {
     project.value = await api<Project>(`/projects/${project.value!.id}`);
   });
 }
+function composerEnter(event: KeyboardEvent) {
+  // Let IME Enter confirm its candidate, including the legacy 229 signal.
+  // Only an ordinary Enter enters the shared send/shortcut path.
+  if (event.isComposing || event.keyCode === 229) return;
+  event.preventDefault();
+  void sendMessage();
+}
 async function sendMessage() {
   if (message.value.trim() === '/') {
     message.value = '';
@@ -1600,8 +1607,7 @@ onUnmounted(() => {
                     ? '松开以上传论文'
                     : '输入问题，结合论文原文展开讨论…'
               "
-              @keydown.enter.exact.prevent="sendMessage"
-              @keydown="message === '/' && $event.key === 'Enter' && openDialog('shortcuts')"
+              @keydown.enter.exact="composerEnter"
             ></textarea>
             <div v-if="message === '/'" class="slash-menu">
               <button
