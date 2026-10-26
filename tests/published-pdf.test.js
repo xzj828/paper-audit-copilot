@@ -81,6 +81,44 @@ test(
   },
 );
 
+test('third original PDF retains its preregistered design, statistics and late caution targets under all evaluation gates', async () => {
+  const result = await evaluatePublishedPdf({
+    manifestPath: fileURLToPath(
+      new URL('./fixtures/published-pdf/du-2014-source.json', import.meta.url),
+    ),
+  });
+  assert.equal(
+    result.source.sha256,
+    '33ef06c62023175737a1e1454cf7b82977b2223eebaa7fbcb4296caaeb8ca815',
+  );
+  assert.equal(result.source.bytes, 721802);
+  assert.equal(result.source.doi, '10.1371/journal.pone.0087975');
+  assert.equal(result.source.changed, false);
+  assert.equal(result.parse.pageCount, 9);
+  assert.equal(result.schema, 'published-pdf-validation@2');
+  assert.equal(result.status, 'passed');
+  assert.equal(result.passPolicy, 'registered-pdf-gates@1');
+  assert.equal(Object.keys(result.checks).length, 9);
+  assert.ok(Object.values(result.checks).every((value) => value === true));
+  assert.deepEqual(result.failedChecks, []);
+  assert.deepEqual(
+    result.questions.map((q) => q.expectedPage),
+    [2, 4, 8],
+  );
+  assert.equal(result.summary.registeredQuestions, 3);
+  assert.equal(result.summary.retrievedQuestions, 3);
+  assert.equal(result.summary.expectedPhrasesMapped, 3);
+  assert.ok(result.summary.returnedSlices > 0);
+  for (const field of [
+    'exactSlices',
+    'exactFocusedSlices',
+    'fullSlicesMapped',
+    'focusedSlicesMapped',
+  ])
+    assert.equal(result.summary[field], result.summary.returnedSlices);
+  assert.match(pdfValidationMarkdown(result), /9物理页/);
+});
+
 test('explicit PDF manifests reject path traversal and wrong registered bytes before parsing', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'pdf-manifest-'));
   try {

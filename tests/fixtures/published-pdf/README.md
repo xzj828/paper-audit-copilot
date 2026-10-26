@@ -13,3 +13,9 @@
 He, T., Wang, Q., Wang, S. & Zhang, F. (2016), Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest. PLOS ONE 11(5): e0155881. [出版商与版权](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881)。©2016 He等，[CC BY4.0](https://creativecommons.org/licenses/by/4.0/)，2026-10-24复核；he-2016.pdf保留原字节及全部原署名，未改动。原PDF2720776字节、16物理页；SHA-256为1734c47f695ed7ec57a1ce3a8208e810e76a84b0dab26c5b804ed6f08fe82eb4。再分发时保留本说明与原论文署名。
 
 he-2016-source.json在生产检索前用独立pypdf及渲染页核对第3/4/13页。运行npm run evaluate:pdf -- --manifest tests/fixtures/published-pdf/he-2016-source.json。此论文已属于三篇XML案例，不能重复计算为第四篇独立材料；预设不是专家或盲评数据。
+
+## 第三份原始PDF
+
+Du, Z., Wang, W., Zeng, W. & Zeng, H. (2014), Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China. PLOS ONE 9(2): e87975. [出版商原文与版权](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975)。©2014 Du等，出版商版权行及许可链接2026-10-26核对为[CC BY4.0](https://creativecommons.org/licenses/by/4.0/)。du-2014.pdf保留原文件、全部署名、图像与版权声明，未改动；再分发时保留本说明和原始来源链接。
+
+原PDF为721802字节、9个物理页，SHA-256为33ef06c62023175737a1e1454cf7b82977b2223eebaa7fbcb4296caaeb8ca815。du-2014-source.json在生产检索前通过独立pypdf和原页渲染登记第2/4/8页；分别检查设计描述、统计方法文字和后部外推限制。没有专家标注或科学结论评价；该论文已在既有三篇XML材料中，不算第四篇独立研究。运行npm run evaluate:pdf -- --manifest tests/fixtures/published-pdf/du-2014-source.json。

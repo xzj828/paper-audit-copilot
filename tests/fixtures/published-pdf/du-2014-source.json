@@ -1,0 +1,40 @@
+{
+  "schema": "publisher-pdf-fixed-case@1",
+  "filename": "du-2014.pdf",
+  "title": "Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China",
+  "authors": ["Zhihong Du", "Wei Wang", "Wenjing Zeng", "Hui Zeng"],
+  "year": 2014,
+  "doi": "10.1371/journal.pone.0087975",
+  "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0087975&type=printable",
+  "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+  "license": "CC BY 4.0",
+  "licenseURL": "https://creativecommons.org/licenses/by/4.0/",
+  "copyright": "© 2014 Du et al.",
+  "licenseCheckedAt": "2026-10-26",
+  "bytes": 721802,
+  "sha256": "33ef06c62023175737a1e1454cf7b82977b2223eebaa7fbcb4296caaeb8ca815",
+  "pageCount": 9,
+  "changed": false,
+  "expectedLabelOrigin": "Developer-fixed short phrases and physical pages independently checked with pypdf and rendered original pages before production retrieval; not expert labels or held-out data",
+  "scope": "Third original publisher PDF, from a paper already in the three-paper XML pilot. Fixed text retrieval and coordinate checks, not a fourth unique paper, scientific support, statistical correctness or expert accuracy.",
+  "questions": [
+    {
+      "id": "du-pdf-design",
+      "question": "plots treatments randomly laid out",
+      "expectedPage": 2,
+      "expectedPhrase": "randomly laid out"
+    },
+    {
+      "id": "du-pdf-statistics",
+      "question": "SPSS Duncan statistical analysis variance",
+      "expectedPage": 4,
+      "expectedPhrase": "SPSS 18.0"
+    },
+    {
+      "id": "du-pdf-extrapolation",
+      "question": "careful extrapolating results mechanisms long-term N inputs",
+      "expectedPage": 8,
+      "expectedPhrase": "we should be careful"
+    }
+  ]
+}
