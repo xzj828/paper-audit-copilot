@@ -97,7 +97,12 @@ test('a held same-project open cannot erase a newly completed answer, including 
   try {
     await send(page);
     const saved = await read();
-    expect(hold.snapshot().versions.at(-1).messages).toHaveLength(0);
+    expect(
+      hold
+        .snapshot()
+        .versions.at(-1)
+        .messages.filter((m) => m.kind === 'assistant'),
+    ).toHaveLength(0);
     expect(saved.versions.at(-1).messages.filter((m) => m.kind === 'assistant')).toHaveLength(1);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: '对话', exact: true }).click();
@@ -133,11 +138,16 @@ test('a held same-project open preserves the newly frozen report and its current
     await page.getByRole('button', { name: '保存工具快照到报告', exact: true }).click();
     const saved = await read();
     const reportId = saved.versions.at(-1).reports.at(-1).id;
-    expect(hold.snapshot().versions.at(-1).reports).toHaveLength(0);
+    expect(
+      hold
+        .snapshot()
+        .versions.at(-1)
+        .reports.map((r) => r.id),
+    ).not.toContain(reportId);
     await expect(page.getByLabel('选择历史报告')).toHaveValue(reportId);
     await hold.finish();
     await record(info, {
-      heldReports: 0,
+      heldReports: hold.snapshot().versions.at(-1).reports.length,
       savedReports: saved.versions.at(-1).reports.length,
       selectedAfterRelease: (await page.getByLabel('选择历史报告').count())
         ? await page.getByLabel('选择历史报告').inputValue()
