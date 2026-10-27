@@ -623,9 +623,14 @@ function persistView() {
 }
 async function openProject(id: string) {
   persistView();
+  const before = project.value;
   const sequence = ++requestSequence;
   const data = await api<Project>(`/projects/${id}`);
   if (sequence !== requestSequence) return;
+  // Reopening the current project must not replace a newer accepted answer,
+  // report or status snapshot. Deliberate navigation to another project still
+  // completes even if the previous project changes while this read is pending.
+  if (before?.id === id && project.value !== before) return;
   project.value = data;
   managementPage.value = '';
   localStorage.setItem('audit-active-project', id);
