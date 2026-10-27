@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { pdfFixture, docxFixture } from './fixtures.js';
 import { reviewReply } from './review-fixtures.js';
 
@@ -14,6 +15,55 @@ let server,
   otherCookie = '',
   p;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+test('original attachment downloads preserve exact version bytes, names, inline defaults and workspace isolation', async () => {
+  const item = (await request('/api/projects', 'POST', { title: 'Original file download control' }))
+    .data;
+  const originals = [
+    {
+      name: '原稿 样地.pdf',
+      bytes: pdfFixture('First original sample size 312.'),
+      type: 'application/pdf',
+    },
+    {
+      name: '修订 统计.docx',
+      bytes: docxFixture('Second original sample size 128.'),
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    },
+  ];
+  for (const file of originals) {
+    assert.equal((await upload(item.id, file.name, file.bytes)).status, 202);
+    assert.equal((await parsed(item.id)).versions.at(-1).status, 'ready');
+  }
+  const saved = (await request(`/api/projects/${item.id}`)).data;
+  for (const [index, file] of originals.entries()) {
+    const v = saved.versions[index];
+    const url = `${base}/api/projects/${item.id}/versions/${v.id}/file`;
+    const attached = await fetch(url + '?download=1', { headers: { Cookie: cookie } });
+    assert.equal(attached.status, 200);
+    assert.equal(
+      attached.headers.get('content-disposition'),
+      `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    );
+    assert.equal(attached.headers.get('content-type'), file.type);
+    const actual = Buffer.from(await attached.arrayBuffer());
+    assert.deepEqual(actual, file.bytes);
+    assert.equal(createHash('sha256').update(actual).digest('hex'), v.contentHash);
+    for (const suffix of ['', '?download=true']) {
+      const inline = await fetch(url + suffix, { headers: { Cookie: cookie } });
+      assert.match(inline.headers.get('content-disposition'), /^inline;/);
+      assert.deepEqual(Buffer.from(await inline.arrayBuffer()), file.bytes);
+    }
+    const denied = await fetch(url + '?download=1', { headers: { Cookie: otherCookie } });
+    assert.equal(denied.status, 404);
+    assert.doesNotMatch(denied.headers.get('content-type'), /application\/pdf|wordprocessingml/);
+  }
+  const missing = await fetch(
+    `${base}/api/projects/${item.id}/versions/not-a-version/file?download=1`,
+    { headers: { Cookie: cookie } },
+  );
+  assert.equal(missing.status, 404);
+  assert.deepEqual((await request(`/api/projects/${item.id}`)).data, saved);
+});
 async function request(url, method = 'GET', body, identity = cookie) {
   const result = await fetch(base + url, {
     method,
