@@ -46,6 +46,8 @@ test('workspace original download follows the selected revision, preserves Chine
   await page.locator('.project-link').filter({ hasText: item.title }).click();
   await expect(page.locator('.version-chip')).toHaveText('v2');
   const take = async (file) => {
+    const chat = page.getByRole('button', { name: '对话', exact: true });
+    if (await chat.isVisible()) await chat.click();
     await page.getByRole('button', { name: '项目操作', exact: true }).click();
     const actual = await download(
       page,

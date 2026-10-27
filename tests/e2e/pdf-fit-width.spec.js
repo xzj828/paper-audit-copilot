@@ -37,7 +37,10 @@ test('real PDF fits the mobile workspace through resize, evidence, continuous re
     (await (await page.request.get(`/api/projects/${project.id}`)).json()).versions[0];
   await expect.poll(async () => (await read()).status).toBe('ready');
   await page.reload();
-  await page.locator('.project-link').filter({ hasText: project.title }).click();
+  // Initialization already opens the sole project. Wait for that accepted view
+  // rather than starting a second same-project read while typing a question.
+  await expect(page.locator('.conversation-header h1')).toHaveText(project.title);
+  await expect(page.locator('.version-chip')).toHaveText('v1');
   await page
     .getByRole('textbox', { name: '询问 Copilot', exact: true })
     .fill('In conclusion N addition girdling Rs microbial');
@@ -72,11 +75,19 @@ test('real PDF fits the mobile workspace through resize, evidence, continuous re
   const box = page.locator('#page-13 .pdf-quote-box').first();
   await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
   await expect(box).toHaveAttribute('data-source-offset', String(expected.boxes[0].offset));
-  const normalized = async () => {
-    const b = await box.boundingBox(),
-      c = await canvas.boundingBox();
-    return [(b.x - c.x) / c.width, (b.y - c.y) / c.height, b.width / c.width, b.height / c.height];
-  };
+  const normalized = () =>
+    box.evaluate((element) => {
+      // Read both rectangles in one layout frame; smooth scrolling during resize
+      // must not mix two different viewport origins in a relative measurement.
+      const b = element.getBoundingClientRect(),
+        c = element.closest('.pdf-page-stage').querySelector('canvas').getBoundingClientRect();
+      return [
+        (b.x - c.x) / c.width,
+        (b.y - c.y) / c.height,
+        b.width / c.width,
+        b.height / c.height,
+      ];
+    });
   const check = async () => {
     const values = await normalized(),
       [x1, y1, x2, y2] = expected.boxes[0].bbox;

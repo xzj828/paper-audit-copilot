@@ -410,7 +410,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     );
     res.setHeader(
       'Content-Disposition',
-      `inline; filename*=UTF-8''${encodeURIComponent(v.filename)}`,
+      `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(v.filename)}`,
     );
     res.sendFile(path.join(directory, 'files', v.id));
   });

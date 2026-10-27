@@ -549,6 +549,15 @@ const uploadUrl = computed(() =>
     ? `/api/projects/${project.value.id}/versions/${version.value.id}/file`
     : '',
 );
+function downloadOriginal() {
+  const current = version.value;
+  if (!current || !['pdf', 'docx'].includes(current.format) || !uploadUrl.value) return;
+  const link = document.createElement('a');
+  link.href = `${uploadUrl.value}?download=1`;
+  link.download = current.filename;
+  link.click();
+  menu.value = false;
+}
 const formattedDate = (value: string) =>
   new Date(value).toLocaleString('zh-CN', {
     year: 'numeric',
@@ -1306,6 +1315,8 @@ onUnmounted(() => {
               <Icon name="switch" :size="16" />比较版本</button
             ><button :disabled="!version" @click="openDialog('chat-export')">
               <Icon name="download" :size="16" />导出对话与证据</button
+            ><button :disabled="!uploadUrl || version?.format === 'demo'" @click="downloadOriginal">
+              <Icon name="download" :size="16" />下载当前版本原文件</button
             ><button class="danger-text" @click="openDialog('delete')">
               <Icon name="delete" :size="16" />删除项目
             </button>

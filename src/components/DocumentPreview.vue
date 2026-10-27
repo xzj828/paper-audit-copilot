@@ -119,6 +119,14 @@ onUnmounted(() => {
           <Icon name="right" />
         </button>
       </div>
+      <a
+        v-if="version && ['pdf', 'docx'].includes(version.format)"
+        class="text-button"
+        :href="`${url}?download=1`"
+        :download="version.filename"
+      >
+        下载原始文件
+      </a>
       <button
         class="text-button preview-review"
         :disabled="loading || !!error"
