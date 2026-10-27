@@ -137,6 +137,8 @@ TypeScript 定义消息、原文锚点与检索元数据契约；EvidenceSources
 
 运行要求：Node.js 24.12+；npm ci 安装锁定依赖。开发执行 npm run dev 后访问 127.0.0.1:5173；生产执行 npm run build、npm start 后访问 127.0.0.1:3001。PORT、HOST、DATA_DIR 见 .env.example，默认本机监听。导出 PDF 及浏览器测试需要 Playwright Chromium 或受支持的 Chrome。
 
+v43当前项目重开保留等待期间已接受的新回答和报告：起始对象被新快照替换时忽略旧GET及视图重置。正常读取、跨项目、版本、手机刷新均有控制；不扩展为全部并发写入保证，见project-open-freshness.md。
+
 v42项目菜单与文献预览提供原文件下载，明确所选版本、保留原PDF/DOCX字节及UTF-8文件名；download=1只改附件响应，默认预览和原空间校验保持。实际字节/指纹、旧版本、手机及拒绝越权通过，见original-file-download.md。
 
 v41聊天输入框先检查isComposing或旧229输入法信号，选词Enter不阻止默认动作、不发送或打开快捷键弹窗。普通Enter、Shift换行和按钮沿用原流程；三项Chromium事件控制及实际请求/存储检查通过，尚非全OS输入法实机认证，见composer-ime.md。
@@ -153,7 +155,7 @@ v41聊天输入框先检查isComposing或旧229输入法信号，选词Enter不�
 
 验证命令为 npm run check：依次执行 Vue/TypeScript 生产构建、Node 规则/API 测试和 Playwright 浏览器测试。最终结果和失败修复记录见 ai-development-log.md。自动测试采用合成控制样例与受控模型服务，证明程序行为与数据流，不证明商业模型或专业评审准确率。
 
-2026-10-27 的本轮完整检查为生产构建、273 项 Node 测试与 92 项浏览器测试通过。重复引文测试覆盖服务器与阅读器一致性、错偏移拒绝、修订和外部比较的位置保留；实际上传的合成 PDF 经本机 HTTP 模型服务验证第二处证据在手机刷新后仍准确定位，旧 DOCX 歧义记录不高亮第一处。旧执行器混合重试被拒绝，新任务记录校验策略。术语流程另实际上传英文合成长DOCX，验证中文查询、近似词排除、点击原文、手机刷新、追问及JSON/Markdown下载。
+2026-10-27 的本轮完整检查为生产构建、273 项 Node 测试与 97 项浏览器测试通过。重复引文测试覆盖服务器与阅读器一致性、错偏移拒绝、修订和外部比较的位置保留；实际上传的合成 PDF 经本机 HTTP 模型服务验证第二处证据在手机刷新后仍准确定位，旧 DOCX 歧义记录不高亮第一处。旧执行器混合重试被拒绝，新任务记录校验策略。术语流程另实际上传英文合成长DOCX，验证中文查询、近似词排除、点击原文、手机刷新、追问及JSON/Markdown下载。
 
 npm run evaluate:review-contracts 执行真实服务、临时 SQLite、规范化、逐条复核和报告链路。30 个开发者预先登记的固定用例覆盖引用、材料不足、不适用、模型复核拒绝、问题归属、去重和部分报告。首次为 29/30，发现部分引文失败仍显示暂定完成；修复后同一材料为 30/30，11/11 正式批注原文位置有效。报告保存材料、源区块、规则与实现哈希及全部失败。55 次固定回调、零外部模型调用，不评价模型质量或专家准确率；每例只启用指定检查子集，分数不代表完整期刊评审。说明与记录见 review-contracts.md。
 
@@ -191,5 +193,3 @@ v39离线PDF评测升级published-pdf-validation@2，拒绝空题或无效清单
 来源核对：官方赛道入口 https://www.boxuegu.com/matchTrack/detail/?id=10037；东莞理工学院第九届通知 https://cs.dgut.edu.cn/info/1034/19118.htm；参赛开发仓库 https://github.com/wilsonwuww/paper-audit-copilot，原项目 https://github.com/xzj828/paper-audit-copilot。最终截止与提交入口以赛事个人中心通知为准。
 
 本 PDF 与同名 Markdown 是技术说明材料；演示脚本见 demo-script.md。最终讲解视频、参赛队伍实名核对及赛事系统提交需由队伍完成，不能把仓库更新称为已经提交比赛。
-
-交付身份与源码核对以本轮回执为准；历史材料按原字节归档，仅更新个人Private仓库。

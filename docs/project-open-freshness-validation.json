@@ -1,0 +1,90 @@
+{
+  "schema": "project-open-freshness-validation@1",
+  "round": 43,
+  "evaluatedAt": "2026-10-27T15:17:04.304550+00:00",
+  "scope": "Finite browser same-project open GET vs newer accepted project-object controls; not all write races, cross-tab synchronization or expert accuracy",
+  "externalModelRequests": 0,
+  "databaseOrStructuredExportChanges": false,
+  "controlsLocalCommits": [
+    "e0112699055ed43c0b9e6094ccae0c7934f78b70",
+    "56b567c971c5a603508e3006bbd3cbe1bc06e612"
+  ],
+  "implementationCommit": "3bde5272eb4c0c2bf6b6e51851eae5b5f8bf41f0",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 273,
+    "browserPassed": 97,
+    "newNodeTests": 0,
+    "newBrowserFlows": 5,
+    "targetedBrowserPassed": 12,
+    "fullCheckLogSHA256": "ec903cd527a91c2f0a6be7aa59a1ae1b5bd5c6e1d943257c39a06c0b22b79737",
+    "targetedBrowserLogSHA256": "6ea74cf2cc0296b8e022674ed8b0db5de1bf0afda156e625ea487e5f93d7e08c",
+    "priorFullCheckLogSHA256": "600a99343b7d317e388aa614b278331b99081f728f4125c91e70da005baedb84",
+    "fullCheckRunsPassed": 2,
+    "captureRefinement": "01ab234 adds only scrollIntoViewIfNeeded before the mobile screenshot; full build and 273/97 rerun after this test change.",
+    "finalObservations": [
+      {
+        "heldAssistantCount": 0,
+        "savedAssistantCount": 1,
+        "visibleAfterRelease": 1,
+        "storageUnchanged": true
+      },
+      {
+        "heldReports": 1,
+        "savedReports": 2,
+        "selectedAfterRelease": "2899b52b-c424-469d-8b6e-e521bc3181ef",
+        "storageUnchanged": true
+      }
+    ]
+  },
+  "initialHarnessCorrection": {
+    "logSHA256": "999efbe1a3a9833fc5f0bb15b4b2c59161b164c4622683804f04bcbe9db309be",
+    "description": "Initial assumptions wrongly counted upload/parse events as zero messages and assumed no initial report. Corrected before production fix in separate test commit; not product failure evidence."
+  },
+  "baseline": {
+    "browserFailed": 2,
+    "browserPassed": 3,
+    "logSHA256": "1fdc2a47b57072e64b18f970ffa81e4c3b8dcaa9bc82f7014ccd07c3c6e5b21b",
+    "observations": [
+      {
+        "trace": "/Users/wusirui/Documents/Codex/2026-10-07/qin/work/round-forty-three-baseline-traces/project-open-a-held-same-p-b9e2c-t-and-its-current-selection/trace.zip",
+        "resource": "attachments/09c9b33ff93a4e008f4bc5eb9b9d77961841c86d",
+        "data": {
+          "heldReports": 1,
+          "savedReports": 2,
+          "selectedAfterRelease": null,
+          "storageUnchanged": true
+        }
+      },
+      {
+        "trace": "/Users/wusirui/Documents/Codex/2026-10-07/qin/work/round-forty-three-baseline-traces/project-open-a-held-same-p-f6a5d-including-mobile-and-reload/trace.zip",
+        "resource": "attachments/f59cdf820f0aefb0d79e234957aef2698bbc97f2",
+        "data": {
+          "heldAssistantCount": 0,
+          "savedAssistantCount": 1,
+          "visibleAfterRelease": 0,
+          "storageUnchanged": true
+        }
+      }
+    ],
+    "description": "Real earlier GET body held unchanged until completed chat or saved report; UI loses answer or selected new report, server versions unchanged."
+  },
+  "rootCause": "requestSequence guards navigation changes only; same-project accepted message/report replaces project without advancing navigation, so an older GET can still replace state and restore view.",
+  "checks": [
+    "Completed answer remains after held GET, mobile390 and reload; saved versions unchanged",
+    "New frozen report and current selection survive held GET, export enabled, saved versions unchanged",
+    "Unchanged current project accepts genuine newer server title",
+    "Different-project navigation completes even after source project accepts answer",
+    "Explicit version selection wins against older project GET"
+  ],
+  "implementationSha256": {
+    "src/App.vue": "59be525e2bdae6eb7b391e7e375232b05881b8fc14cd2a82a0c34b21b092034b",
+    "tests/e2e/project-open.spec.js": "03bc61ee9c91424d0dbaec75ec44b790bf1efb96b4b5da4c4ebf58a9c8254717"
+  },
+  "historicalProofPolicy": "Prior implementation/test fingerprints and labels remain unchanged and compare to genuine earlier byte-verified source snapshots.",
+  "limitations": [
+    "Only same-project reads superseded by new accepted object are discarded",
+    "In-place nested edits and all write/write acceptance paths are outside this finite validation",
+    "No cross-tab realtime, server transaction or all-browser ordering guarantee"
+  ]
+}
