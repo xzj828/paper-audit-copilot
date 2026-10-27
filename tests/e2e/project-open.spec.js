@@ -118,6 +118,7 @@ test('a held same-project open cannot erase a newly completed answer, including 
       timeout: 1500,
     });
     expect((await read()).versions).toEqual(saved.versions);
+    await page.locator('.event-assistant:not(.streaming-message)').scrollIntoViewIfNeeded();
     await page.screenshot({ path: 'docs/screenshots/project-open-mobile.png' });
     await page.reload();
     await page.getByRole('button', { name: '对话', exact: true }).click();
