@@ -1,0 +1,62 @@
+{
+  "schema": "original-file-download-validation@1",
+  "round": 42,
+  "evaluatedAt": "2026-10-27T03:23:35.276403+00:00",
+  "scope": "Finite scoped original-byte download controls, not whole review packet identity certification, license authentication, expert accuracy or all-browser conformance",
+  "externalModelRequests": 0,
+  "databaseOrStructuredExportChanges": false,
+  "controlsLocalCommit": "4359b8146db9ea4197939187158c53cd86369730",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 273,
+    "browserPassed": 92,
+    "newNodeTests": 1,
+    "newBrowserFlows": 2,
+    "targetedNodePassed": 1,
+    "targetedBrowserPassed": 5,
+    "fullCheckLogSHA256": "fa6de124b2137a76ecdb90c9d6e7f4a890b8e25d2b88583f77d24ca7073d7d90",
+    "targetedNodeLogSHA256": "83673af89d8f2dff8e4d7dfd3ae9da951d9695ebf69ae5a2b68c8c47a6cde9d8",
+    "targetedBrowserLogSHA256": "b1d92f2b76cfd5813d4b83f8f5b5b5941bced40e319ad116c1fda7563c010d53"
+  },
+  "baseline": {
+    "nodeFailed": 1,
+    "browserFailed": 2,
+    "nodeLogSHA256": "cea26ca715f986ead2940d44935909f1bb29de88db510db4389838e2501f0e53",
+    "browserLogSHA256": "a095d461de0c1698c36afa80bade117e8573d24d5a8dc8c582b5cddf46e70d4f",
+    "description": "The original endpoint returns inline; the new UI download controls do not exist. Not corrupted source bytes or a broken original reader."
+  },
+  "preservedTargetFailures": [
+    {
+      "log": "round-forty-two-target-browser.log",
+      "sha256": "aa1f1ca6ec2f382383233ec4f69c1c69c1980086456a9f4dc02cc3e45a7ef326",
+      "passed": 3,
+      "failed": 2,
+      "observations": "Mobile preparation was still in paper pane; the existing width test separately measured rectangles during resize."
+    },
+    {
+      "log": "round-forty-two-target-browser-second.log",
+      "sha256": "30a7515296dd28cc77683bfae4f3e4a2a5bc1d72cd0f60058fcc918587c30a3c",
+      "passed": 4,
+      "failed": 1,
+      "observations": "Both new download flows pass. Existing width test repeated project opening during initialization and had POST200 but no visible source; waiting for the initial accepted view avoids that setup overlap."
+    }
+  ],
+  "unchangedGeometryTolerance": "Existing toBeCloseTo(..., 2) retained; rectangles now read in one browser callback",
+  "followUp": "Independently reproduce same-project openProject GET vs message acceptance concurrency; not fixed or claimed resolved in this round",
+  "checks": [
+    "Explicit original version PDF/DOCX bytes and SHA, Unicode names, MIME",
+    "Default and non-1 query remain inline",
+    "Old version does not fall back to active version",
+    "Other workspaces and nonexistent version denied",
+    "Native downloads in workspace and library, mobile/reload, unchanged stored versions"
+  ],
+  "implementationSha256": {
+    "server/application.js": "88030b2686ccd0fa27acabde670fa523dc18aa8cdd9ff5fb78b307fcda489c52",
+    "src/App.vue": "187dba659262368e7bb508747afd2846b08aeb3fea79286eba23e7302da345e7",
+    "src/components/DocumentPreview.vue": "5f0d6ab24a355a34fe3cc15b201363e47e20d06a617a644217e8b4425d51f4f9",
+    "tests/api.test.js": "2252c3d30bc55a3a3dfd6cfb0f5a6afe19f1b9bd63639441fa90892f6ae4418e",
+    "tests/e2e/original-file.spec.js": "6d757b2e06e0be990bce8c7deae0cec9f94f025155a6ed96ed605e66f81715be",
+    "tests/e2e/pdf-fit-width.spec.js": "d42fff834f540e22d00b4f5774628e5f76bbe5b511bd8756b399c033d9c70e9b"
+  },
+  "historicalProofPolicy": "Keep prior fingerprints and labels unchanged; compare changed implementations/tests with genuine earlier byte-verified source."
+}

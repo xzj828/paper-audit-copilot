@@ -231,3 +231,5 @@ CSV复算新增[排除记录定位](docs/excluded-records.md)：按逻辑数据�
 [第三份原始PDF](docs/third-pdf.md)：Du等2014的9页出版商PDF，保留CC BY4.0署名和原字节；独立登记设计、统计文字与后部限制三处，验证实际上传和手机刷新。三篇既有XML论文现各有原PDF，不增加独立研究数量，也不代表专家准确率。
 
 [输入法Enter保护](docs/composer-ime.md)：选词状态或旧229信号不触发发送或快捷键弹窗，普通Enter、Shift换行和按钮发送保留。浏览器事件控制已验证，尚非全部OS输入法实机认证。
+
+[当前版本原文件下载](docs/original-file-download.md)：项目操作菜单和文献预览可取回当前版本PDF/DOCX的原字节与文件名，权限沿用原工作空间和版本校验。
