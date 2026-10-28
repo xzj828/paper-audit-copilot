@@ -1,0 +1,49 @@
+{
+  "schema": "review-original-check-validation@1",
+  "round": 44,
+  "evaluatedAt": "2026-10-28T03:14:08.207394+00:00",
+  "scope": "Finite browser-local complete-file byte identity controls against an explicitly scoped frozen-report packet; not a signature, permission authentication, expert judgment or scientific accuracy",
+  "externalModelRequests": 0,
+  "databaseOrExistingExportChanges": false,
+  "newLocalReceiptSchema": "original-file-check@1",
+  "controlsLocalCommit": "24a204922025b1d04929091d4a43fb887fba9012",
+  "implementationCommit": "d98b620394543f1fd82e8d629ecc1b129b10a8ed",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 273,
+    "browserPassed": 100,
+    "newNodeTests": 0,
+    "newBrowserFlows": 3,
+    "targetedBrowserPassed": 7,
+    "fullCheckLogSHA256": "3bea09f389a4767ff60375ea5496cd0279eee939510428350a1432e3b0495bc6",
+    "targetedBrowserLogSHA256": "0f3a4d322354167f2bdbaafdb2c10d76eb6a508d3112c3b2313b90f0e1b38f0c"
+  },
+  "baseline": {
+    "browserFailed": 3,
+    "browserPassed": 0,
+    "logSHA256": "a49c3efadbef8c13d2ebc23209715d0ed51274c59c21c7c3555e94bb35a878b3",
+    "description": "The new local-file check input is absent; not a corrupted original or broken preexisting preview."
+  },
+  "checks": [
+    "Actual licensed Du2014 PDF and synthetic DOCX, explicit frozen report/version identity",
+    "Same name/different file mismatch, renamed identical bytes match, single changed byte mismatch",
+    "Downloaded receipt SHA independently compared by Node crypto, full IDs and byte count",
+    "Only existing evaluation GET without request body during local checks; stored versions unchanged",
+    "390px viewport and reload reset; report switch/unmount suppresses held metadata result",
+    "Later selected file wins against earlier genuinely held metadata response",
+    "Empty and 25MiB+1 files rejected before metadata GET; 409, invalid source hash and digest error discard success"
+  ],
+  "implementationSha256": {
+    "src/components/ReviewSourceCheck.vue": "37365226e7c58807300c007b95b140d6c56ad91a8f9cddac156eff8565869179",
+    "src/components/ReviewEvaluation.vue": "97a44a02ad01421b19e63f715c4eecb7d6254dc8f7a7ad9a5480ec71cade77b5",
+    "tests/e2e/review-original-check.spec.js": "0ca9e5b1663a8568c2d582dd7e6e7f032d274934f7b82dea1c197846d0298802"
+  },
+  "receiptIsNotPersistedToServer": true,
+  "historicalProofPolicy": "Keep prior fingerprints and labels unchanged; verify changed components against genuine earlier byte-verified source.",
+  "limitations": [
+    "Complete-file identity only, not parsed-text, table or figure comprehension",
+    "Metadata must be available through the existing authorized report endpoint",
+    "JSON is locally generated and unsigned, not independent certification",
+    "Three finite Chromium flows do not certify every browser or device"
+  ]
+}

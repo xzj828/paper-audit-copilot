@@ -235,3 +235,5 @@ CSV复算新增[排除记录定位](docs/excluded-records.md)：按逻辑数据�
 [当前版本原文件下载](docs/original-file-download.md)：项目操作菜单和文献预览可取回当前版本PDF/DOCX的原字节与文件名，权限沿用原工作空间和版本校验。
 
 [同项目重开保留新结果](docs/project-open-freshness.md)：迟到的当前项目读取不会覆盖已经完成的回答或新保存报告；正常刷新和明确跨项目导航仍可完成。
+
+[人工复核原文件本地核对](docs/review-original-check.md)：选择本地PDF/DOCX，对照所选冻结报告计算SHA-256并下载核对记录。文件内容不上传，摘要一致不代表专家认证。
