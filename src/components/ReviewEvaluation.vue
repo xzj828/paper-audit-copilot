@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { api, json } from '../api';
+import ReviewSourceCheck from './ReviewSourceCheck.vue';
 const props = defineProps<{ projectId: string; versionId: string; reportId: string }>();
 interface Comparison {
   packetHash: string;
@@ -136,6 +137,12 @@ async function compare() {
     <p class="muted">
       隐藏结构化模型名称、评分和建议等级，仍需对照原文件核对图表。复核者身份与参与方式由提交者声明；这里只比较意见，不认证专家质量，也不统计全文漏检。
     </p>
+    <ReviewSourceCheck
+      :project-id="projectId"
+      :version-id="versionId"
+      :report-id="reportId"
+      @download="download($event, '原文件核对记录.json')"
+    />
     <button class="secondary-button" :disabled="busy" @click="exportPacket(false)">
       下载人工复核材料
     </button>
