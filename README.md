@@ -239,3 +239,5 @@ CSV复算新增[排除记录定位](docs/excluded-records.md)：按逻辑数据�
 [人工复核原文件本地核对](docs/review-original-check.md)：选择本地PDF/DOCX，对照所选冻结报告计算SHA-256并下载核对记录。文件内容不上传，摘要一致不代表专家认证。
 
 [第四篇真实原始PDF验证](docs/fourth-pdf.md)：新增保护区景观破碎化材料，独立登记后核对第5/8/17页；3/3目标、18/18返回切片检查通过，属于固定软件回归。
+
+[四篇原PDF一键复查](docs/pdf-suite.md)：npm run evaluate:pdf-suite 逐篇执行固定材料，任一失败整体非零退出，保留每篇指纹、条件与分母。
