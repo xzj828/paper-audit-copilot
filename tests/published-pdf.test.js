@@ -145,3 +145,41 @@ test('explicit PDF manifests reject path traversal and wrong registered bytes be
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('fourth unique original PDF keeps protected-area metric, assumptions and late exclusion targets without changing its source bytes', async () => {
+  const result = await evaluatePublishedPdf({
+    manifestPath: fileURLToPath(
+      new URL('./fixtures/published-pdf/lawrence-2021-source.json', import.meta.url),
+    ),
+  });
+  assert.equal(
+    result.source.sha256,
+    '4318e4cec86d46fb1540627d4fcd3ad9639c620d7420ce625602a11e18f72cfa',
+  );
+  assert.equal(result.source.bytes, 5673407);
+  assert.equal(result.source.doi, '10.1371/journal.pone.0258615');
+  assert.equal(result.source.changed, false);
+  assert.equal(result.parse.pageCount, 22);
+  assert.equal(result.schema, 'published-pdf-validation@2');
+  assert.equal(result.status, 'passed');
+  assert.equal(result.passPolicy, 'registered-pdf-gates@1');
+  assert.equal(Object.keys(result.checks).length, 9);
+  assert.ok(Object.values(result.checks).every((v) => v === true));
+  assert.deepEqual(result.failedChecks, []);
+  assert.deepEqual(
+    result.questions.map((q) => q.expectedPage),
+    [5, 8, 17],
+  );
+  assert.equal(result.summary.registeredQuestions, 3);
+  assert.equal(result.summary.retrievedQuestions, 3);
+  assert.equal(result.summary.expectedPhrasesMapped, 3);
+  assert.ok(result.summary.returnedSlices > 0);
+  for (const field of [
+    'exactSlices',
+    'exactFocusedSlices',
+    'fullSlicesMapped',
+    'focusedSlicesMapped',
+  ])
+    assert.equal(result.summary[field], result.summary.returnedSlices);
+  assert.match(pdfValidationMarkdown(result), /22物理页/);
+});
