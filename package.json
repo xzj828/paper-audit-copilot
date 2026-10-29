@@ -30,7 +30,8 @@
     "evaluate:source-search": "node scripts/evaluate-source-search.mjs",
     "compare:human-review": "node scripts/compare-human-review.mjs",
     "evaluate:human-review": "node scripts/evaluate-human-review-controls.mjs",
-    "evaluate:hyphens": "node scripts/evaluate-hyphen-candidates.mjs"
+    "evaluate:hyphens": "node scripts/evaluate-hyphen-candidates.mjs",
+    "evaluate:pdf-suite": "node scripts/evaluate-pdf-suite.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",

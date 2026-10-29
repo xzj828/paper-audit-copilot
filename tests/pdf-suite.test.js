@@ -42,20 +42,34 @@ test('one corrupted original cannot abort or turn a later valid case into a suit
     const source = JSON.parse(await readFile(fixture, 'utf8'));
     await writeFile(path.join(dir, 'broken.json'), JSON.stringify(source));
     await writeFile(path.join(dir, source.filename), '%PDF-corrupted-developer-control');
+    await writeFile(
+      path.join(dir, 'valid.pdf'),
+      await readFile(path.join(path.dirname(fixture), source.filename)),
+    );
+    await writeFile(
+      path.join(dir, 'failed.json'),
+      JSON.stringify({
+        ...source,
+        filename: 'valid.pdf',
+        questions: [{ ...source.questions[0], expectedPhrase: 'DeveloperMissingTargetControl' }],
+      }),
+    );
     const result = await evaluatePdfSuite({
-      manifestPaths: [path.join(dir, 'broken.json'), fixture],
+      manifestPaths: [path.join(dir, 'broken.json'), path.join(dir, 'failed.json'), fixture],
     });
     assert.equal(result.status, 'failed');
     assert.deepEqual(result.summary, {
-      registeredCases: 2,
+      registeredCases: 3,
       passedCases: 1,
-      failedCases: 0,
+      failedCases: 1,
       errorCases: 1,
     });
     assert.equal(result.cases[0].status, 'error');
     assert.match(result.cases[0].error, /registered source bytes/);
-    assert.equal(result.cases[1].status, 'passed');
-    assert.equal(result.cases[1].result.parse.pageCount, 20);
+    assert.equal(result.cases[1].status, 'failed');
+    assert.ok(result.cases[1].result.failedChecks.includes('registeredTargetsRetrieved'));
+    assert.equal(result.cases[2].status, 'passed');
+    assert.equal(result.cases[2].result.parse.pageCount, 20);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
