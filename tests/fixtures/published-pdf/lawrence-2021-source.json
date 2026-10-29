@@ -1,0 +1,44 @@
+{
+  "schema": "publisher-pdf-fixed-case@1",
+  "filename": "lawrence-2021.pdf",
+  "title": "Landscape fragmentation of the Natura 2000 network and its surrounding areas",
+  "authors": [
+    "Alexandra Lawrence",
+    "Fabian Friedrich",
+    "Carl Beierkuhnlein"
+  ],
+  "year": 2021,
+  "doi": "10.1371/journal.pone.0258615",
+  "sourceURL": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0258615&type=printable",
+  "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0258615",
+  "license": "CC BY 4.0",
+  "licenseURL": "https://creativecommons.org/licenses/by/4.0/",
+  "copyright": "© 2021 Lawrence et al.",
+  "licenseCheckedAt": "2026-10-29",
+  "bytes": 5673407,
+  "sha256": "4318e4cec86d46fb1540627d4fcd3ad9639c620d7420ce625602a11e18f72cfa",
+  "pageCount": 22,
+  "changed": false,
+  "expectedLabelOrigin": "Developer-fixed phrases and physical pages independently checked with pypdf and rendered original pages 1/5/8/17 before any production parser or retrieval run; not expert or held-out labels",
+  "scope": "Fourth unique real paper and fourth original PDF, expanding fixed software controls to landscape fragmentation of protected areas. Existing XML pilot remains three papers/nine questions. Not scientific-support, statistical correctness, universal parsing or expert accuracy.",
+  "questions": [
+    {
+      "id": "lawrence-pdf-metric",
+      "question": "mesh probability animals randomly",
+      "expectedPage": 5,
+      "expectedPhrase": "two points chosen randomly"
+    },
+    {
+      "id": "lawrence-pdf-assumptions",
+      "question": "regression homoscedasticity plots",
+      "expectedPage": 8,
+      "expectedPhrase": "homoscedasticity"
+    },
+    {
+      "id": "lawrence-pdf-exclusion",
+      "question": "resolution exclusion elongated",
+      "expectedPage": 17,
+      "expectedPhrase": "small or elongated"
+    }
+  ]
+}
