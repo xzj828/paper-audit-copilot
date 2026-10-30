@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { evaluatePublishedPdf } from './evaluate-pdf.mjs';
 
 const defaults = [
@@ -21,20 +22,35 @@ export async function evaluatePdfSuite({ manifestPaths = defaults } = {}) {
   const manifests = manifestPaths.map((p) => path.resolve(p));
   if (new Set(manifests).size !== manifests.length)
     throw new Error('Suite rejects duplicate manifest paths');
+  const implementation = Object.fromEntries(
+    await Promise.all(
+      ['scripts/evaluate-pdf-suite.mjs', 'scripts/evaluate-pdf.mjs'].map(async (file) => [
+        file,
+        createHash('sha256')
+          .update(await readFile(new URL(`../${file}`, import.meta.url)))
+          .digest('hex'),
+      ]),
+    ),
+  );
   const cases = [];
   // Sequential workers bound resource use. A broken case is retained rather
   // than preventing later registered materials from being evaluated.
   for (const manifest of manifests) {
+    const identity = {
+      caseIndex: cases.length + 1,
+      manifest: path.basename(manifest),
+      manifestPath: manifest,
+    };
     try {
       const result = await evaluatePublishedPdf({ manifestPath: manifest });
       cases.push({
-        manifest: path.basename(manifest),
+        ...identity,
         status: result.status === 'passed' ? 'passed' : 'failed',
         result,
       });
     } catch (reason) {
       cases.push({
-        manifest: path.basename(manifest),
+        ...identity,
         status: 'error',
         error: reason instanceof Error ? reason.message : 'Evaluation failed',
       });
@@ -49,6 +65,7 @@ export async function evaluatePdfSuite({ manifestPaths = defaults } = {}) {
   return {
     schema: 'published-pdf-suite@1',
     evaluatedAt: new Date().toISOString(),
+    implementation,
     status: summary.passedCases === summary.registeredCases ? 'passed' : 'failed',
     scope:
       'Fixed developer software controls only. Per-case original identities, gate policies and denominators retained; not expert accuracy, a held-out sample or scientific support.',

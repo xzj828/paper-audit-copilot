@@ -182,6 +182,7 @@ export async function evaluatePublishedPdf({
     'shared/text-highlight.js',
     'server/retrieval.js',
     'server/retrieval-terms.js',
+    'server/retrieval-phrases.js',
     'scripts/evaluate-pdf.mjs',
   ];
   const implementation = Object.fromEntries(
