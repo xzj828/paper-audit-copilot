@@ -1,0 +1,62 @@
+{
+  "schema": "retrieval-phrases-validation@1",
+  "round": 47,
+  "evaluatedAt": "2026-10-30T09:05:46.802322+00:00",
+  "policy": "exact-chunk-phrases@1",
+  "scope": "Fixed developer literal retrieval controls; no semantic support, held-out evaluation or expert accuracy",
+  "registrationCommits": [
+    "4883073",
+    "4fd8873"
+  ],
+  "implementationCommit": "b611137",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 284,
+    "browserPassed": 102,
+    "newNodeTests": 7,
+    "newBrowserTests": 1,
+    "targetedNodePassed": 23,
+    "targetedBrowserPassed": 3,
+    "baselineNodeFailed": 6,
+    "baselineBrowserFailed": 1,
+    "fullCheckLogSHA256": "57eda6d77d5f86a3c547c374093a404f44dfa3fc28b2972b569c90b3ddc8b471",
+    "targetedNodeLogSHA256": "eeaa1b3e530f00ac14b144ec3fc02aa27e12291601bb31f60914b6b6e9f66715",
+    "targetedBrowserLogSHA256": "fa819c6aa15f8b4b065797f515351b4deed67b0e8e26c1b2f40c750d1d26adce",
+    "baselineNodeLogSHA256": "ad1eecf6a219b18d20a247795fc093e045965ebf7b724ab9e7c9a2ac0af0dd7a",
+    "baselineBrowserLogSHA256": "c1e15ae449b95603ab013b1f5cbc8f85d15c78dde1aecd4a5929089898ffbbfb",
+    "registrationLimit": "Real-PDF seventh Node control and local saved-finding/API malformed persistence refinements added after feature implementation; not preregistered claims"
+  },
+  "controlledBrowserFlow": {
+    "negativeProviderCalls": 0,
+    "positiveProviderCalls": 1,
+    "externalModelRequests": 0,
+    "material": "Synthetic DOCX with separate target and distractor paragraphs",
+    "reloadAndJsonExportPreservePolicy": true,
+    "malformedRequestStatus": 400,
+    "completeVersionsUnchangedByMalformedRequest": true,
+    "parseUnchanged": true
+  },
+  "originalPdfControl": {
+    "sourceManifest": "tests/fixtures/published-pdf/lawrence-2021-source.json",
+    "sha256": "4318e4cec86d46fb1540627d4fcd3ad9639c620d7420ce625602a11e18f72cfa",
+    "physicalPages": 22,
+    "query": "resolution “small or elongated”",
+    "targetPage": 17,
+    "sourceAnchorsExact": true,
+    "negativeMarker": "DeveloperMissingTargetControl",
+    "negativeLabelOrigin": "Deliberate developer string control, not expert absence label"
+  },
+  "implementationSha256": {
+    "server/retrieval-phrases.js": "cb1cd0f2541879c58a1f053fdd8cfd02106d1ae84391bfb0a12586e7061c96c9",
+    "server/retrieval.js": "22bd4d0c0c421a3f6529290b28bdd8d15b12ce23b0a9f1256712dae11b06be3b",
+    "server/engine.js": "b343192a87862f2389593ad7549a3f940e62c2cbfd3496861ddb1f5cc1b35d3d",
+    "server/chat-export.js": "eb1e0938d3f0eeb406c645eb5bd4796481f4d02b96fa996e9a004d40120968bf",
+    "src/App.vue": "cd62b7187c20aa3ca9b552ba3cfd66a00cfc753d3e10f70e841cd47696613137",
+    "src/types.ts": "552bef5f5e72871bd872842a4d10e3ddfdfa15c446fa64300319bdf96ec79e13",
+    "src/components/EvidenceSources.vue": "dcb11e3d6ba7369805ba8578b859dd688cecf6a00f1116e8cafc6619e484a2b0",
+    "tests/retrieval-phrases.test.js": "2f42a0d8500ac1837ad8ca0b7eb007fcbfb4ec31c0fa5912dd392d30f9f5b509",
+    "tests/e2e/retrieval-phrases.spec.js": "9c14491b2476f9f68df4b376771e2feab466e03cc8884d64f00ee656fe2bd303"
+  },
+  "mobileScreenshotSHA256": "cd0987e9f051f4d1c2529389e45231e7b34d0c87902d7715ee3546b8099ad75e",
+  "technicalPdf": "Unchanged v45 historical PDF; current behavior/counts in this guide/receipt"
+}
