@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { docxFixture } from '../fixtures.js';
+import { Document, Paragraph, Packer } from 'docx';
 
 test('quoted phrase filters real uploaded text, prevents no-match model calls and persists through mobile export', async ({ page }) => {
   let calls = 0;
+  const contexts = [];
   const provider = createServer(async (req, res) => {
     let body = '';
     for await (const part of req) body += part;
     calls++;
     const input = JSON.parse(body);
     const context = input.messages.find((m) => m.content.includes('<paper>')).content;
-    expect(context).toContain('312 independent samples');
-    expect(context).not.toContain('dependent samples');
+    contexts.push(context);
     res.setHeader('Content-Type', 'text/event-stream');
     res.end(`data: ${JSON.stringify({ choices: [{ delta: { content: '312 samples [R1].' }, finish_reason: 'stop' }] })}\n\n`);
   });
@@ -26,7 +26,10 @@ test('quoted phrase filters real uploaded text, prevents no-match model calls an
     await page.getByLabel('上传论文文件', { exact: true }).setInputFiles({
       name: 'phrases.docx',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      buffer: docxFixture('Glacier data used 312 independent samples. ' + 'Glacier dependent samples and data. '.repeat(70)),
+      buffer: await Packer.toBuffer(new Document({ sections: [{ children: [
+        new Paragraph('Glacier data used 312 independent samples.'),
+        new Paragraph('DistractorControl glacier dependent samples and data. '.repeat(70)),
+      ] }] })),
     });
     await expect(page.locator('.parse-metrics')).toBeVisible();
     await page.request.put('/api/model-config', { data: {
@@ -52,6 +55,8 @@ test('quoted phrase filters real uploaded text, prevents no-match model calls an
     await expect(answer).toContainText('回答已引用');
     await expect(answer.locator('[data-phrase-policy]')).toContainText('同一片段');
     expect(calls).toBe(1);
+    expect(contexts[0]).toContain('312 independent samples');
+    expect(contexts[0]).not.toContain('DistractorControl');
     const saved = await (await page.request.get(`/api/projects/${id}`)).json();
     expect(saved.versions[0].parse).toEqual(before.versions[0].parse);
     expect(saved.versions[0].messages.at(-1).retrieval.phraseFilter.phrases).toEqual(['312 independent samples']);
