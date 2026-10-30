@@ -24,3 +24,7 @@ summary只有registeredCases、passedCases、failedCases、errorCases。所有�
 386a509先登记三项控制，原实现缺模块；02bcd2f增加命令并补充有效材料未命中目标的控制。实际四原PDF运行全部通过，每篇3题，返回片段各21/24/24/18，分母逐篇保留。损坏字节、有效源缺目标、正常案例同轮运行时得到error/failed/passed且整体failed；空/重复清单和未知参数拒绝。目标12Node与完整构建277Node/101浏览器通过，外部模型请求0。
 
 这是固定开发者软件回归，不代表未见论文上的性能、专家准确率、科学支持或全文漏检率。原科学论文方法与结论没有在本轮获得专业认证。技术PDF保持v45历史版本，当前入口及测试计数以本说明、验证JSON和交付回执为准。
+
+## v48 结果身份补充
+
+当前同一schema新增caseIndex和manifestPath，错误案例也保留完整路径；整套implementation记录两个入口SHA-256，成功单篇指纹包含短语规则。详见[suite-provenance.md](suite-provenance.md)。上方v46验证数字和技术PDF均为历史记录，当前286Node/102浏览器验证及运行身份见新增说明/回执。

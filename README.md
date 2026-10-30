@@ -243,3 +243,5 @@ CSV复算新增[排除记录定位](docs/excluded-records.md)：按逻辑数据�
 [四篇原PDF一键复查](docs/pdf-suite.md)：npm run evaluate:pdf-suite 逐篇执行固定材料，任一失败整体非零退出，保留每篇指纹、条件与分母。
 
 [显式逐字短语检索](docs/retrieval-phrases.md)：问题中的双引号短语须同时出现在同一来源片段；未命中不调用模型，约束保留到导出，不能据此判断全文缺失或科学支持。
+
+[整套复查身份与指纹](docs/suite-provenance.md)：成功或报错案例均保留清单路径及顺序，整套结果记录入口实现指纹，便于区分同名清单并追溯运行版本。
