@@ -47,6 +47,8 @@ function retrievalSnapshot(value) {
       'section',
       'documentChunks',
     ]);
+  if (value.phraseFilter && typeof value.phraseFilter === 'object')
+    result.phraseFilter = pick(value.phraseFilter, ['policy', 'phrases', 'matchingChunks']);
   return result;
 }
 
@@ -200,7 +202,10 @@ export function exportChat(project, version, format) {
     );
     if (message.citationWarning) lines.push(`引用提示：${inline(message.citationWarning)}`, '');
     if (message.citationPolicy)
-      lines.push(`引用编号策略：${inline(message.citationPolicy)}；仅检查编号，不判断结论支持度。`, '');
+      lines.push(
+        `引用编号策略：${inline(message.citationPolicy)}；仅检查编号，不判断结论支持度。`,
+        '',
+      );
     if (message.retrieval) {
       const r = message.retrieval;
       lines.push(
@@ -212,6 +217,11 @@ export function exportChat(project, version, format) {
       if (r.followUpTo)
         lines.push(`沿用的问题 ID：${inline(r.followUpTo)}`, '', literal(r.queryText), '');
       if (r.followUpPolicy) lines.push(`追问策略：${inline(r.followUpPolicy)}`, '');
+      if (r.phraseFilter)
+        lines.push(
+          `逐字短语：${r.phraseFilter.phrases.map(inline).join('、')} · ${inline(r.phraseFilter.policy)}；同一片段须包含全部短语，区分大小写、空格和换行；候选 ${r.phraseFilter.matchingChunks}/${r.totalChunks}，实际提供 ${r.selectedChunks}。仅检查当前范围解析文字，不判断科学支持，未命中不代表全文缺失。`,
+          '',
+        );
       if (r.requestedScope)
         lines.push(
           `限定区块：${inline(r.requestedScope.section)} · ${inline(r.requestedScope.elementId)} · ${inline(r.requestedScope.policy)}；全文共 ${r.requestedScope.documentChunks} 个片段，当前分母仅为限定范围。`,

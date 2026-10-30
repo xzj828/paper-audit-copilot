@@ -56,6 +56,17 @@ defineEmits<{ locate: [anchor: Anchor] }>();
     </div>
     <p class="retrieval-scope">{{ retrieval.scope }}</p>
     <p
+      v-if="retrieval.phraseFilter"
+      class="retrieval-scope"
+      :data-phrase-policy="retrieval.phraseFilter.policy"
+    >
+      逐字短语：{{ retrieval.phraseFilter.phrases.map((phrase) => `“${phrase}”`).join('、') }}。
+      同一片段须包含全部短语，区分大小写、空格和换行；候选
+      {{ retrieval.phraseFilter.matchingChunks }} / {{ retrieval.totalChunks }}，实际提供
+      {{ retrieval.selectedChunks }}。
+      只检查当前范围的解析文字，不代表科学支持；未命中不能认定全文缺失。
+    </p>
+    <p
       v-if="citationPolicy === 'markdown-body-labels@1'"
       class="retrieval-scope"
       :data-citation-policy="citationPolicy"

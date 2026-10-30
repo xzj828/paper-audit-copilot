@@ -1621,7 +1621,7 @@ onUnmounted(() => {
                   ? '正在上传论文…'
                   : dragging
                     ? '松开以上传论文'
-                    : '输入问题，结合论文原文展开讨论…'
+                    : '输入问题；可用双引号限定逐字短语…'
               "
               @keydown.enter.exact="composerEnter"
             ></textarea>

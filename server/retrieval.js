@@ -2,6 +2,7 @@
 import { quoteRange } from '../shared/text-highlight.js';
 import { resolveRetrievalScope } from './retrieval-scope.js';
 import { bodyCitationLabels, citationPolicy } from './citation-labels.js';
+import { queryPhrases } from './retrieval-phrases.js';
 import {
   mappedTerms,
   mappedQuery,
@@ -119,6 +120,7 @@ export function retrieveEvidence(
         .find((m) => !followUp.test(m.text.trim()))
     : null;
   const queryText = topic?.text || question;
+  const phrases = queryPhrases(queryText);
   const mapped = mappedQuery(queryText);
   const words = terms(mapped.remainder);
   const query = [
@@ -167,6 +169,7 @@ export function retrieveEvidence(
     if (selected) selected.score += 1000;
   }
   const overview =
+    !phrases.length &&
     terms(queryText, false).length === 0 &&
     /总结|概括|概述|摘要|主要内容|summari[sz]e|summary|overview/i.test(queryText);
   let candidates;
@@ -181,7 +184,17 @@ export function retrieveEvidence(
           )
         ],
     );
-  } else candidates = documents.filter((doc) => doc.score > 0).sort((a, b) => b.score - a.score);
+  } else
+    candidates = documents
+      .filter((doc) =>
+        phrases.length
+          ? phrases.every((phrase) => doc.chunk.quote.includes(phrase))
+          : doc.score > 0,
+      )
+      .sort((a, b) => b.score - a.score);
+  const phraseFilter = phrases.length
+    ? { policy: 'exact-chunk-phrases@1', phrases, matchingChunks: candidates.length }
+    : null;
   const sources = [];
   let characters = 0;
   for (const { chunk } of candidates) {
@@ -209,7 +222,11 @@ export function retrieveEvidence(
         .matches.filter((match) => mapped.tokens.includes(conceptToken(match.id)))
         .map((match) => match.start),
     );
-    const first = matches.length ? starts[Math.min(...matches)] : 0;
+    const first = phrases.length
+      ? Math.min(...phrases.map((phrase) => chunk.quote.indexOf(phrase)))
+      : matches.length
+        ? starts[Math.min(...matches)]
+        : 0;
     const excerptStart = Math.max(0, (first || 0) - 60);
     const excerptEnd = Math.min(chunk.quote.length, excerptStart + 220);
     sources.push({
@@ -242,6 +259,7 @@ export function retrieveEvidence(
     selectedChunks: sources.length,
     contextCharacters: characters,
     status: sources.length ? 'matched' : 'no_match',
+    ...(phraseFilter ? { phraseFilter } : {}),
     ...(requestedScope
       ? { requestedScope: { ...requestedScope, documentChunks: allChunks.length } }
       : {}),

@@ -163,6 +163,11 @@ export interface EvidenceSource {
   cited?: boolean;
 }
 export interface Retrieval {
+  phraseFilter?: {
+    policy: string;
+    phrases: string[];
+    matchingChunks: number;
+  };
   requestedScope?: {
     policy: string;
     parseId: string;

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { retrieveEvidence } from './retrieval.js';
 import { quoteRange } from '../shared/text-highlight.js';
 import { pdfDiagnosticsSnapshot } from '../shared/pdf-diagnostics.js';
+import { queryPhrases } from './retrieval-phrases.js';
 export const anchorValidationVersion = 'exact-occurrence@2';
 
 export const registry = [
@@ -131,14 +132,15 @@ export function makeStructureReport(version, settings) {
 }
 
 export function answerLocally(version, question, findingId, options = {}) {
+  const phrases = queryPhrases(question);
   const finding = !options.retrievalScope && version.findings.find((f) => f.id === findingId);
-  if (finding)
+  if (finding && !phrases.length)
     return {
       text: `${version.format === 'demo' ? '【演示意见解释】' : '【已保存意见】'}${finding.explanation}\n\n修改建议：${finding.suggestion}\n\n以下引用可跳转至原文。此回答整理已保存的意见，没有进行新的专业判断。`,
       anchor: finding.anchor,
       findingId: finding.id,
     };
-  const { sources, retrieval } = retrieveEvidence(version, question, undefined, options);
+  const { sources, retrieval } = retrieveEvidence(version, question, findingId, options);
   if (sources.length)
     return {
       text: `【原文检索】${retrieval.mode === 'overview' ? (retrieval.requestedScope ? '限定区块抽样' : '全文抽样') : '按相关性检索'}得到 ${sources.length} 个片段：\n\n${sources.map(({ id, anchor }) => `[${id}] ${anchor.section}\n${anchor.quote}`).join('\n\n')}\n\n当前未接入语言模型，此结果是关键词检索，不构成专业评审意见。`,
