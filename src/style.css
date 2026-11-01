@@ -2479,6 +2479,7 @@ progress {
   padding: 4px 7px;
 }
 .toast-message {
+  pointer-events: none;
   position: fixed;
   bottom: 28px;
   left: 50%;
@@ -2498,6 +2499,7 @@ progress {
   line-height: 1.8;
 }
 .toast-message .icon-button {
+  pointer-events: auto;
   color: #cddcf1;
   width: 24px;
   height: 24px;
