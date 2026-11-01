@@ -1,0 +1,51 @@
+{
+  "schema": "parse-status-recovery-validation@1",
+  "round": 50,
+  "evaluatedAt": "2026-11-01T09:07:20.905616+00:00",
+  "scope": "Controlled browser status-read recovery; not a proven root cause of the v48 intermittent wait, scientific performance or expert accuracy",
+  "registrationCommits": [
+    "3b89d68",
+    "5973b9a"
+  ],
+  "implementationCommit": "9e24654",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 286,
+    "browserPassed": 108,
+    "newBrowserTests": 5,
+    "targetedBrowserPassed": 8,
+    "preregisteredBrowserControls": 3,
+    "initialBaselineControls": 2,
+    "implementationPhaseAdditionalControls": 2,
+    "fullCheckLogSHA256": "b1448964122ac6f472b750e3c78cf7abd5d9cdab640840576133c1d485e54e1a",
+    "targetedBrowserLogSHA256": "fb762c4fa88168d4893a34615ce34cbc1d0a73b0797a310ed03a31ebe2af583c",
+    "baselineLogSHA256": "1aa7fabaf37e8cfc3db54d79a311f9af1402f6258c15bc0cdd97e960c7f108ec",
+    "initialBaselineLogSHA256": "ae7e13b240a0b74f887fadcb66fa929ebbea63c20bd7445cc82fb1a7aa69134a",
+    "registrationLimit": "Two response/version controls added during implementation; after target run only screenshot timing and formatting changed; final full run covers current files"
+  },
+  "assertedControls": {
+    "stalledBackgroundReadDoesNotBlockManualRead": true,
+    "latePendingBackgroundResponseDoesNotRegressReadyState": true,
+    "manualReadDeadlineMilliseconds": 15000,
+    "timeoutRetryWorks": true,
+    "duplicateManualActionDisabled": true,
+    "projectAndVersionNavigationPreserved": true,
+    "failedOrForeignIdentityRejected": true,
+    "pendingResponseDoesNotClaimCompletion": true,
+    "manualReadFlowOnlyUsesGET": true,
+    "completeSavedVersionsUnchangedByReads": true,
+    "mobileNoHorizontalOverflow": true,
+    "reloadRestoresSavedParse": true
+  },
+  "externalModelRequests": 0,
+  "implementationSha256": {
+    "src/App.vue": "28001f5b9803b965da07c2afdccf61baadd7549973216ff50931aafa6fbefe1e",
+    "src/components/ParseStatusRefresh.vue": "82fa926ecdbc7e03e378f854cb546eaffb3be3b6a81564cc1a326fbab50d62fe",
+    "tests/e2e/parse-status-recovery.spec.js": "ccee4ef0db3ff0b0e365fe951d797e6a9d8030d7e59cd8009a96ea42d6a53e5e"
+  },
+  "mobileScreenshotSHA256": "ca55e8dd9c778bc9841ea92b1f86833bb1729d1df0e8c81a15ef23ec01bbbe30",
+  "unresolved": [
+    "Historical v48 timing/worker/browser/network root cause not established; manual recovery does not speed up parsing"
+  ],
+  "technicalPdf": "Unchanged v45 historical PDF; current behavior and counts in guide/receipt"
+}
