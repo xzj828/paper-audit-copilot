@@ -12,6 +12,8 @@ test('mobile toast body permits an actually overlapping CSV action while its clo
   await expect.poll(async () => (await current()).status).toBe('ready');
   await page.reload();
   await page.locator('.project-link').filter({ hasText: p.title }).click();
+  await expect(page.locator('.conversation-header h1')).toHaveText(p.title);
+  await page.getByRole('tab', { name: '论文解析', exact: true }).click();
   await expect(page.locator('.parse-metrics')).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: '论文工作区', exact: true }).click();
