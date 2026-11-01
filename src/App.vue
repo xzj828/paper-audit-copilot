@@ -4,6 +4,7 @@ import Icon from './components/Icon.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
 import PdfInspection from './components/PdfInspection.vue';
+import ParseStatusRefresh from './components/ParseStatusRefresh.vue';
 import DocxSection from './components/DocxSection.vue';
 import ModelSettings from './components/ModelSettings.vue';
 import ModelPicker from './components/ModelPicker.vue';
@@ -820,6 +821,21 @@ function onDrop(event: DragEvent) {
   dragging.value = false;
   const file = event.dataTransfer?.files[0];
   if (file) requestUpload(file);
+}
+function parseStatusReceiver() {
+  const before = project.value;
+  const versionId = version.value?.id;
+  const navigation = requestSequence,
+    revision = settingsRevision;
+  return (data: Project) => {
+    if (
+      !before || project.value !== before || version.value?.id !== versionId ||
+      navigation !== requestSequence || revision !== settingsRevision ||
+      savingSettings.value || uploading.value || busy.value || data.id !== before.id
+    ) return false;
+    project.value = { ...data, activeVersionId: versionId! };
+    return true;
+  };
 }
 async function poll() {
   const before = project.value;
@@ -2161,6 +2177,8 @@ onUnmounted(() => {
             <h3>正在读取论文</h3>
             <progress max="100" :value="version.progress || 0" />
             <p>已完成 {{ version.progress || 0 }}% · 任务进度会自动更新</p>
+            <ParseStatusRefresh :project-id="project!.id" :version-id="version.id"
+              :disabled="busy || savingSettings || uploading" :capture-receiver="parseStatusReceiver" />
           </div>
           <div v-else-if="version.status === 'failed'" class="notice error-notice">
             {{ version.error }}<button class="secondary-button" @click="retry">重试解析</button>
