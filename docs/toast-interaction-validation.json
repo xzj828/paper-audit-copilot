@@ -1,0 +1,49 @@
+{
+  "schema": "toast-interaction-validation@1",
+  "round": 49,
+  "evaluatedAt": "2026-11-01T03:21:05.926015+00:00",
+  "scope": "Deterministic software pointer-hit control, not expert or scientific accuracy",
+  "registrationCommits": [
+    "fd507a4",
+    "5435323",
+    "f2225c0"
+  ],
+  "implementationCommit": "9a5bad0",
+  "productionChange": "Two CSS pointer-events declarations only",
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 286,
+    "browserPassed": 103,
+    "newBrowserTests": 1,
+    "targetedBrowserPassed": 5,
+    "fullCheckLogSHA256": "8e94263b402c8f3c020d661b8ca12afa80fe64a421b503a45858b6170d5f3dd1",
+    "targetedBrowserLogSHA256": "8dd0c8e1916d32174541bd7cc9dcc92251aa33e2d01fe149b8f29be5b16703c3",
+    "confirmedObstructionLogSHA256": "3bf1e05c19ca7c5e490e96c6262fd06607c57245ff0daea473c498fcd138dfae",
+    "preparationLogSHA256": "5eee4cf002e494dc451d797589dca11b5a4edc18849a3e304c67083167c6df23",
+    "locatorControlPassedBeforeFix": true,
+    "locatorControlLimitation": "Locator can auto-scroll; final control uses measured screen coordinates and actual elementFromPoint result",
+    "controlledClock": "Freeze scheduled notification expiry; no production timer change"
+  },
+  "assertedObservations": {
+    "negativeHit": "toast-message",
+    "negativeSavedAudits": 0,
+    "positiveHit": "actual CSV action button",
+    "positiveSavedAudits": 1,
+    "positiveMean": 3,
+    "parseReportsMessagesUnchanged": true,
+    "toastRemainsBeforeManualClose": true,
+    "closeButtonWorks": true,
+    "overlapWidthAndHeightGreaterThan8": true
+  },
+  "externalModelRequests": 0,
+  "implementationSha256": {
+    "src/style.css": "81a22e82368f1db8985a7969cc0b0c5f695eb6686838e2e72940039d2f2bd4e4",
+    "tests/e2e/toast-interaction.spec.js": "bb8d1fdd52f83e2d9bb7039020bc6ccc3fed0ae5269c43c269dee5273694f29b"
+  },
+  "mobileScreenshotSHA256": "8276c3478b2001f1fece901064d586547f19267e52f40c7329a3e52091f1a952",
+  "unresolved": [
+    "v48 upload/parse-interface waiting root cause",
+    "Why v48 toast persisted until timeout"
+  ],
+  "technicalPdf": "Unchanged v45 historical PDF; current behavior/counts in this guide and receipt"
+}
