@@ -1,0 +1,57 @@
+{
+  "schema": "upload-list-recovery-validation@1",
+  "round": 51,
+  "evaluatedAt": "2026-11-02T03:45:58.633241+00:00",
+  "registrationCommit": "191a422",
+  "implementationCommit": "d96468c",
+  "candidateBranch": "codex/upload-list-recovery-20261102",
+  "scope": "Real local upload/Worker plus controlled browser list delay/failure; not the established root cause of historical v48 wait",
+  "tests": {
+    "productionBuild": "passed",
+    "threeFullRunsAllHadOneFailure": true,
+    "nodePassed": 286,
+    "browserPassed": 109,
+    "browserFailed": 1,
+    "fullCheckStatus": "failed",
+    "publicationStatus": "candidate_branch_only",
+    "newBrowserTests": 2,
+    "targetedBrowserPassed": 7,
+    "baselineBrowserFailed": 1,
+    "baselineBrowserPassed": 1,
+    "fullCheckLogSHA256": "6ec2b039318c247b9d099586a1b6d253bcb1bd0dbf53e2019af9231edfc47353",
+    "targetedBrowserLogSHA256": "6de9c7ec9496043e67cbe6009a195ab9b160c0d6e8578b9c0c9e38ca463e123a",
+    "baselineLogSHA256": "d597c3c5759d39d91f1527fd9be3f304e4dfad385f153797a06a9e38f41ee19a",
+    "initialCheckLogSHA256": "225fe88def7a46b1293accc9077277b5e283013bff3807306d0b066fab09ad39",
+    "initialBrowserPassed": 109,
+    "initialBrowserFailed": 1,
+    "browserRecheckPassed": 1,
+    "browserRecheckLogSHA256": "f26b94c96a9909e8ebe6b31a7a3a84566ee36b27b2601e386a060936fa5f9e56",
+    "secondCheckLogSHA256": "b05bc1654b5cab19d117ceebfa3ef00e7ba573291f6002c42c0e7ee00e7bbb81",
+    "secondBrowserPassed": 109,
+    "secondBrowserFailed": 1,
+    "secondBrowserRecheckPassed": 2,
+    "secondBrowserRecheckLogSHA256": "e302065a86a20b9fc7a8398d13143cd4b84c1f239eace505b5238138406f549a",
+    "initialFailureScope": "Existing terminology upload wait timed out; original-condition recheck passed without code/test/timeout changes. Trace and log retained; historical root cause not claimed fixed.",
+    "registrationLimit": "503 completion of held list read added during implementation; both initial cases registered before production edit"
+  },
+  "assertedControls": {
+    "actualUploadStatus": 202,
+    "workerFinishedWhileListHeld": true,
+    "manualProgressActionEnabledWhileListHeld": true,
+    "uploadCountDuringRecovery": 1,
+    "savedVersionsUnchangedDuringReadsAndListFailure": true,
+    "listFailureDoesNotUndoAcceptedUpload": true,
+    "rejectedUploadRetryCreatesExactlyOneVersion": true
+  },
+  "externalModelRequests": 0,
+  "implementationSha256": {
+    "src/App.vue": "5db01a11f8a3cd7a1fbd959c425201de2233fc9d1b5e510daa8ec96944f20a81",
+    "tests/e2e/upload-list-recovery.spec.js": "ea8ceca0cf71f0c2ef61ffc863ee5e9ba708b49e8b653f112eee73bee2647509"
+  },
+  "mobileScreenshotSHA256": "48a7d975196d94096c1516c400c577ac7c1fcbf4b35e871c23749d76aa9edf92",
+  "unresolved": [
+    "v48 historical scheduling/Worker/network cause",
+    "Original upload POST network deadline not changed"
+  ],
+  "technicalPdf": "Unchanged v45 historical PDF; current guide/receipt carry current counts"
+}
