@@ -1,0 +1,49 @@
+{
+  "schema": "upload-list-recheck-validation@1",
+  "round": 52,
+  "evaluatedAt": "2026-11-02T15:23:11.423594+00:00",
+  "testedLocalCommit": "c9dfe85ade48e3b9eb85ba9202d2a43be151a901",
+  "testedRemoteCandidate": "3ec62ee409486bd282371214b9621d3b704c668f",
+  "productionCodeChanged": false,
+  "testsOrTimeoutsChanged": false,
+  "freshFullCheckAttemptsThisRound": 1,
+  "tests": {
+    "productionBuild": "passed",
+    "nodePassed": 286,
+    "browserPassed": 110,
+    "browserFailed": 0,
+    "newTests": 0,
+    "fullCheckLogSHA256": "2f3424f08995c67141e8220cabeb3a340be879ddcdc263b5754579a2c8e70363"
+  },
+  "historicalFullChecks": [
+    {
+      "log": "round-fifty-one-check-initial.log",
+      "sha256": "225fe88def7a46b1293accc9077277b5e283013bff3807306d0b066fab09ad39",
+      "browserPassed": 109,
+      "browserFailed": 1
+    },
+    {
+      "log": "round-fifty-one-check-second.log",
+      "sha256": "b05bc1654b5cab19d117ceebfa3ef00e7ba573291f6002c42c0e7ee00e7bbb81",
+      "browserPassed": 109,
+      "browserFailed": 1
+    },
+    {
+      "log": "round-fifty-one-check.log",
+      "sha256": "6ec2b039318c247b9d099586a1b6d253bcb1bd0dbf53e2019af9231edfc47353",
+      "browserPassed": 109,
+      "browserFailed": 1
+    }
+  ],
+  "implementationSha256": {
+    "src/App.vue": "5db01a11f8a3cd7a1fbd959c425201de2233fc9d1b5e510daa8ec96944f20a81",
+    "src/components/ParseStatusRefresh.vue": "82fa926ecdbc7e03e378f854cb546eaffb3be3b6a81564cc1a326fbab50d62fe",
+    "tests/e2e/upload-list-recovery.spec.js": "ea8ceca0cf71f0c2ef61ffc863ee5e9ba708b49e8b653f112eee73bee2647509",
+    "tests/e2e/parse-status-recovery.spec.js": "ccee4ef0db3ff0b0e365fe951d797e6a9d8030d7e59cd8009a96ea42d6a53e5e",
+    "package.json": "dba28ffcb964613a8407e62c7b44e43764c8b9b7e2405e74ac91b9640f3c8586",
+    "package-lock.json": "b37508c12da7c211de3b71ce895a1591dc2787d0b92befcb336d2b888ee455a0",
+    "playwright.config.js": "0bc0eb38c9057dc7317c0196910eb1fad7dc296d32122cec74632c9853ffdcfe"
+  },
+  "limitations": "One fresh full pass does not establish a fix for prior intermittent waits. Historical candidate/failed records retained. Not expert or scientific accuracy.",
+  "technicalPdf": "Unchanged v45 historical PDF; current guide/receipt carry current status"
+}
