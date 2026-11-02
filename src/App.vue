@@ -796,20 +796,31 @@ async function uploadFile(file: File) {
   uploading.value = true;
   dialog.value = '';
   pendingFile.value = null;
+  let accepted = false;
   await safe(async () => {
     const body = new FormData();
     body.append('file', file);
     const data = await api<Project>(`/projects/${projectId}/upload`, { method: 'POST', body });
+    accepted = true;
     if (project.value?.id === projectId) {
       project.value = data;
       tab.value = 'parse';
       page.value = 1;
       contextFinding.value = null;
     }
-    await refreshList();
     notify('上传完成，正在解析论文');
   });
   uploading.value = false;
+  // The file POST is finished. A slow/read-only list refresh must not keep
+  // parsing recovery controls disabled, or later clear a newer upload's state.
+  if (accepted) {
+    try {
+      await refreshList();
+    } catch {
+      if (project.value?.id === projectId)
+        notify('文件已上传，项目列表暂未刷新。可在解析页检查最新进度。');
+    }
+  }
 }
 function onFile(event: Event) {
   const input = event.target as HTMLInputElement;

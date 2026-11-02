@@ -47,7 +47,7 @@ test('accepted upload releases controls before a held project-list refresh finis
     const response = await route.fetch();
     listStarted();
     await gate;
-    await route.fulfill({ response });
+    await route.fulfill({ status: 503, json: { error: '受控列表读取失败' } });
   });
   // No background polling is needed: real Worker/storage completion is read
   // through the API; browser timers stay paused while the list GET is held.
@@ -69,6 +69,7 @@ test('accepted upload releases controls before a held project-list refresh finis
     expect((await read()).versions).toEqual(before.versions);
     release();
     await page.evaluate(() => fetch('/api/health').then((r) => r.json()));
+    await expect(page.locator('.toast-message')).toContainText('文件已上传，项目列表暂未刷新');
     await expect(page.locator('.parse-metrics')).toBeVisible();
     expect((await read()).versions).toEqual(before.versions);
   } finally {
