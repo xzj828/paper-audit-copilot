@@ -1,0 +1,53 @@
+{
+  "schema": "technical-release-validation@1",
+  "round": 53,
+  "documentDate": "2026-11-03",
+  "productionCodeChanged": false,
+  "freshFullCheckAttemptsThisRound": 0,
+  "tests": {
+    "nodePassed": 286,
+    "browserPassed": 110,
+    "newTests": 0,
+    "fullCheckLogSHA256": "2f3424f08995c67141e8220cabeb3a340be879ddcdc263b5754579a2c8e70363",
+    "sourceRound": 52,
+    "rerunThisRound": false
+  },
+  "documentChecks": {
+    "pages": 8,
+    "pageLimit": 30,
+    "allMarkdownNonblankLinesPresent": true,
+    "noOutOfPageGlyphs": true,
+    "visuallyReviewedPages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "markdownSHA256": "c3dc6e58bf270898d3b8a5c3f094aa527c09bacc8afb7e12882be0277b354fc3",
+    "pdfSHA256": "689e73ddf033b40839fca5341f6041d50f9ed49933b6e4b1ee974efcef6ae92b",
+    "renderSHA256": {
+      "1": "3e826594abb5d0aee323b94c85871084ca760b331412710064a3766ebf022864",
+      "2": "afb1d01642b5370a27344598926ffb7f5798bd8da2a17d9066aee1059f26e4ae",
+      "3": "b5ffc8dc7fcbe8d201cc458f7e805d09a49c8aaf23e9c7344444c323183d1976",
+      "4": "92d022ddf527210392c1c96e0f7f49ccf64f85721db424a71a44bf49e8f4ddbc",
+      "5": "f7f7a30d69d2663d5e88e97c46e96d0acee187af16a71c90f31f6eb578813ba1",
+      "6": "78cbccf93fdbf1b57b9cf2de5d2b734d55ac84d3c139bb109af81eb8a0ad6dc8",
+      "7": "73e45d911800b1ae9c32b259a755a9940079a46d83b06b2a13d7fecba0f2b869",
+      "8": "b7d291615ac7850c58028c2210cf650949f4ea3004c24ecd2fc98bb87e4626e2"
+    },
+    "programTestsSource": "round-fifty-two-check.log",
+    "programTestsLogSHA256": "2f3424f08995c67141e8220cabeb3a340be879ddcdc263b5754579a2c8e70363",
+    "programTestsRerunThisRound": false,
+    "nodePassedAtV52": 286,
+    "browserPassedAtV52": 110
+  },
+  "implementationSha256": {
+    "docs/technical-document.md": "c3dc6e58bf270898d3b8a5c3f094aa527c09bacc8afb7e12882be0277b354fc3",
+    "docs/technical-document.pdf": "689e73ddf033b40839fca5341f6041d50f9ed49933b6e4b1ee974efcef6ae92b"
+  },
+  "limitations": "Documentation refresh only; v52 verification reused with date/source. Historical failures retained. No new official-rule verification, expert accuracy or submission claim."
+}
