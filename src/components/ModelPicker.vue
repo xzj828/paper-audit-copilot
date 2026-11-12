@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { api, json } from '../api';
 import type { ModelConfig } from '../types';
 import Icon from './Icon.vue';
+import ModelBrandIcon from './ModelBrandIcon.vue';
 defineProps<{ config: ModelConfig; disabled?: boolean }>();
 const emit = defineEmits<{ updated: [config: ModelConfig]; configure: [] }>();
 const open = ref(false),
@@ -62,59 +63,71 @@ onUnmounted(() => document.removeEventListener('click', outside));
       type="button"
       class="model-shortcut"
       aria-label="切换对话模型"
+      :title="config.enabled ? config.model : '本地原文检索'"
       aria-haspopup="menu"
       :aria-expanded="open"
       :disabled="disabled"
       @click="toggle"
     >
+      <ModelBrandIcon
+        v-if="config.enabled"
+        :model="config.model"
+        :base-url="config.baseUrl"
+        :size="18"
+      />
       <span>{{ config.enabled ? config.model : '本地原文检索' }}</span
       ><Icon name="down" :size="14" />
     </button>
-    <div v-if="open" class="model-menu" role="menu" aria-label="对话模型">
-      <button
-        type="button"
-        role="menuitemradio"
-        :aria-checked="!config.enabled"
-        :disabled="busy"
-        @click="select('local')"
-      >
-        本地原文检索<span v-if="!config.enabled">✓</span>
-      </button>
-      <small>自定义模型</small>
-      <button
-        v-for="profile in profiles"
-        :key="profile.id"
-        type="button"
-        role="menuitemradio"
-        :aria-checked="
-          config.enabled && config.model === profile.model && config.baseUrl === profile.baseUrl
-        "
-        :disabled="busy"
-        :title="profile.baseUrl"
-        @click="select(profile.id)"
-      >
-        <span
-          >{{ profile.model }}<small>{{ profile.baseUrl }}</small></span
-        ><span
-          v-if="
+    <Transition name="soft-dropdown">
+      <div v-if="open" class="model-menu" role="menu" aria-label="对话模型">
+        <button
+          type="button"
+          role="menuitemradio"
+          :aria-checked="!config.enabled"
+          :disabled="busy"
+          @click="select('local')"
+        >
+          本地原文检索<Icon v-if="!config.enabled" name="check" :size="18" class="model-check" />
+        </button>
+        <small>自定义模型</small>
+        <button
+          v-for="profile in profiles"
+          :key="profile.id"
+          type="button"
+          role="menuitemradio"
+          :aria-checked="
             config.enabled && config.model === profile.model && config.baseUrl === profile.baseUrl
           "
-          >✓</span
+          :disabled="busy"
+          :title="profile.baseUrl"
+          @click="select(profile.id)"
         >
-      </button>
-      <p v-if="!profiles.length" class="small muted">尚未添加模型</p>
-      <p v-if="error" role="alert" class="danger-text">{{ error }}</p>
-      <button
-        type="button"
-        role="menuitem"
-        class="configure-model"
-        @click="
-          open = false;
-          emit('configure');
-        "
-      >
-        <Icon name="sliders" :size="15" />配置自定义模型
-      </button>
-    </div>
+          <ModelBrandIcon :model="profile.model" :base-url="profile.baseUrl" :size="20" />
+          <span
+            >{{ profile.model }}<small>{{ profile.baseUrl }}</small></span
+          ><Icon
+            v-if="
+              config.enabled && config.model === profile.model && config.baseUrl === profile.baseUrl
+            "
+            name="check"
+            :size="18"
+            class="model-check"
+          />
+        </button>
+        <p v-if="!profiles.length" class="small muted">尚未添加模型</p>
+        <p v-if="error" role="alert" class="danger-text">{{ error }}</p>
+        <button
+          type="button"
+          role="menuitem"
+          class="configure-model"
+          @click="
+            open = false;
+            emit('configure');
+          "
+        >
+          <Icon name="sliders" :size="15" />配置自定义模型
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>

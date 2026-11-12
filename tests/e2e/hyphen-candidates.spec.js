@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { Document, Packer, Paragraph } from 'docx';
 import { hyphenPdfFixture } from '../hyphen-pdf-fixture.js';
 

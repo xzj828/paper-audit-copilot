@@ -10,17 +10,23 @@ const range = computed(() =>
     : null,
 );
 function parts(text: string, offset = 0, runs?: DocxTextRun[]) {
-  return (runs || [{ text, offset: 0 }]).flatMap((run) =>
-    textSegments(run.text, offset + run.offset, range.value).map((part) => ({
-      ...part,
-      class: {
-        'docx-bold': run.bold,
-        'docx-italic': run.italic,
-        'docx-sup': run.script === 'sup',
-        'docx-sub': run.script === 'sub',
-      },
-    })),
-  );
+  return (runs || [{ text, offset: 0 }]).flatMap((run) => {
+    let position = offset + run.offset;
+    return textSegments(run.text, position, range.value).map((part) => {
+      const start = position;
+      position += part.text.length;
+      return {
+        ...part,
+        offset: start,
+        class: {
+          'docx-bold': run.bold,
+          'docx-italic': run.italic,
+          'docx-sup': run.script === 'sup',
+          'docx-sub': run.script === 'sub',
+        },
+      };
+    });
+  });
 }
 </script>
 
@@ -54,8 +60,8 @@ function parts(text: string, offset = 0, runs?: DocxTextRun[]) {
                 v-for="(part, partIndex) in parts(cell.text, cell.offset, cell.runs)"
                 :key="partIndex"
                 ><span :class="part.class"
-                  ><mark v-if="part.highlight">{{ part.text }}</mark
-                  ><template v-else>{{ part.text }}</template></span
+                  ><mark v-if="part.highlight" :data-docx-offset="part.offset">{{ part.text }}</mark
+                  ><span v-else :data-docx-offset="part.offset">{{ part.text }}</span></span
                 ></template
               ></component
             >
@@ -68,8 +74,8 @@ function parts(text: string, offset = 0, runs?: DocxTextRun[]) {
       <p :class="{ 'docx-heading': section.title === section.text }">
         <template v-for="(part, index) in parts(section.text, 0, section.runs)" :key="index"
           ><span :class="part.class"
-            ><mark v-if="part.highlight">{{ part.text }}</mark
-            ><template v-else>{{ part.text }}</template></span
+            ><mark v-if="part.highlight" :data-docx-offset="part.offset">{{ part.text }}</mark
+            ><span v-else :data-docx-offset="part.offset">{{ part.text }}</span></span
           ></template
         >
       </p>

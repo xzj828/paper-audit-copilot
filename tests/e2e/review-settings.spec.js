@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 async function createReadyProject(page) {
@@ -14,8 +14,8 @@ async function createReadyProject(page) {
     buffer: docxFixture(),
   });
   await expect(page.locator('.parse-metrics')).toBeVisible();
-  await page.getByRole('button', { name: '评审配置', exact: true }).click();
-  await expect(page.getByLabel('稿件类型', { exact: true })).toHaveValue('empirical');
+  await expect(page.getByRole('button', { name: '评审配置', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '开始评审', exact: true })).toBeEnabled();
 }
 
 // Intercept only review execution: settings still persist through the real API.
@@ -55,11 +55,20 @@ test('review shows a rotating waiting indicator before the start request returns
   await expect(page.locator('.toast-message')).toContainText('评审启动失败');
 });
 
-test('starting confirms an unchanged default type and preserves output choice', async ({
-  page,
-}) => {
+test('review starts directly and preserves existing project settings', async ({ page }) => {
   await createReadyProject(page);
-  await page.getByLabel('评审输出方式').selectOption('scored');
+  const workspace = await (await page.request.get('/api/workspace')).json();
+  await page.request.put('/api/workspace/preferences', {
+    data: { ...workspace.preferences, outputMode: 'scored' },
+  });
+  const [listed] = await (await page.request.get('/api/projects')).json();
+  const previous = await (await page.request.get(`/api/projects/${listed.id}`)).json();
+  await page.request.patch(`/api/projects/${listed.id}`, {
+    data: {
+      settings: { ...previous.settings, scheme: 'stxb-precheck@0.1.0-trial', articleType: '' },
+    },
+  });
+  await page.reload();
   const captured = [];
   await page.route('**/api/projects/*/review', async (route) => {
     const stored = await (
@@ -76,11 +85,14 @@ test('starting confirms an unchanged default type and preserves output choice', 
   await page.getByRole('button', { name: '开始评审', exact: true }).click();
   await expect.poll(() => captured.length).toBe(1);
   expect(captured[0]).toMatchObject({
+    scheme: 'stxb-precheck@0.1.0-trial',
     articleType: 'empirical',
     confirmed: true,
-    outputMode: 'scored',
+    outputMode: 'narrative',
   });
   await expect(page.locator('.toast-message')).not.toContainText('请确认稿件类型');
+  const after = await (await page.request.get(`/api/projects/${listed.id}`)).json();
+  expect(after.versions[0].reports).toEqual(previous.versions[0].reports);
 });
 
 test('review cannot start before a pending settings save completes', async ({ page }) => {
@@ -96,10 +108,10 @@ test('review cannot start before a pending settings save completes', async ({ pa
     await pending;
     await route.continue();
   });
-  await page.getByLabel('评审输出方式').selectOption('scored');
+  await page.getByRole('button', { name: '开始评审', exact: true }).click();
   await expect.poll(() => patchStarted).toBe(true);
   await expect(page.getByRole('button', { name: '开始评审', exact: true })).toBeDisabled();
-  await expect(page.getByLabel('稿件类型', { exact: true })).toBeDisabled();
+  await expect(page.locator('.review-thinking')).toBeVisible();
   release();
   await expect(page.getByRole('button', { name: '开始评审', exact: true })).toBeEnabled();
   await expect(page.locator('.review-thinking')).toHaveCount(0);
@@ -125,7 +137,12 @@ test('failed confirmation save prevents review execution', async ({ page }) => {
 
 test('unsupported article types remain blocked', async ({ page }) => {
   await createReadyProject(page);
-  await page.getByLabel('稿件类型', { exact: true }).selectOption('review');
+  const [project] = await (await page.request.get('/api/projects')).json();
+  const current = await (await page.request.get(`/api/projects/${project.id}`)).json();
+  await page.request.patch(`/api/projects/${project.id}`, {
+    data: { settings: { ...current.settings, articleType: 'review' } },
+  });
+  await page.reload();
   let reviews = 0;
   await page.route('**/api/projects/*/review', async (route) => {
     reviews++;

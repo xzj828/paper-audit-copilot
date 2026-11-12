@@ -118,7 +118,8 @@ function locateCitation(event: MouseEvent) {
   cursor: not-allowed;
 }
 :deep(.inline-citation:focus-visible) {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 </style>

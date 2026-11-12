@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base } from './authenticated-test.js';
 import path from 'node:path';
 import { createStore } from '../../server/store.js';
 import { makeDemo } from '../fixtures.js';
@@ -8,8 +8,8 @@ import { makeDemo } from '../fixtures.js';
 export const test = base.extend({
   page: async ({ page }, use) => {
     await page.request.get('/api/projects');
-    const cookie = (await page.context().cookies()).find((item) => item.name === 'audit_workspace');
-    const store = createStore(path.resolve('test-results/e2e-data'));
+    const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
+    const store = createStore(path.resolve(process.env.E2E_DATA_DIR || 'test-results/e2e-data'));
     try {
       if (!cookie || !store.hasWorkspace(cookie.value)) throw new Error('Missing test workspace');
       const project = makeDemo();

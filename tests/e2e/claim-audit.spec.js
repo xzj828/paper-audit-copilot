@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { Document, Paragraph, Packer } from 'docx';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -95,8 +95,9 @@ test('claim candidates, offline evidence, manual history and frozen reports surv
     .getByRole('button', { name: `定位证据链证据 ${saved.relations[0].sourceId}`, exact: true })
     .click();
   await expect(page.locator('.docx-paper mark')).toContainText(saved.relations[0].anchor.quote);
-  await page.getByRole('tab', { name: '证据工具', exact: true }).click();
-  await card.locator('.manual-review summary').click();
+  await page.getByRole('button', { name: '返回证据工具', exact: true }).click();
+  // Evidence inspection now preserves the expanded form as well as its draft.
+  await expect(card.locator('.manual-review')).toHaveAttribute('open', '');
   await expect(card.getByLabel('核对结论', { exact: true })).toHaveValue('confirmed');
   await expect(card.getByLabel('核对说明（最多 1000 字符）')).toHaveValue(
     '已核对原文位置；关系仍需领域专家判断。',
@@ -123,7 +124,7 @@ test('claim candidates, offline evidence, manual history and frozen reports surv
   expect(notes).toContain(candidate.text);
   expect(notes).toContain('已核对原文位置');
   await page.getByRole('tab', { name: '证据工具', exact: true }).click();
-  await card.locator('.manual-review summary').click();
+  await expect(card.locator('.manual-review')).toHaveAttribute('open', '');
   await card.getByLabel('核对结论', { exact: true }).selectOption('rejected');
   await card
     .getByLabel('核对说明（最多 1000 字符）')
@@ -170,7 +171,7 @@ test('claim candidates, offline evidence, manual history and frozen reports surv
   ).toBe(404);
   const other = await browser.newContext();
   try {
-    expect((await other.request.get(`http://127.0.0.1:5175${oldExport}`)).status()).toBe(404);
+    expect((await other.request.get(new URL(oldExport, page.url()).href)).status()).toBe(401);
   } finally {
     await other.close();
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SelectContent from './SelectContent';
 import { ref, onMounted, toRaw } from 'vue';
 import { api, json } from '../api';
 const emit = defineEmits<{ saved: [] }>();
@@ -63,11 +64,10 @@ onMounted(() =>
   <section>
     <details>
       <summary>编辑评审规则（保存为新版本）</summary>
-      <p class="small muted">
-        可编辑检查内容和权重，保存为独立版本。
-      </p>
+      <p class="small muted">可编辑检查内容和权重，保存为独立版本。</p>
       <label class="field-label"
         >基础版本<select v-model="baseId" @change="select">
+          <SelectContent />
           <option v-for="p in packs" :key="p.id" :value="p.id">{{ p.name }}</option>
         </select></label
       >

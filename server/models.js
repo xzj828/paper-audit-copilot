@@ -6,6 +6,15 @@ import { retrieveEvidence, checkCitations } from './retrieval.js';
 
 const empty = { baseUrl: '', model: '', enabled: false, hasKey: false };
 const bad = (message, status = 400) => Object.assign(new Error(message), { status });
+export function supportsDeepSeekSearch(config) {
+  if (!config?.enabled || !config.secret) return false;
+  try {
+    const url = new URL(config.baseUrl);
+    return url.origin === 'https://api.deepseek.com' && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
 // DeepSeek counts thinking tokens against max_tokens. Keep the provider's reasoning
 // enabled, but reserve enough room for its structured answer as well.
 export function completionBudget(config, requested = 2048) {
@@ -87,8 +96,21 @@ export function createModelService(db, directory) {
         }
       : { ...empty };
   }
+  function profile(workspace, id) {
+    const row = db
+      .prepare('SELECT data FROM model_profiles WHERE workspace_id=? AND id=?')
+      .get(workspace, id);
+    if (!row) throw bad('模型配置不存在，请刷新列表后重试', 404);
+    return JSON.parse(row.data);
+  }
+  const profileId = (config) => JSON.stringify([config.baseUrl, config.model]);
   function prepare(workspace, input) {
-    const previous = get(workspace) || {},
+    const previous =
+        input.profileId === undefined
+          ? get(workspace) || {}
+          : input.profileId === null
+            ? {}
+            : profile(workspace, input.profileId),
       validated = validateModelInput(input, previous);
     return {
       baseUrl: validated.baseUrl,
@@ -117,6 +139,14 @@ export function createModelService(db, directory) {
           messages,
           stream: Boolean(options.onDelta),
           max_tokens: completionBudget(config, options.maxTokens || 2048),
+          ...(options.json && supportsDeepSeekSearch(config)
+            ? { response_format: { type: 'json_object' } }
+            : {}),
+          ...(options.reasoningEffort &&
+          supportsDeepSeekSearch(config) &&
+          /^(deepseek-flash|deepseek-v4-pro)$/.test(config.model)
+            ? { reasoning_effort: options.reasoningEffort }
+            : {}),
         }),
       });
     } catch {
@@ -171,9 +201,15 @@ export function createModelService(db, directory) {
     }
     options.onUsage?.(data.usage || null);
     const choice = data.choices?.[0];
+    // Never execute a truncated operation. Let the agent's bounded format
+    // recovery request a fresh decision, without replaying partial output.
+    if (choice?.finish_reason === 'length' && options.json) return '';
     if (choice?.finish_reason === 'length')
       throw bad('模型输出额度耗尽，回答已截断；本次结果未采用，请增加输出预算后重试', 502);
     const answer = choice?.message?.content;
+    // DeepSeek JSON mode can legitimately return only whitespace. The agent
+    // handles that as a bounded format retry rather than accepting an answer.
+    if (options.json && typeof answer === 'string' && !answer.trim()) return '';
     if (typeof answer !== 'string' || !answer.trim())
       throw bad('模型没有返回可读回答，请检查该模型是否支持 Chat Completions', 502);
     if (answer.trim().length > 60000)
@@ -182,6 +218,59 @@ export function createModelService(db, directory) {
   }
   return {
     get,
+    supportsWebSearch: supportsDeepSeekSearch,
+    async searchWeb(config, query, signal) {
+      if (!supportsDeepSeekSearch(config)) throw bad('请先启用官方 DeepSeek 模型连接', 409);
+      if (typeof query !== 'string' || !query.trim() || [...query.trim()].length > 128)
+        throw bad('DeepSeek 搜索词须为1至128个字符，请缩短关键词');
+      let response;
+      try {
+        response = await fetch('https://api.deepseek.com/v1/tools/search', {
+          method: 'POST',
+          redirect: 'error',
+          signal: AbortSignal.any([
+            signal || new AbortController().signal,
+            AbortSignal.timeout(30000),
+          ]),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${decrypt(config.secret)}`,
+          },
+          body: JSON.stringify({ query: query.trim(), count: 6, need_content: true }),
+        });
+      } catch {
+        signal?.throwIfAborted();
+        throw bad('DeepSeek 搜索连接失败或超时，请检查网络后重试', 502);
+      }
+      if (!response.ok) {
+        await response.body?.cancel();
+        const reasons = {
+          401: '模型密钥无效，请在模型服务中更新',
+          402: 'DeepSeek 账户余额不足，请充值后重试',
+          403: '当前密钥无搜索访问权限',
+          429: '搜索请求过于频繁，请稍后重试',
+        };
+        throw bad(
+          `DeepSeek 搜索失败（HTTP ${response.status}）：${reasons[response.status] || '请稍后重试'}`,
+          502,
+        );
+      }
+      try {
+        const chunks = [];
+        let size = 0;
+        for await (const chunk of response.body) {
+          size += chunk.length;
+          if (size > 2 * 1024 * 1024) throw new Error('Response too large');
+          chunks.push(chunk);
+        }
+        const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        if (!Array.isArray(data.results)) throw new Error('Invalid search response');
+        return data.results;
+      } catch {
+        signal?.throwIfAborted();
+        throw bad('DeepSeek 搜索返回的内容无效或超过读取上限，请缩短关键词后重试', 502);
+      }
+    },
     forTask(workspace, { auto = false, vision = false } = {}) {
       const current = get(workspace);
       // Respect an explicitly disabled service; never enable an old profile automatically.
@@ -214,11 +303,17 @@ export function createModelService(db, directory) {
     select(workspace, id) {
       if (id === 'local') {
         const current = get(workspace);
-        if (current)
+        if (current) {
           db.prepare('UPDATE model_configs SET data=? WHERE workspace_id=?').run(
             JSON.stringify({ ...current, enabled: false }),
             workspace,
           );
+          db.prepare('UPDATE model_profiles SET data=? WHERE workspace_id=? AND id=?').run(
+            JSON.stringify({ ...current, enabled: false }),
+            workspace,
+            profileId(current),
+          );
+        }
         return publicConfig(get(workspace));
       }
       const row = db
@@ -226,6 +321,11 @@ export function createModelService(db, directory) {
         .get(workspace, id);
       if (!row) throw bad('模型配置不存在', 404);
       const config = { ...JSON.parse(row.data), enabled: true };
+      db.prepare('UPDATE model_profiles SET data=? WHERE workspace_id=? AND id=?').run(
+        JSON.stringify(config),
+        workspace,
+        id,
+      );
       db.prepare(
         'INSERT INTO model_configs VALUES (?,?) ON CONFLICT(workspace_id) DO UPDATE SET data=excluded.data',
       ).run(workspace, JSON.stringify(config));
@@ -234,29 +334,57 @@ export function createModelService(db, directory) {
     save(workspace, input) {
       const config = prepare(workspace, input);
       const previous = get(workspace);
-      if (previous)
-        db.prepare('INSERT OR IGNORE INTO model_profiles VALUES (?,?,?)').run(
-          workspace,
-          JSON.stringify([previous.baseUrl, previous.model]),
-          JSON.stringify(previous),
-        );
-      db.prepare(
-        'INSERT INTO model_profiles VALUES (?,?,?) ON CONFLICT(workspace_id,id) DO UPDATE SET data=excluded.data',
-      ).run(workspace, JSON.stringify([config.baseUrl, config.model]), JSON.stringify(config));
-      db.prepare(
-        'INSERT INTO model_configs VALUES (?,?) ON CONFLICT(workspace_id) DO UPDATE SET data=excluded.data',
-      ).run(workspace, JSON.stringify(config));
+      const id = profileId(config);
+      const explicitProfile = input.profileId !== undefined;
+      if (
+        explicitProfile &&
+        input.profileId !== id &&
+        db.prepare('SELECT 1 FROM model_profiles WHERE workspace_id=? AND id=?').get(workspace, id)
+      )
+        throw bad('此地址和模型已配置，请从左侧列表选择后编辑', 409);
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        if (previous)
+          db.prepare('INSERT OR IGNORE INTO model_profiles VALUES (?,?,?)').run(
+            workspace,
+            JSON.stringify([previous.baseUrl, previous.model]),
+            JSON.stringify(previous),
+          );
+        db.prepare(
+          'INSERT INTO model_profiles VALUES (?,?,?) ON CONFLICT(workspace_id,id) DO UPDATE SET data=excluded.data',
+        ).run(workspace, JSON.stringify([config.baseUrl, config.model]), JSON.stringify(config));
+        if (explicitProfile && input.profileId && input.profileId !== id)
+          db.prepare('DELETE FROM model_profiles WHERE workspace_id=? AND id=?').run(
+            workspace,
+            input.profileId,
+          );
+        if (
+          !explicitProfile ||
+          config.enabled ||
+          !previous ||
+          profileId(previous) === input.profileId
+        )
+          db.prepare(
+            'INSERT INTO model_configs VALUES (?,?) ON CONFLICT(workspace_id) DO UPDATE SET data=excluded.data',
+          ).run(workspace, JSON.stringify(config));
+        db.exec('COMMIT');
+      } catch (error) {
+        db.exec('ROLLBACK');
+        throw error;
+      }
       return publicConfig(config);
     },
-    remove(workspace) {
+    remove(workspace, id) {
       const current = get(workspace);
-      if (current)
+      const target = id === undefined ? current : profile(workspace, id);
+      if (target)
         db.prepare('DELETE FROM model_profiles WHERE workspace_id=? AND id=?').run(
           workspace,
-          JSON.stringify([current.baseUrl, current.model]),
+          profileId(target),
         );
-      db.prepare('DELETE FROM model_configs WHERE workspace_id=?').run(workspace);
-      return { ...empty };
+      if (current && target && profileId(current) === profileId(target))
+        db.prepare('DELETE FROM model_configs WHERE workspace_id=?').run(workspace);
+      return publicConfig(get(workspace));
     },
     async test(workspace, input) {
       const config = prepare(workspace, input);

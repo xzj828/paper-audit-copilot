@@ -147,7 +147,7 @@ function exportUrl(snapshot: ReferenceAuditSnapshot) {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--paper);
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 .audit-heading,
 .record-heading {
@@ -220,8 +220,9 @@ h3 {
 }
 .reference-quote:focus-visible,
 .audit-button:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 3px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 .doi,
 .reference-quote,

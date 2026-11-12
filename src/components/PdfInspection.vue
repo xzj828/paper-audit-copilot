@@ -125,30 +125,30 @@ const rows = computed(
   margin: 0;
 }
 .inspection-heading a {
-  font-size: 12px;
+  font-size: var(--font-small);
   overflow-wrap: anywhere;
 }
 .inspection-counts {
-  font-size: 12px;
+  font-size: var(--font-small);
   line-height: 1.7;
 }
 .inspection-limits,
 .inspection-version {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-caption);
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-small);
   margin: 10px 0;
 }
 .inspection-filter {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--font-small);
   margin: 10px 0;
 }
 .inspection-pages {
@@ -169,12 +169,12 @@ summary {
   text-align: left;
   color: inherit;
   background: transparent;
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 .inspection-pages small {
   grid-column: 2;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-caption);
 }
 .inspection-pages strong {
   grid-row: 1 / 4;
@@ -189,8 +189,9 @@ summary {
 }
 .inspection-pages button:hover,
 .inspection-pages button:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: -2px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 .inspection-pages .needs-attention {
   border-left: 3px solid #bd593b;

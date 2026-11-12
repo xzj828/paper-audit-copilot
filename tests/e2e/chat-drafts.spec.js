@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 async function createProject(page, title, texts) {
@@ -63,9 +63,9 @@ test('actual uploaded projects and versions keep separate session drafts without
   await expect(input).toHaveValue('未发送的第一版问题');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: '对话', exact: true }).click();
-  await expect(page.locator('.chat-draft-note')).toContainText('刷新后清除');
+  await expect(input).toHaveValue('未发送的第一版问题');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.locator('.chat-draft-note').scrollIntoViewIfNeeded();
+  await expect(input).toBeInViewport();
   await page.screenshot({ path: 'docs/screenshots/chat-drafts-mobile.png' });
   const stored = await page.evaluate(() =>
     JSON.stringify([Object.values(localStorage), Object.values(sessionStorage)]),

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 test('production evidence cards refuse stale identities and explain unknown legacy identity on mobile', async ({

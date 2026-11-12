@@ -1,0 +1,80 @@
+/* Decorative skin only: drawer sizing and gestures remain in sidebar-motion. */
+.app-shell > .sidebar {
+  --navigation-hover: rgb(152 163 226 / 14%);
+  --navigation-selected: rgb(152 163 226 / 23%);
+  isolation: isolate;
+  background: radial-gradient(ellipse at 80% 84%, #484e76 0%, #32394f 38%, #242933 78%);
+  color: #dce1ef;
+}
+.app-shell > .sidebar > .sidebar-portrait {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  left: 0;
+  bottom: 80px;
+  width: 100%;
+  height: min(48vh, 480px);
+  background: #acbaf2;
+  mask: url('/brand/xingjian-lineart.png') center / 110% auto no-repeat;
+  /* Clip only the isolated star above the hair, preserving the original artwork. */
+  clip-path: inset(max(0px, calc(50% - var(--drawer-width, 216px) * .89)) 0 0);
+  opacity: .6;
+  mix-blend-mode: normal;
+}
+.sidebar .primary-nav > button:first-child {
+  background: rgb(153 161 220 / 18%);
+  border-color: #8c96c4;
+  box-shadow: inset 0 1px 0 rgb(224 229 255 / 5%);
+}
+.sidebar :is(.primary-nav > button, .drawer-toggle, .user-profile,
+  .studio-group-heading, .studio-group-actions button, .sidebar-compact-shortcuts button, .project-row,
+  .sidebar-row-menu > .floating-dropdown-trigger) {
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+.sidebar :is(.primary-nav > button, .drawer-toggle, .user-profile,
+  .studio-group-heading, .studio-group-actions button, .sidebar-compact-shortcuts button,
+  .sidebar-row-menu > .floating-dropdown-trigger):hover,
+.sidebar .project-row:hover {
+  background: var(--navigation-hover);
+  color: #f1f2ff;
+  box-shadow: inset 0 0 0 1px rgb(178 187 239 / 16%);
+}
+.sidebar .primary-nav > button:first-child:hover {
+  background: rgb(164 174 238 / 29%);
+  border-color: #b1bbed;
+}
+.sidebar .primary-nav > button:is(.active, [aria-current='page']),
+.sidebar .project-row.selected,
+.sidebar .user-profile.profile-active {
+  background: var(--navigation-selected);
+  color: #f3f4ff;
+  box-shadow: inset 0 0 0 1px rgb(178 187 239 / 28%);
+}
+.sidebar .primary-nav > button:is(.active, [aria-current='page']):hover,
+.sidebar .project-row.selected:hover,
+.sidebar .user-profile.profile-active:hover {
+  background: rgb(164 174 238 / 30%);
+}
+.sidebar .primary-nav > button.active svg {
+  color: #ccd4ff;
+  fill: none;
+}
+.sidebar button:focus-visible {
+  outline: 2px solid #bdc8ff;
+  outline-offset: -2px;
+  box-shadow: none;
+}
+.sidebar :is(.recent-projects, .sidebar-bottom) {
+  border-color: rgb(179 188 229 / 20%);
+}
+.sidebar .brand small,
+.sidebar .sidebar-label { color: #c6cee4; }
+/* Keep the artwork fixed; the existing sliding surface reveals/covers it. */
+@media (min-width: 701px) and (max-width: 900px) {
+  .app-shell > .sidebar > .sidebar-portrait { display: block; width: 216px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell > .sidebar > .sidebar-portrait,
+  .sidebar button, .sidebar .project-row { transition: none; }
+}

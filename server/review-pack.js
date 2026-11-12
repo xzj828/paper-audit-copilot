@@ -6,7 +6,7 @@ export const baselinePack = {
   promptVersion: 'evidence-review@1.0.0',
   name: '生态学实证研究评审',
   source: 'docs/superpowers/specs/2026-09-23-paper-audit-copilot-design.md#18',
-  maxCharacters: 60000,
+  maxCharacters: null,
   supportedTypes: ['empirical'],
   checks: [
     {
@@ -107,5 +107,45 @@ export const atomicPack = {
   promptVersion: 'evidence-review@3.0.0',
   issueProtocol: 'atomic-v1',
 };
-export const reviewPacks = [baselinePack, reviewPack, atomicPack];
+export const genericPack = {
+  id: 'general-paper@1',
+  name: '通用论文评审',
+  status: 'trial',
+  promptVersion: 'general-evidence@1',
+  maxCharacters: null,
+  supportedTypes: ['empirical', 'review', 'theory', 'case', 'other'],
+  checks: [
+    {
+      id: 'C-question',
+      name: '问题与贡献',
+      weight: 20,
+      rule: '根据论文类型核查研究问题、目标和贡献主张是否清楚，并与实际内容一致。不要求所有论文提出可检验假设，不以学科偏好评判。创新优先性未查阅外部文献时必须说明无法核验。',
+    },
+    {
+      id: 'C-evidence',
+      name: '论证与证据',
+      weight: 25,
+      rule: '检查关键论点是否有可定位的材料或结果支持，识别推理缺口和矛盾。理论论文重点检查概念和推导，综述重点检查文献选择与综合方法，实证论文检查数据和研究设计。不能将不适用的实验要求当作缺项。',
+    },
+    {
+      id: 'C-method',
+      name: '方法与材料',
+      weight: 25,
+      rule: '依据本论文类型核查方法、材料选择及适用边界，指出可核对的局限。材料不足用unable_to_assess；不能声称运行了代码、复算数据或验证了全部参考文献。',
+    },
+    {
+      id: 'C-conclusion',
+      name: '结论与适用范围',
+      weight: 20,
+      rule: '检查结论是否忠于论证和证据，区分事实、推断与假说，核查适用范围和替代解释。不得重复扣除其他项目的同一问题。',
+    },
+    {
+      id: 'C-reporting',
+      name: '表达与透明度',
+      weight: 10,
+      rule: '检查可读文本的组织、术语一致性、关键步骤及来源说明。图表、附件或伦理材料未提供时明确范围，不得认定已经检查或推定违规。',
+    },
+  ],
+};
+export const reviewPacks = [genericPack, baselinePack, reviewPack, atomicPack];
 export const getReviewPack = (id) => reviewPacks.find((pack) => pack.id === id);

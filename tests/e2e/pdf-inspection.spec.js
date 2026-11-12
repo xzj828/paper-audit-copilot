@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { positionedPdfFixture } from '../pdf-fixtures.js';
@@ -88,7 +88,7 @@ test('legacy PDF inspection remains unrecorded and cannot manufacture an export 
   const version = project.versions[0];
   const frozen = structuredClone(version.reports[0]);
   delete version.parse.pdfDiagnostics;
-  const cookie = (await page.context().cookies()).find((c) => c.name === 'audit_workspace');
+  const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
   const store = createStore(path.resolve('test-results/e2e-data'));
   try {
     store.save(cookie.value, project);

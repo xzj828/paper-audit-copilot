@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { docxFixture } from '../fixtures.js';

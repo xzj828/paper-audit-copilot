@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { crossPageTableFixture } from '../cross-page-table-fixture.js';
 
 // Controlled failures/delays around public PDF.js APIs; production Vue reader

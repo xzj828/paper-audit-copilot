@@ -4,17 +4,38 @@ import { dataAuditSummary, quantileSummary } from './data-audit.js';
 import { referenceAuditSummary } from './reference-audit.js';
 import { claimAuditSummary } from './claim-audit.js';
 import { pdfDiagnosticsLines } from '../shared/pdf-diagnostics.js';
+import {
+  reportIssues,
+  reportOverview,
+  issueTitle,
+  issueEvidence,
+  evidenceLocation,
+  certaintyText,
+} from '../shared/report-presentation.js';
+import { reviewBasisLines } from '../shared/review-basis.js';
 
 export const defaultTemplate = {
   id: 'review-report@1',
   name: '完整评审报告',
-  title: '论文评审报告',
+  title: '审稿意见',
   introduction: '',
-  sections: ['conclusion', 'coverage', 'findings', 'results', 'literature', 'provenance'],
+  sections: [
+    'conclusion',
+    'major',
+    'minor',
+    'pending',
+    'coverage',
+    'results',
+    'literature',
+    'provenance',
+  ],
 };
 const labels = {
-  conclusion: '总体意见',
-  coverage: '覆盖范围与限制',
+  conclusion: '评审建议与总体意见',
+  major: '主要问题',
+  minor: '次要问题',
+  pending: '待澄清事项与材料',
+  coverage: '评审范围与附录',
   findings: '问题与修改建议',
   results: '分项判断',
   literature: '外部文献比较',
@@ -31,10 +52,18 @@ const recommendation = (v) =>
   ({ accept: '录用', minor_revision: '小修', major_revision: '大修', reject: '拒稿' })[v] ||
   '暂无法判定';
 const evidence = (e) =>
-  `${e.kind === 'visual' ? '视觉观察（非逐字引文）' : '原文'} [${e.elementId}] ${e.section || ''}${e.bbox ? ' 区域 ' + e.bbox.join(', ') : ''}：${e.quote}`;
+  `${e.kind === 'visual' ? '视觉观察（非逐字引文）' : '原文'} [${e.elementId}] ${evidenceLocation(e)}${e.bbox ? ' 区域 ' + e.bbox.join(', ') : ''}：${e.quote}`;
 
 export function reportBlocks(report, projectTitle) {
-  const template = report.templateSnapshot || defaultTemplate;
+  const template = report.document ? report.templateSnapshot || defaultTemplate : defaultTemplate;
+  const groups = reportIssues(report);
+  if (report.document)
+    return String(template.introduction || '')
+      .split('\n')
+      .map((line) => {
+        const heading = /^(#{1,3})\s+(.+)$/.exec(line);
+        return heading ? { heading: heading[1].length, text: heading[2] } : { text: line };
+      });
   const blocks = [
     { heading: 1, text: template.title },
     { text: report.projectTitle || projectTitle },
@@ -48,15 +77,24 @@ export function reportBlocks(report, projectTitle) {
   ];
   if (template.introduction) blocks.push({ text: template.introduction });
   for (const section of template.sections) {
-    blocks.push({ heading: 2, text: labels[section] });
+    blocks.push({
+      heading: ['results', 'literature', 'provenance'].includes(section) ? 3 : 2,
+      text: template.sectionContent?.[section]?.title || labels[section] || '自定义区块',
+    });
+    if (template.sectionContent?.[section]?.content)
+      blocks.push({ text: template.sectionContent[section].content });
     const add = (text) => {
       if (text) blocks.push({ text: String(text) });
     };
     if (section === 'conclusion') {
       add(`系统暂定建议：${recommendation(report.recommendation)}`);
-      add(report.conclusion);
+      add(reportOverview(report));
     }
     if (section === 'coverage') {
+      if (report.criteriaSnapshot) {
+        add('本次评审依据');
+        reviewBasisLines(report.criteriaSnapshot).forEach(add);
+      }
       add(report.coverage);
       if (report.usage)
         add(
@@ -79,23 +117,30 @@ export function reportBlocks(report, projectTitle) {
           `局部核查 ${detail.id}：${detail.observation} ${(detail.uncertainties || []).join('；')}`,
         );
     }
-    if (section === 'findings') {
-      if (!report.findings.length) add('当前没有通过复核的问题，不代表论文无缺陷。');
-      for (const finding of report.findings) {
-        blocks.push({ heading: 3, text: finding.title });
-        add(finding.explanation);
-        if (finding.claimPointer) add(`被评主张：${finding.claimPointer}`);
-        if (finding.severityRationale)
-          add(
-            `严重性依据：${finding.severityRationale}；是否阻碍当前结论：${finding.blocking ? '是' : '否'}`,
-          );
-        add(`建议：${finding.suggestion}`);
-        if (finding.resolutionTest) add(`复查条件：${finding.resolutionTest}`);
-        if (finding.repairability)
-          add(
-            `修复路径：${{ clarification: '补充说明或收缩结论', reanalysis: '重新分析现有数据', new_data: '补充观测或重新采样', unknown: '待核实' }[finding.repairability] || '待核实'}`,
-          );
-        (finding.evidence || [finding.anchor]).forEach((e) => add(evidence(e)));
+    if (['major', 'minor', 'pending'].includes(section)) {
+      const issues = groups[section];
+      if (!issues.length)
+        add(
+          section === 'pending'
+            ? '暂无单独列出的待澄清事项与材料。'
+            : '本轮未列出此类问题，不代表已排除所有缺陷。',
+        );
+      for (const [index, finding] of issues.entries()) {
+        blocks.push({ heading: 3, text: `${index + 1}. ${issueTitle(finding)}` });
+        add(certaintyText(finding));
+        issueEvidence(finding).forEach((e) => add(evidence(e)));
+        add(finding.explanation || finding.observation);
+        if (
+          finding.severityRationale &&
+          !(finding.explanation || finding.observation || '').includes(finding.severityRationale)
+        )
+          add(finding.severityRationale);
+        add(finding.suggestion || '尚未记录具体修改要求，需要审稿人补充。');
+        add(
+          finding.resolutionTest
+            ? `复查时，${finding.resolutionTest}`
+            : '具体复查要点尚未记录，需要审稿人补充。',
+        );
       }
     }
     if (section === 'results')
@@ -103,7 +148,11 @@ export function reportBlocks(report, projectTitle) {
     if (section === 'results')
       for (const result of report.results || []) {
         blocks.push({ heading: 3, text: `${result.checkId} ${result.name || ''}` });
-        add(`${assessment(result.assessment)}；等级 ${result.level ?? '未评分'}`);
+        add(
+          report.score
+            ? `${assessment(result.assessment)}；等级 ${result.level ?? '未评分'}`
+            : assessment(result.assessment),
+        );
         add(result.observation);
         add(result.suggestion);
         result.evidence?.forEach((e) => add(evidence(e)));
@@ -140,7 +189,7 @@ export function reportBlocks(report, projectTitle) {
     }
     if (section === 'provenance')
       add(
-        `报告 ${report.id}\n任务 ${report.runId}\n版本 ${report.versionId}\n解析 ${report.parseId || '未提供'}\n方案 ${report.scheme}\n规则指纹 ${report.packHash || '未提供'}\n模型 ${report.model?.model || '无'}\n模板 ${template.id}\n生成时间 ${report.createdAt}`,
+        `报告 ${report.id}\n任务 ${report.runId}\n版本 ${report.versionId}\n解析 ${report.parseId || '未提供'}\n方案 ${report.scheme}\n规则指纹 ${report.packHash || '未提供'}\n模型 ${report.model?.model || '无'}\n生成时间 ${report.createdAt}`,
       );
   }
   // Keep execution provenance even when a custom template omits coverage.
@@ -151,7 +200,7 @@ export function reportBlocks(report, projectTitle) {
     report.toolAudits?.references ||
     report.toolAudits?.claims
   ) {
-    blocks.push({ heading: 2, text: '执行与证据工具附录' });
+    blocks.push({ heading: 3, text: '执行与证据工具附录' });
     const add = (text) => {
       if (text) blocks.push({ text: String(text), literal: true });
     };
@@ -214,7 +263,7 @@ export function reportBlocks(report, projectTitle) {
   }
   const diagnosticLines = pdfDiagnosticsLines(report.pdfDiagnostics);
   if (diagnosticLines.length) {
-    blocks.push({ heading: 2, text: 'PDF逐页解析体检（生成报告时快照）' });
+    blocks.push({ heading: 3, text: 'PDF逐页解析体检（生成报告时快照）' });
     blocks.push(...diagnosticLines.map((text) => ({ text, literal: true })));
   }
   return blocks;
@@ -222,7 +271,7 @@ export function reportBlocks(report, projectTitle) {
 const escape = (text) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 export function reportHtml(report, title) {
-  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>论文评审报告</title><style>@page{size:A4;margin:18mm}body{font:11pt/1.65 "Microsoft YaHei","Noto Sans CJK SC",sans-serif;color:#20332b}h1{font-size:24pt}h2{font-size:16pt;border-bottom:1px solid #bacdc1;padding-bottom:6px}h3{font-size:12pt}h1,h2,h3{break-after:avoid}p{white-space:pre-wrap;overflow-wrap:anywhere;orphans:3;widows:3}footer{font-size:9pt;color:#68776d}</style><body>${reportBlocks(
+  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>论文评审报告</title><style>@page{size:A4;margin:18mm}body{font:11pt/1.8 "SimSun","Noto Serif CJK SC",serif;color:#202020}h1{font-size:20pt;border-bottom:1px solid #ccc;padding-bottom:14px}h2{font-size:13pt;margin-top:22px}h3{font-size:11pt}h1,h2,h3{font-family:"Microsoft YaHei",sans-serif}h1,h2,h3{break-after:avoid}p{white-space:pre-wrap;overflow-wrap:anywhere;orphans:3;widows:3}footer{font-size:9pt;color:#68776d}</style><body>${reportBlocks(
     report,
     title,
   )

@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -164,7 +165,7 @@ test('conversation download isolates workspaces and exact versions after real up
   const app = createPaperAuditApplication({ dataDirectory: directory });
   try {
     const { origin } = await app.start({ port: 0 });
-    const first = await fetch(origin + '/api/projects');
+    const first = await loginTestAccount(origin, directory);
     const cookie = first.headers.get('set-cookie').split(';')[0];
     const request = (route, options = {}) =>
       fetch(origin + route, { ...options, headers: { Cookie: cookie, ...options.headers } });
@@ -218,7 +219,7 @@ test('conversation download isolates workspaces and exact versions after real up
       await request(`/api/projects/${p.id}/versions/${newer.id}/conversation/export?format=json`)
     ).json();
     assert.deepEqual(empty.messages, []);
-    assert.equal((await fetch(origin + route)).status, 404);
+    assert.equal((await fetch(origin + route)).status, 401);
     assert.equal(
       (await request(`/api/projects/${p.id}/versions/missing/conversation/export`)).status,
       404,

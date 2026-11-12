@@ -166,7 +166,7 @@ label {
 input {
   max-width: 100%;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 p {
   line-height: 1.7;
@@ -182,7 +182,7 @@ summary {
 }
 code {
   display: block;
-  font-size: 11px;
+  font-size: var(--font-caption);
   overflow-wrap: anywhere;
   white-space: normal;
 }

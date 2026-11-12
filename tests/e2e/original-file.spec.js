@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import { docxFixture } from '../fixtures.js';
 import { createHash } from 'node:crypto';
@@ -46,6 +46,8 @@ test('workspace original download follows the selected revision, preserves Chine
   await page.locator('.project-link').filter({ hasText: item.title }).click();
   await expect(page.locator('.version-chip')).toHaveText('v2');
   const take = async (file) => {
+    const drawer = page.getByRole('button', { name: '收起导航栏', exact: true });
+    if (await drawer.isVisible()) await drawer.click();
     const chat = page.getByRole('button', { name: '对话', exact: true });
     if (await chat.isVisible()) await chat.click();
     await page.getByRole('button', { name: '项目操作', exact: true }).click();
@@ -77,10 +79,11 @@ test('library original download returns the unchanged licensed PDF from its prev
 }) => {
   const bytes = await readFile(new URL('../fixtures/published-pdf/du-2014.pdf', import.meta.url));
   await page.goto('/#library');
+  await page.getByRole('button', { name: '列表', exact: true }).click();
   await page
     .locator('input[type=file][multiple]')
     .setInputFiles({ name: '原文复核.pdf', mimeType: 'application/pdf', buffer: bytes });
-  const row = page.locator('.literature-table tbody tr').filter({ hasText: '原文复核.pdf' });
+  const row = page.locator('.literature-table tbody tr').filter({ hasText: '原文复核' });
   await expect(row).toContainText('解析完成', { timeout: 20000 });
   const projects = await (await page.request.get('/api/projects')).json();
   const before = await (await page.request.get(`/api/projects/${projects[0].id}`)).json();
@@ -98,7 +101,7 @@ test('library original download returns the unchanged licensed PDF from its prev
   ).toEqual(before.versions);
   const stranger = await browser.newContext();
   try {
-    expect((await stranger.request.get(new URL(href, page.url()).href)).status()).toBe(404);
+    expect((await stranger.request.get(new URL(href, page.url()).href)).status()).toBe(401);
   } finally {
     await stranger.close();
   }

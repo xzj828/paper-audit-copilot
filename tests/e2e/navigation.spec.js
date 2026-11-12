@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { Document, Paragraph, Packer } from 'docx';
 
 test('late version-switch responses cannot replace another project or a newer version selection', async ({

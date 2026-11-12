@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { Document, Paragraph, Packer } from 'docx';
@@ -92,6 +92,7 @@ test('quoted phrase filters real uploaded text, prevents no-match model calls an
     await page.reload();
     await page.getByRole('button', { name: '对话', exact: true }).click();
     await expect(answer.locator('[data-phrase-policy]')).toContainText('312 independent samples');
+    await answer.locator('.retrieval-method > summary').click();
     await answer.locator('[data-phrase-policy]').scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,

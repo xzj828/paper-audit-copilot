@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { tableDocxFixture } from '../docx-fixtures.js';
 import { readFile } from 'node:fs/promises';
 

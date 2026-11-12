@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -37,9 +38,9 @@ test('scope validation precedes SSE and model calls, isolates prompt/history and
   let store;
   try {
     const { origin } = await app.start({ port: 0 });
-    const first = await fetch(origin + '/api/projects');
+    const first = await loginTestAccount(origin, dir);
     const cookie = first.headers.get('set-cookie').split(';')[0],
-      ws = cookie.split('=')[1];
+      ws = (await first.json()).user.workspaceId;
     const request = (route, data, accept = 'application/json', method = 'POST') =>
       fetch(origin + route, {
         method,
@@ -115,7 +116,7 @@ test('scope validation precedes SSE and model calls, isolates prompt/history and
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ versionId: 'v1', text: 'glacier', retrievalScope: scope }),
     });
-    assert.equal(foreignWorkspace.status, 404);
+    assert.equal(foreignWorkspace.status, 401);
     const response = await request(
       route,
       { versionId: 'v1', text: 'why', retrievalScope: scope },

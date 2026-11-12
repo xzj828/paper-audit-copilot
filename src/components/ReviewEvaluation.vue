@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SelectContent from './SelectContent';
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { api, json } from '../api';
 import ReviewSourceCheck from './ReviewSourceCheck.vue';
@@ -187,6 +188,7 @@ async function compare() {
       <label class="review-case-filter">
         复核结果筛选
         <select v-model="caseFilter" aria-label="复核结果筛选">
+          <SelectContent />
           <option value="all">全部问题</option>
           <option value="needs_adjudication">需要裁决</option>
           <option value="insufficient_material">双方无法判断</option>
@@ -221,7 +223,7 @@ async function compare() {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
-  font-size: 12px;
+  font-size: var(--font-small);
   overflow-wrap: anywhere;
 }
 summary {
@@ -246,7 +248,7 @@ p {
 input {
   max-width: 100%;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 .human-review-result article {
   margin-top: 12px;

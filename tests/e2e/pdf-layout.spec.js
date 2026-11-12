@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parallelPdfFixture } from '../pdf-layout-fixtures.js';
@@ -98,7 +98,7 @@ test('saved v1 inspection keeps its original fields and report without inferring
   );
   version.reports[0].pdfDiagnostics = structuredClone(legacy);
   const frozen = structuredClone(version.reports[0]);
-  const cookie = (await page.context().cookies()).find((c) => c.name === 'audit_workspace');
+  const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
   const store = createStore(path.resolve('test-results/e2e-data'));
   try {
     store.save(cookie.value, project);

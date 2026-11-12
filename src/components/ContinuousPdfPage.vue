@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
-const props = defineProps<{ pdf: PDFDocumentProxy; page: number; zoom: number; eager?: boolean }>();
+import PaperAnnotations from './PaperAnnotations.vue';
+import type { Finding, PdfPage } from '../types';
+const props = defineProps<{
+  pdf: PDFDocumentProxy;
+  page: number;
+  zoom: number;
+  eager?: boolean;
+  annotations?: Finding[];
+  parsedPage?: PdfPage;
+}>();
+const emit = defineEmits<{ selectAnnotation: [finding: Finding]; pauseAnnotations: [] }>();
+const annotationOverflow = ref(0);
 const element = ref<HTMLElement>(),
   canvas = ref<HTMLCanvasElement>(),
   visible = ref(false),
@@ -62,15 +73,29 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div ref="element" class="pdf-continuous-page">
+  <div
+    ref="element"
+    class="pdf-continuous-page"
+    :style="{ paddingBottom: `${annotationOverflow}px` }"
+  >
     <small>第 {{ page }} 页</small>
     <p v-if="error" role="alert">{{ error }} <button @click="render">重试</button></p>
     <p v-else-if="visible && renderedPage !== page" role="status">正在渲染第 {{ page }} 页…</p>
-    <canvas
-      v-show="renderedPage === page"
-      ref="canvas"
-      :aria-label="`论文 PDF 第 ${page} 页`"
-      :data-rendered-page="renderedPage"
-    />
+    <div class="pdf-page-stage">
+      <canvas
+        v-show="renderedPage === page"
+        ref="canvas"
+        :aria-label="`论文 PDF 第 ${page} 页`"
+        :data-rendered-page="renderedPage"
+      />
+      <PaperAnnotations
+        v-if="renderedPage === page && annotations"
+        :findings="annotations"
+        :parsed-page="parsedPage"
+        @pause="emit('pauseAnnotations')"
+        @overflow="annotationOverflow = $event"
+        @select="emit('selectAnnotation', $event)"
+      />
+    </div>
   </div>
 </template>

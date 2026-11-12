@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import { positionedPdfFixture } from '../pdf-fixtures.js';
 import { pdfQuoteBoxes } from '../../shared/pdf-text.js';
@@ -66,12 +66,13 @@ test('real PDF fits the mobile workspace through resize, evidence, continuous re
   await expect(canvas).toHaveAttribute('data-rendered-page', '13');
   expect(await scroller.evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true);
   const fit = page.getByRole('button', { name: '适合宽度', exact: true });
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
+  await expect(fit).not.toHaveAttribute('aria-pressed');
   await fit.click();
-  await expect(fit).toHaveAttribute('aria-pressed', 'true');
+  await expect(fit).not.toHaveAttribute('aria-pressed');
   await fits(canvas, scroller);
-  await expect(page.getByRole('button', { name: '重置缩放', exact: true })).toHaveText('适合宽度');
-  await expect(page.getByRole('button', { name: '放大', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '重置缩放', exact: true })).toHaveText(/^\d+%$/);
+  await expect(page.getByRole('button', { name: '放大', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: '缩小', exact: true })).toBeEnabled();
   const box = page.locator('#page-13 .pdf-quote-box').first();
   await expect(page.locator('#page-13 .pdf-quote-box')).toHaveCount(expected.boxes.length);
   await expect(box).toHaveAttribute('data-source-offset', String(expected.boxes[0].offset));
@@ -96,9 +97,11 @@ test('real PDF fits the mobile workspace through resize, evidence, continuous re
   };
   await check();
   await page.setViewportSize({ width: 320, height: 844 });
+  await fit.click();
   await fits(canvas, scroller);
   await check();
   await page.setViewportSize({ width: 390, height: 844 });
+  await fit.click();
   await fits(canvas, scroller);
   await page.getByLabel('论文 PDF 第 14 页', { exact: true }).scrollIntoViewIfNeeded();
   await fits(page.getByLabel('论文 PDF 第 14 页', { exact: true }), scroller);
@@ -113,64 +116,52 @@ test('real PDF fits the mobile workspace through resize, evidence, continuous re
   ).toHaveCount(0);
   await page.getByRole('checkbox', { name: '相邻页对照', exact: true }).uncheck();
   await page.getByRole('button', { name: '重置缩放', exact: true }).click();
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
+  await expect(fit).not.toHaveAttribute('aria-pressed');
   await expect(page.getByRole('button', { name: '重置缩放', exact: true })).toHaveText('100%');
   await fit.click();
   await page.reload();
   await page.getByRole('button', { name: '论文工作区', exact: true }).click();
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
+  await expect(fit).not.toHaveAttribute('aria-pressed');
   expect(await read()).toEqual(saved);
 });
 
-test('library preview fits rotated neighboring pages at desktop and mobile widths and resets on reopen', async ({
+test('library preview fits complete rotated pages and reopens in whole-page mode without changing records', async ({
   page,
 }) => {
   await page.goto('/#library');
-  await page
-    .locator('input[type=file][multiple]')
-    .setInputFiles({
-      name: 'fit-rotated-control.pdf',
-      mimeType: 'application/pdf',
-      buffer: positionedPdfFixture({ rotated: true, extraBlank: true }),
-    });
-  const row = page
-    .locator('.literature-table tbody tr')
-    .filter({ hasText: 'fit-rotated-control.pdf' });
+  await page.getByRole('button', { name: '列表', exact: true }).click();
+  await page.locator('input[type=file][multiple]').setInputFiles({
+    name: 'fit-rotated-control.pdf',
+    mimeType: 'application/pdf',
+    buffer: positionedPdfFixture({ rotated: true, extraBlank: true }),
+  });
+  const row = page.locator('.literature-table tbody tr').filter({ hasText: 'fit-rotated-control' });
   await expect(row).toContainText('解析完成', { timeout: 20000 });
   const project = (await (await page.request.get('/api/projects')).json())[0];
   const before = await (await page.request.get(`/api/projects/${project.id}`)).json();
   await row.locator('.document-name').click();
   const modal = page.getByRole('dialog'),
-    fit = modal.getByRole('button', { name: '适合宽度', exact: true });
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
-  await fit.click();
-  await modal.getByRole('checkbox', { name: '相邻页对照', exact: true }).check();
+    mode = modal.getByLabel('预览缩放模式');
   const current = modal.getByLabel('论文 PDF 原文', { exact: true });
-  const neighbor = modal.getByLabel('论文 PDF 第 2 页', { exact: true });
   const scroller = modal.locator('.document-preview-scroll');
-  await expect(neighbor).toHaveAttribute('data-rendered-page', '2');
-  await fits(current, scroller);
-  await fits(neighbor, scroller);
-  const c = await current.boundingBox(),
-    n = await neighbor.boundingBox();
-  expect(n.x).toBeGreaterThan(c.x + c.width);
-  expect(n.width / n.height).toBeCloseTo(720 / 560, 2);
-  await expect(modal.getByRole('button', { name: '放大文档', exact: true })).toBeDisabled();
-  await expect(modal.getByLabel('文档缩放比例')).toHaveText('适合宽度');
-  await page.setViewportSize({ width: 390, height: 844 });
-  await fits(current, scroller);
-  await fits(neighbor, scroller);
-  const mobileC = await current.boundingBox(),
-    mobileN = await neighbor.boundingBox();
-  expect(mobileN.y).toBeGreaterThan(mobileC.y + mobileC.height);
-  expect(mobileN.width / mobileN.height).toBeCloseTo(720 / 560, 2);
-  await modal.getByRole('button', { name: '重置缩放', exact: true }).click();
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
-  await expect(modal.getByLabel('文档缩放比例')).toHaveText('100%');
-  await fit.click();
+  await expect(mode).toHaveValue('page');
+  for (const width of [1488, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await modal.getByLabel('预览页码').fill('2');
+    await modal.getByLabel('预览页码').press('Tab');
+    await expect(current).toHaveAttribute('data-rendered-page', '2');
+    await fits(current, scroller);
+    await expect
+      .poll(() => scroller.evaluate((e) => e.scrollHeight <= e.clientHeight + 1))
+      .toBe(true);
+    const bounds = await current.boundingBox();
+    expect(bounds.width / bounds.height).toBeCloseTo(720 / 560, 2);
+  }
+  await mode.selectOption('200');
   await modal.getByRole('button', { name: '关闭弹窗', exact: true }).click();
   await row.locator('.document-name').click();
-  await expect(fit).toHaveAttribute('aria-pressed', 'false');
+  await expect(mode).toHaveValue('page');
+  await expect(current).toHaveAttribute('data-rendered-page', '1');
   expect((await (await page.request.get(`/api/projects/${project.id}`)).json()).versions).toEqual(
     before.versions,
   );

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SelectContent from './SelectContent';
 import { ref, onMounted } from 'vue';
 import { api, json } from '../api';
 import Icon from './Icon.vue';
@@ -9,7 +10,12 @@ const provider = ref('custom'),
   showKey = ref(false);
 const providers = [
   { id: 'custom', name: '自定义 OpenAI 兼容服务', baseUrl: '', model: '' },
-  { id: 'deepseek', name: 'DeepSeek V4.1 Flash', baseUrl: 'https://api.deepseek.com', model: 'deepseek-flash' },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek V4.1 Flash',
+    baseUrl: 'https://api.deepseek.com',
+    model: 'deepseek-flash',
+  },
 ];
 function changeProvider() {
   const selected = providers.find((p) => p.id === provider.value)!;
@@ -75,6 +81,7 @@ onMounted(async () => {
       <fieldset :disabled="busy || loading">
         <label class="field-label"
           >提供商<select v-model="provider" @change="changeProvider">
+            <SelectContent />
             <option v-for="item in providers" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>

@@ -164,9 +164,85 @@ test('truncated or oversized responses are rejected rather than silently used', 
   assert.equal(body.max_tokens, 16384);
   content = '{"plausible":true}';
   await assert.rejects(service.complete(service.get('test'), []), /已截断/);
+  assert.equal(
+    await service.complete(service.get('test'), [], { json: true, reasoningEffort: 'low' }),
+    '',
+  );
+  assert.deepEqual(body.response_format, { type: 'json_object' });
+  assert.equal(body.reasoning_effort, 'low');
   finish = 'stop';
+  content = '   ';
+  assert.equal(await service.complete(service.get('test'), [], { json: true }), '');
+  assert.equal(body.reasoning_effort, undefined);
   content = 'x'.repeat(30001);
   assert.equal((await service.complete(service.get('test'), [])).length, 30001);
   content = 'x'.repeat(60001);
   await assert.rejects(service.complete(service.get('test'), []), /超过处理上限/);
+  service.save('other', {
+    baseUrl: 'https://example.org',
+    model: 'local',
+    apiKey: 'test',
+    enabled: true,
+  });
+  content = '{"ok":true}';
+  await service.complete(service.get('other'), [], { json: true, reasoningEffort: 'low' });
+  assert.equal(body.response_format, undefined);
+  assert.equal(body.reasoning_effort, undefined);
+});
+
+test('profile editor uses the selected secret, rejects collisions and keeps other accounts and active models intact', async (t) => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'model-editor-'));
+  const db = new DatabaseSync(':memory:');
+  const service = createModelService(db, directory);
+  t.after(() => {
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
+  const a = {
+    baseUrl: 'https://one.example',
+    model: 'first',
+    apiKey: 'first-secret',
+    enabled: true,
+  };
+  const b = {
+    baseUrl: 'https://two.example',
+    model: 'second',
+    apiKey: 'second-secret',
+    enabled: true,
+  };
+  service.save('owner', a);
+  service.save('owner', b);
+  const [first, second] = service.list('owner');
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    requests.push({ url, authorization: options.headers.Authorization });
+    return new Response(JSON.stringify({ choices: [{ message: { content: 'OK' } }] }));
+  });
+  await service.test('owner', { ...first, profileId: first.id });
+  assert.equal(requests[0].authorization, 'Bearer first-secret');
+  assert.equal(requests[0].url, a.baseUrl + '/chat/completions');
+  assert.equal(service.public('owner').model, 'second');
+  await assert.rejects(service.test('other', { ...first, profileId: first.id }), /不存在/);
+  assert.throws(() => service.save('owner', { ...first, profileId: null }), /API Key/);
+  assert.throws(
+    () => service.save('owner', { ...second, apiKey: 'new', profileId: first.id }),
+    /已配置/,
+  );
+  assert.throws(
+    () =>
+      service.save('owner', { ...first, baseUrl: 'https://changed.example', profileId: first.id }),
+    /重新输入 Key/,
+  );
+  service.save('owner', { ...first, model: 'renamed', enabled: false, profileId: first.id });
+  assert.equal(service.list('owner').length, 2);
+  assert.equal(service.public('owner').model, 'second');
+  const renamed = service.list('owner').find((p) => p.model === 'renamed');
+  service.select('owner', renamed.id);
+  assert.equal(service.list('owner').find((p) => p.id === renamed.id).enabled, true);
+  assert.throws(() => service.remove('other', renamed.id), /不存在/);
+  service.remove('owner', second.id);
+  assert.equal(service.public('owner').model, 'renamed');
+  service.remove('owner', renamed.id);
+  assert.equal(service.public('owner').hasKey, false);
+  assert.equal(service.list('owner').length, 0);
 });

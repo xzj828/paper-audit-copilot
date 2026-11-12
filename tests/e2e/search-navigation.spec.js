@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture, multipagePdfFixture } from '../fixtures.js';
 import { positionedPdfFixture } from '../pdf-fixtures.js';
 

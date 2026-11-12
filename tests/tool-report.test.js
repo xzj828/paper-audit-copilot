@@ -104,7 +104,7 @@ test('reports freeze tool evidence and always export an honest, literal provenan
   const docx = await mammoth.extractRawText({
     buffer: await exportReport(report, 'control paper', 'docx'),
   });
-  assert.match(docx.value, /工具证据报告/);
+  assert.match(docx.value, /审稿意见/);
   assert.match(docx.value, /均值 5/);
   assert.match(docx.value, /原文与均值需要核对/);
   assert.equal(JSON.stringify(report), original);

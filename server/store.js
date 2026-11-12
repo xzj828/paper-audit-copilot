@@ -6,7 +6,7 @@ export function createStore(directory) {
   mkdirSync(directory, { recursive: true });
   const db = new DatabaseSync(path.join(directory, 'copilot.sqlite'));
   db.exec(
-    'PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, created_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, data TEXT NOT NULL); CREATE INDEX IF NOT EXISTS project_workspace ON projects(workspace_id);',
+    'PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, created_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, data TEXT NOT NULL); CREATE INDEX IF NOT EXISTS project_workspace ON projects(workspace_id);',
   );
   return {
     db,

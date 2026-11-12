@@ -6,11 +6,40 @@ import { reviewReply } from '../review-fixtures.js';
 import { readFile } from 'node:fs/promises';
 import mammoth from 'mammoth';
 
-test('all panel widths drag and persist, scrolling is independent, and display controls work', async ({
+async function closeNavigation(page) {
+  const toggle = page.getByRole('button', { name: '收起导航栏', exact: true });
+  if (await toggle.isVisible()) await toggle.click();
+  await expect
+    .poll(() => page.locator('.app-surface').evaluate((el) => el.getBoundingClientRect().x))
+    .toBe(72);
+}
+
+test('resizable panel widths persist, scrolling is independent, and display controls work', async ({
   page,
 }) => {
+  // Compact chat typography can fit the original short fixture without scrolling.
+  // Supply a real long conversation for the independent-scroll assertions.
+  const [fixtureProject] = await (await page.request.get('/api/projects')).json();
+  await page.route(`**/api/projects/${fixtureProject.id}`, async (route) => {
+    if (route.request().method() !== 'GET') return route.continue();
+    const response = await route.fetch();
+    const data = await response.json();
+    for (const version of data.versions) {
+      version.messages.push(
+        ...Array.from({ length: 12 }, (_, i) => ({
+          id: `scroll-fixture-${i}`,
+          kind: 'assistant',
+          title: 'Copilot',
+          at: new Date().toISOString(),
+          text: `阅读检查 ${i + 1}。请结合原文证据核对研究设计、材料范围及结论的适用边界。`,
+        })),
+      );
+    }
+    await route.fulfill({ response, json: data });
+  });
   await page.goto('/');
   await expect(page.locator('.finding-heading h2')).toBeVisible();
+  await closeNavigation(page);
   async function drag(label, delta, horizontal = true) {
     const handle = page.getByRole('separator', { name: label });
     const box = await handle.boundingBox();
@@ -25,18 +54,18 @@ test('all panel widths drag and persist, scrolling is independent, and display c
   }
   const widths = () =>
     page.evaluate(() =>
-      ['.sidebar', '.conversation', '.inspector'].map(
+      ['.conversation', '.inspector'].map(
         (selector) => document.querySelector(selector).getBoundingClientRect().width,
       ),
     );
   const original = await widths();
-  await drag('调整项目栏宽度', 45);
   await drag('调整对话栏宽度', 35);
   await drag('调整批注栏宽度', -35);
   const changed = await widths();
   changed.forEach((value, i) => expect(value).toBeGreaterThan(original[i] + 20));
   await page.reload();
   await expect(page.locator('.finding-heading h2')).toBeVisible();
+  await closeNavigation(page);
   expect(await widths()).toEqual(changed);
   await page.setViewportSize({ width: 1488, height: 650 });
   const chat = page.getByLabel('聊天记录滚动区'),
@@ -76,6 +105,7 @@ test('all panel widths drag and persist, scrolling is independent, and display c
   expect((await page.locator('.workspace').boundingBox()).width).toBeGreaterThanOrEqual(320);
   await page.reload();
   await expect(page.locator('.finding-heading h2')).toBeVisible();
+  await closeNavigation(page);
   expect((await page.locator('.conversation').boundingBox()).width).toBe(wideChat);
   await page.getByRole('tab', { name: '评审报告', exact: true }).click();
   await page.getByRole('button', { name: '最大化预览' }).click();
@@ -259,12 +289,13 @@ test('desktop reference layout, annotations, search, chat, report and saved read
   await expect(page.locator('.finding-heading h2')).toHaveText(
     '样本代表性不足，可能影响结论的外推性',
   );
+  await closeNavigation(page);
   await page.screenshot({ path: 'docs/screenshots/desktop.png', fullPage: true });
   await expect(page.locator('.docx-paper')).toContainText('东部地区');
   await page.getByRole('button', { name: '下一条', exact: true }).click();
   await expect(page.locator('.inspector-navigation')).toContainText('2 / 8');
-  await page.getByRole('tab', { name: '建议', exact: true }).click();
-  await page.getByRole('button', { name: '标记为已确认' }).click();
+  await expect(page.getByRole('heading', { name: '修改建议', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '标记为已阅读' }).click();
   await expect(page.getByRole('button', { name: '恢复为待处理' })).toBeVisible();
   await page.getByRole('button', { name: '询问 Copilot', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '询问 Copilot' })).toHaveValue(/问卷有效性/);
@@ -285,6 +316,7 @@ test('desktop reference layout, annotations, search, chat, report and saved read
     'aria-selected',
     'true',
   );
+  await closeNavigation(page);
   await page.locator('.report-finding').first().click();
   await expect(page.getByRole('tab', { name: '论文批注', exact: true })).toHaveAttribute(
     'aria-selected',
@@ -303,6 +335,7 @@ test('real upload, parse, PDF render, report, version comparison, persistence an
   await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('浏览器自检论文');
   await page.getByRole('button', { name: '创建项目', exact: true }).click();
   await expect(page.locator('.upload-guide')).toBeVisible();
+  await closeNavigation(page);
   await page
     .getByLabel('上传论文文件', { exact: true })
     .setInputFiles({ name: 'research.pdf', mimeType: 'application/pdf', buffer: pdfFixture() });
@@ -333,6 +366,7 @@ test('real upload, parse, PDF render, report, version comparison, persistence an
   await page.getByRole('button', { name: '关闭弹窗' }).click();
   await page.reload();
   await expect(page.locator('.conversation-header h1')).toHaveText('浏览器自检论文');
+  await closeNavigation(page);
   await expect(page.locator('.version-chip')).toHaveText('v2');
   await page.getByRole('button', { name: '项目操作' }).click();
   await page.getByRole('button', { name: '删除项目', exact: true }).click();
@@ -397,6 +431,10 @@ test('scientific review runs through real API, exposes evidence and exports part
       },
     });
     await page.getByRole('button', { name: '新建项目', exact: true }).first().click();
+    const workspace = await (await page.request.get('/api/workspace')).json();
+    await page.request.put('/api/workspace/preferences', {
+      data: { ...workspace.preferences, outputMode: 'scored' },
+    });
     await page.getByRole('textbox', { name: '项目名称', exact: true }).fill('科学评审自检');
     await page.getByRole('button', { name: '创建项目', exact: true }).click();
     await expect(page.locator('.upload-guide')).toBeVisible();
@@ -406,9 +444,6 @@ test('scientific review runs through real API, exposes evidence and exports part
       buffer: docxFixture(),
     });
     await expect(page.locator('.parse-metrics')).toBeVisible();
-    await page.getByRole('button', { name: '评审配置', exact: true }).click();
-    await page.getByLabel('稿件类型', { exact: true }).selectOption('empirical');
-    await page.getByLabel('评审输出方式').selectOption('scored');
     await page.getByRole('button', { name: '开始评审', exact: true }).click();
     await expect(page.locator('.review-thinking')).toContainText('正在思考中');
     await expect(page.locator('.review-thinking')).toBeInViewport();
@@ -424,19 +459,8 @@ test('scientific review runs through real API, exposes evidence and exports part
     await expect(page.getByRole('button', { name: '查看评审报告', exact: true })).toBeVisible({
       timeout: 30000,
     });
-    await page.getByRole('button', { name: '评审配置', exact: true }).click();
-    const configButton = await page
-      .getByRole('button', { name: '评审配置', exact: true })
-      .boundingBox();
-    const reportButton = await page
-      .getByRole('button', { name: '查看评审报告', exact: true })
-      .boundingBox();
-    const composer = await page.locator('.composer').boundingBox();
-    const budget = await page.locator('.review-budget').boundingBox();
-    expect(Math.abs(reportButton.y - configButton.y)).toBeLessThan(2);
-    expect(reportButton.x).toBeGreaterThan(configButton.x);
-    expect(budget.y).toBeGreaterThanOrEqual(configButton.y + configButton.height);
-    expect(composer.y - (budget.y + budget.height)).toBeLessThanOrEqual(10);
+    await expect(page.getByRole('button', { name: '查看评审报告', exact: true })).toBeInViewport();
+    await expect(page.locator('.review-budget')).toHaveCount(0);
     await page.getByRole('button', { name: '查看评审报告', exact: true }).click();
     await expect(page.locator('.recommendation')).toContainText('评审建议');
     await expect(page.locator('.recommendation h3')).toHaveText('大修');
@@ -522,14 +546,19 @@ test('rule editor loads reactive data and saves a separate usable version', asyn
   await page.goto('/');
   await expect(page.locator('.finding-heading')).toBeVisible();
   await page.getByRole('button', { name: '模板与规范', exact: true }).click();
-  await page.getByRole('button', { name: '新建自定义版本', exact: true }).click();
+  await page.getByRole('button', { name: '新建模板', exact: true }).click();
+  await page.getByRole('button', { name: '新建评判标准', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: '检查项列表' })
+    .getByRole('button', { name: /研究设计与采样/ })
+    .click();
   await expect(page.getByLabel('E04规则', { exact: true })).not.toHaveValue('');
-  await page.getByLabel('版本名称', { exact: true }).fill('浏览器自定义规则');
+  await page.getByLabel('模板名称', { exact: true }).fill('浏览器自定义规则');
   await page
     .getByLabel('E04规则', { exact: true })
     .fill('检查样地与子样本层级，缺少材料时请求作者说明。');
-  await page.getByRole('button', { name: '保存独立版本', exact: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: '已保存独立版本' })).toBeVisible();
+  await page.getByRole('button', { name: '创建模板', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: '模板已创建' })).toBeVisible();
   const configuration = await (await page.request.get('/api/review-configuration')).json();
   const custom = configuration.packs.find((p) => p.name === '浏览器自定义规则');
   expect(custom.checks.find((c) => c.id === 'E04').rule).toContain('子样本层级');

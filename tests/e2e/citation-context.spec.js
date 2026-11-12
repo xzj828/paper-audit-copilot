@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { createServer } from 'node:http';
 import { docxFixture } from '../fixtures.js';
 
@@ -90,6 +90,7 @@ test('actual uploaded model answers distinguish examples from body citations thr
     await expect(saved.nth(1).locator('.source-card')).toContainText('回答已引用');
     const policy = saved.nth(1).locator('[data-citation-policy]');
     await expect(policy).toContainText('代码');
+    await saved.nth(1).locator('.retrieval-method > summary').click();
     await policy.scrollIntoViewIfNeeded();
     await expect(policy).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

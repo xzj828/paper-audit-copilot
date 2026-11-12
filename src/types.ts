@@ -19,6 +19,10 @@ export interface Anchor {
   quality?: string;
 }
 export interface Finding {
+  marginNote?: string;
+  certainty?: string;
+  sourceResultId?: string;
+  evidence?: Anchor[];
   kind?: string;
   repairability?: string;
   resolutionTest?: string;
@@ -206,6 +210,7 @@ export interface VisualCoverage {
   }[];
 }
 export interface Report {
+  criteriaSnapshot?: import('../shared/review-basis.js').ReviewCriteriaSnapshot;
   parseId?: string;
   pdfDiagnostics?: PdfDiagnostics | null;
   budget?: ReviewBudget | null;
@@ -357,6 +362,8 @@ export interface Settings {
   outputMode: string;
 }
 export interface Project {
+  studioOrigin?: { chatId: string; fileId: string; revision: number };
+  purpose?: 'library' | 'review';
   pinned?: boolean;
   archived?: boolean;
   id: string;

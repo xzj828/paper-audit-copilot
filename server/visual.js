@@ -21,7 +21,12 @@ export function renderVisuals(file, sourceHash, signal, regions = [], pages) {
     const abort = () => finish(new Error('图像渲染已取消'));
     const timer = setTimeout(() => finish(new Error('图像渲染超时，可重试')), 120000);
     signal?.addEventListener('abort', abort, { once: true });
-    worker.on('message', (data) => finish(data.error ? new Error(data.error) : null, data.result));
+    worker.on('message', (data) => {
+      // Node --watch also sends dependency notifications through this channel.
+      // Only the worker's explicit result/error envelope may settle rendering.
+      if (typeof data?.error === 'string') finish(new Error(data.error));
+      else if (data?.result && Array.isArray(data.result.images)) finish(null, data.result);
+    });
     worker.on('error', (error) => finish(error));
     worker.on('exit', () => {
       if (!done) finish(new Error('图像渲染中断，可重试'));

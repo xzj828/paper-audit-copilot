@@ -1,0 +1,74 @@
+{
+  "papers": [
+    {
+      "title": "Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China",
+      "year": 2014,
+      "doi": "10.1371/journal.pone.0087975",
+      "filename": "2014 - Nitrogen Deposition Enhances Carbon Sequestration by Plantations in Northern China.pdf",
+      "bytes": 721802,
+      "sha256": "33ef06c62023175737a1e1454cf7b82977b2223eebaa7fbcb4296caaeb8ca815",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087975",
+      "asset": "0087975.pdf"
+    },
+    {
+      "title": "Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest",
+      "year": 2016,
+      "doi": "10.1371/journal.pone.0155881",
+      "filename": "2016 - Nitrogen Addition Altered the Effect of Belowground C Allocation on Soil Respiration in a Subtropical Forest.pdf",
+      "bytes": 2720776,
+      "sha256": "1734c47f695ed7ec57a1ce3a8208e810e76a84b0dab26c5b804ed6f08fe82eb4",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155881",
+      "asset": "0155881.pdf"
+    },
+    {
+      "title": "Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities",
+      "year": 2021,
+      "doi": "10.1371/journal.pone.0246919",
+      "filename": "2021 - Tree rows in temperate agroforestry croplands alter the composition of soil bacterial communities.pdf",
+      "bytes": 3478788,
+      "sha256": "f73ebc96d88181c3c1b014a0e89585792c9bd7e7fe90dfafd3de6e735e01ac92",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0246919",
+      "asset": "0246919.pdf"
+    },
+    {
+      "title": "Landscape fragmentation of the Natura 2000 network and its surrounding areas",
+      "year": 2021,
+      "doi": "10.1371/journal.pone.0258615",
+      "filename": "2021 - Landscape fragmentation of the Natura 2000 network and its surrounding areas.pdf",
+      "bytes": 5673407,
+      "sha256": "4318e4cec86d46fb1540627d4fcd3ad9639c620d7420ce625602a11e18f72cfa",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0258615",
+      "asset": "0258615.pdf"
+    },
+    {
+      "title": "Forest structure, plants, arthropods, scale, or birds’ functional groups: What key factor are forest birds responding to?",
+      "year": 2024,
+      "doi": "10.1371/journal.pone.0304421",
+      "filename": "2024 - Forest structure, plants, arthropods, scale, or birds’ functional groups What key factor are forest birds responding to.pdf",
+      "bytes": 1327059,
+      "sha256": "5c00a27c3958c68aaf21818c7a1114bc18dcbaa3eeffa06487ebf91b9db8715b",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0304421",
+      "asset": "0304421.pdf"
+    },
+    {
+      "title": "B.Y.O. Bees: Managing wild bee biodiversity in urban greenspaces",
+      "year": 2023,
+      "doi": "10.1371/journal.pone.0281468",
+      "filename": "2023 - B.Y.O. Bees Managing wild bee biodiversity in urban greenspaces.pdf",
+      "bytes": 1118107,
+      "sha256": "7c0dfcffeb9411d5e7e7d7800cf61dd91ce78c26c439d5f858641befd6c34555",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0281468",
+      "asset": "0281468.pdf"
+    },
+    {
+      "title": "The great urban shift: Climate change is predicted to drive mass species turnover in cities",
+      "year": 2024,
+      "doi": "10.1371/journal.pone.0299217",
+      "filename": "2024 - The great urban shift Climate change is predicted to drive mass species turnover in cities.pdf",
+      "bytes": 1789132,
+      "sha256": "73a1d976775412fd8d2edc7c81f8f188200afac0444c34bd8db096a8211dafc7",
+      "articleURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0299217",
+      "asset": "0299217.pdf"
+    }
+  ]
+}

@@ -8,6 +8,7 @@ export interface ClaimAuditDraft {
 }
 </script>
 <script setup lang="ts">
+import SelectContent from './SelectContent';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { api, json } from '../api';
 import type { Anchor, Project, Version } from '../types';
@@ -316,9 +317,7 @@ function place(anchor: Anchor) {
         提取原文候选主张
       </button>
     </div>
-    <p class="audit-note">
-      选择论文中的一句主张，查看当前版本哪些原文片段可能支持、矛盾或只提供上下文。候选由文本规则提取，检索命中与模型关系建议都需要人工核对。
-    </p>
+    <p class="audit-note">候选主张、检索结果与模型建议均需人工核对。</p>
     <details v-if="candidates.length" class="claim-candidates" open>
       <summary>原文候选主张（{{ candidates.length }} 条）</summary>
       <ol>
@@ -411,6 +410,7 @@ function place(anchor: Anchor) {
       </div>
       <label v-if="snapshots.length > 1"
         >查看证据链记录<select v-model="selectedId" :disabled="busy">
+          <SelectContent />
           <option value="">最新记录</option>
           <option
             v-for="snapshot in [...snapshots].reverse()"
@@ -479,6 +479,7 @@ function place(anchor: Anchor) {
                 :disabled="busy || stale"
                 aria-label="核对结论"
               >
+                <SelectContent />
                 <option value="pending">待核对</option>
                 <option value="confirmed">确认此关系</option>
                 <option value="rejected">不认可此关系</option>
@@ -525,7 +526,7 @@ function place(anchor: Anchor) {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--paper);
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 .claim-heading,
 .relation-heading {
@@ -701,8 +702,9 @@ a {
   color: var(--blue);
 }
 button:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 3px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 @media (max-width: 560px) {
   .claim-audit {

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createStore } from '../../server/store.js';
@@ -24,7 +24,7 @@ async function uploadPdf(page, buffer, title) {
 async function saveControlledRecord(page, project) {
   // This controlled replay tests genuinely persisted legacy/faulty source
   // snapshots. It is separate from the original PDF's real question flow.
-  const cookie = (await page.context().cookies()).find((item) => item.name === 'audit_workspace');
+  const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
   const store = createStore(path.resolve('test-results/e2e-data'));
   try {
     store.save(cookie.value, project);

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>导入 7 篇论文</title>
+<style>
+body { margin:0; background:#f4f5f7; color:#24282f; font:15px/1.7 'Microsoft YaHei',sans-serif; }
+main { max-width:720px; margin:48px auto; padding:32px; background:white; border-radius:16px; }
+h1 { margin:0 0 12px; font-size:24px; } p { color:#66707e; } li { margin:12px 0; overflow-wrap:anywhere; }
+a { color:#2563eb; } button { padding:10px 20px; border:0; border-radius:20px; background:#2563eb; color:white; cursor:pointer; font:inherit; }
+#error { color:#b42318; } @media(max-width:600px) { main { margin:16px; padding:20px; } }
+</style>
+<main>
+  <h1>导入 7 篇真实论文</h1>
+  <p>使用当前浏览器的文献库，已有论文会自动跳过。请保持此页面打开，完成后会自动进入文献库。</p>
+  <p id="status" role="status">正在读取论文清单…</p>
+  <ol id="items"></ol>
+  <p id="error" role="alert"></p>
+  <button id="retry" hidden>继续导入</button>
+  <p><a href="/#library">返回文献库</a></p>
+</main>
+<script type="module">
+const status = document.querySelector('#status');
+const items = document.querySelector('#items');
+const error = document.querySelector('#error');
+const retry = document.querySelector('#retry');
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+async function api(path, options = {}) {
+  const response = await fetch(`/api${path}`, { credentials: 'same-origin', ...options });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error || `请求失败（${response.status}）`);
+  return data;
+}
+async function importPapers() {
+  retry.hidden = true;
+  error.textContent = '';
+  items.replaceChildren();
+  try {
+    const response = await fetch('./manifest.json');
+    if (!response.ok) throw new Error('论文清单加载失败');
+    const { papers } = await response.json();
+    const summaries = await api('/projects');
+    const known = [];
+    // Read hashes only for plausible matches in THIS browser's workspace.
+    for (const project of summaries) {
+      if (project.versions.some(v => papers.some(p => p.bytes === v.size && p.filename === v.filename))) {
+        known.push(await api(`/projects/${project.id}`));
+      }
+    }
+    let added = 0;
+    let skipped = 0;
+    for (const paper of papers) {
+      const row = document.createElement('li');
+      row.textContent = `${paper.title} — 正在检查`;
+      items.append(row);
+      let project = known.find(p => p.versions.some(v => v.contentHash === paper.sha256));
+      let version = project?.versions.find(v => v.contentHash === paper.sha256);
+      if (project) skipped++;
+      else {
+        status.textContent = `正在导入第 ${added + skipped + 1} / ${papers.length} 篇`;
+        const file = await fetch(`./${paper.asset}`);
+        if (!file.ok) throw new Error(`无法读取 PDF：${paper.title}`);
+        const bytes = await file.arrayBuffer();
+        const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+        if (hash !== paper.sha256) throw new Error(`PDF 校验失败：${paper.title}`);
+        project = await api('/projects', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:paper.title, purpose:'library'}) });
+        const form = new FormData();
+        form.append('file', new Blob([bytes], {type:'application/pdf'}), paper.filename);
+        project = await api(`/projects/${project.id}/upload`, {method:'POST', body:form});
+        version = project.versions.find(v => v.contentHash === paper.sha256);
+        if (!version) throw new Error(`上传校验失败：${paper.title}`);
+        known.push(project);
+        added++;
+      }
+      row.textContent = `${paper.title} — 正在解析`;
+      let retried = false;
+      for (let attempt=0; attempt<120 && version.status !== 'ready'; attempt++) {
+        if (version.status === 'failed') {
+          if (retried) throw new Error(`${paper.title}：${version.error || '解析失败'}`);
+          await api(`/projects/${project.id}/versions/${version.id}/retry`, {method:'POST'});
+          retried = true;
+        }
+        await wait(1000);
+        project = await api(`/projects/${project.id}`);
+        version = project.versions.find(v => v.id === version.id);
+      }
+      if (version.status !== 'ready') throw new Error(`${paper.title} 仍在解析，稍后可点击继续导入。`);
+      row.textContent = `${paper.title} — 已就绪`;
+    }
+    status.textContent = `7 篇论文均已就绪（新增 ${added} 篇，已有 ${skipped} 篇），正在打开文献库…`;
+    await wait(1200);
+    location.replace('/#library');
+  } catch (reason) {
+    status.textContent = '导入暂时停止，已完成的论文会保留。';
+    error.textContent = reason.message || String(reason);
+    retry.hidden = false;
+  }
+}
+retry.addEventListener('click', importPapers);
+if (navigator.locks) {
+  navigator.locks.request('import-ecology-seven-20261107', importPapers);
+} else {
+  importPapers();
+}
+</script>
+</html>

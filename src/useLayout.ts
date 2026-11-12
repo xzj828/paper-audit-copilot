@@ -1,20 +1,22 @@
+import { accountStorage } from './account';
 import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
+import { COLLAPSED_SIDEBAR_WIDTH } from './useSidebarDrag';
 
 type Pane = 'sidebar' | 'chat' | 'inspector';
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(value, Math.max(min, max)));
 export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: Ref<string>) {
-  const read = (key: string, fallback: number) => Number(localStorage.getItem(key)) || fallback;
+  const read = (key: string, fallback: number) => Number(accountStorage.getItem(key)) || fallback;
   const widths = ref({
-    sidebar: read('audit-sidebar-width', window.innerWidth >= 1600 ? 218 : 240),
-    chat: read('audit-chat-width', window.innerWidth >= 1600 ? 584 : 352),
+    sidebar: read('audit-sidebar-width', 216),
+    chat: read('audit-chat-width', 320),
     inspector: read('audit-inspector-width', 360),
   });
   const viewport = ref(window.innerWidth),
     height = ref(window.innerHeight);
   const inspectorOverlaysPaper = computed(() => viewport.value < 1180);
   const displayMode = ref(
-    localStorage.getItem('audit-display-mode') === 'stacked' ? 'stacked' : 'columns',
+    accountStorage.getItem('audit-display-mode') === 'stacked' ? 'stacked' : 'columns',
   );
   const maximized = ref(false),
     minimized = ref(false);
@@ -28,15 +30,12 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
       ? 244
       : 0,
   );
-  const sidebarWidth = computed(() =>
-    !sidebar.value || viewport.value <= 900
-      ? 64
-      : clamp(
-          widths.value.sidebar,
-          180,
-          Math.min(400, viewport.value - 260 - 320 - inspectorMinimum.value),
-        ),
+  const expandedSidebarWidth = computed(() =>
+    clamp(widths.value.sidebar, 180, Math.min(400, viewport.value - 260 - 320 - inspectorMinimum.value)),
   );
+  const desktopSidebar = computed(() => viewport.value > 900);
+  // Opening the drawer must not resize or reflow the document surface.
+  const sidebarWidth = computed(() => desktopSidebar.value ? COLLAPSED_SIDEBAR_WIDTH : 64);
   const chatWidth = computed(() =>
     clamp(
       widths.value.chat,
@@ -55,6 +54,12 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
         320,
     ),
   );
+  const maximumSidebarWidth = computed(() =>
+    Math.max(180, Math.min(400, viewport.value - chatWidth.value - 320 - inspectorMinimum.value)),
+  );
+  function setSidebarWidth(width: number) {
+    widths.value.sidebar = clamp(width, 180, maximumSidebarWidth.value);
+  }
   const styles = computed(() => ({
     '--sidebar-width': `${sidebarWidth.value}px`,
     '--chat-width': `${chatWidth.value}px`,
@@ -120,12 +125,12 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
     widths,
     (value) => {
       for (const [pane, width] of Object.entries(value))
-        localStorage.setItem(`audit-${pane}-width`, String(width));
+        accountStorage.setItem(`audit-${pane}-width`, String(width));
     },
     { deep: true },
   );
-  watch(displayMode, (value) => localStorage.setItem('audit-display-mode', value));
-  watch(chatHeight, (value) => localStorage.setItem('audit-chat-height', String(value)));
+  watch(displayMode, (value) => accountStorage.setItem('audit-display-mode', value));
+  watch(chatHeight, (value) => accountStorage.setItem('audit-chat-height', String(value)));
   onMounted(() => window.addEventListener('resize', updateViewport));
   onUnmounted(() => {
     cleanup();
@@ -134,6 +139,10 @@ export function useLayout(sidebar: Ref<boolean>, inspector: Ref<boolean>, tab: R
   return {
     styles,
     sidebarWidth,
+    desktopSidebar,
+    expandedSidebarWidth,
+    maximumSidebarWidth,
+    setSidebarWidth,
     chatWidth,
     inspectorWidth,
     inspectorOverlaysPaper,

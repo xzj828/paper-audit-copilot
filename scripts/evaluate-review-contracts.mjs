@@ -69,8 +69,9 @@ export function validateReviewContracts(dataset) {
       `${item.id}: 规则与模块无效`,
     );
     ensure(
-      sections.reduce((sum, s) => sum + s.text.length + (s.after || '').length + 1, 0) <=
-        pack.maxCharacters,
+      pack.maxCharacters == null ||
+        sections.reduce((sum, s) => sum + s.text.length + (s.after || '').length + 1, 0) <=
+          pack.maxCharacters,
       `${item.id}: 文字超出规则预算`,
     );
     ensure(

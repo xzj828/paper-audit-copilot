@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -34,7 +35,7 @@ test('aborting a real unfinished SSE answer closes its provider, leaves the vers
   await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
   try {
     const { origin } = await app.start({ port: 0 });
-    const first = await fetch(origin + '/api/projects');
+    const first = await loginTestAccount(origin, dir);
     const cookie = first.headers.get('set-cookie').split(';')[0];
     const request = (route, options = {}) =>
       fetch(origin + route, { ...options, headers: { Cookie: cookie, ...options.headers } });

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 // Worker/storage complete normally. Only the first browser view is deliberately

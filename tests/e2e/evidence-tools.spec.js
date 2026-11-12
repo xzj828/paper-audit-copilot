@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { Document, Paragraph, Packer } from 'docx';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -129,7 +129,7 @@ test('reference and CSV tools preserve exact evidence, downloads and immutable r
   expect(errors).toEqual([]);
 });
 
-test('real model transport pauses at the user budget and resumes the same review without rewriting old reports', async ({
+test('a previously budget-limited review resumes from the simplified controls without rewriting old reports', async ({
   page,
 }) => {
   let calls = 0;
@@ -152,18 +152,23 @@ test('real model transport pauses at the user budget and resumes the same review
         enabled: true,
       },
     });
+    // Legacy budgets remain supported by the API, but are no longer an input in the UI.
+    await page.request.patch(`/api/projects/${project.id}`, {
+      data: { settings: { ...project.settings, articleType: 'empirical', confirmed: true } },
+    });
+    const started = await page.request.post(`/api/projects/${project.id}/review`, {
+      data: { versionId: project.versions[0].id, budget: { maxRequests: 2, maxMinutes: null } },
+    });
+    expect(started.ok()).toBe(true);
     await page.reload();
-    await page.locator('.review-budget summary').click();
-    await page.getByLabel('最大调用次数', { exact: true }).fill('2');
-    await page.getByRole('button', { name: '开始评审', exact: true }).click();
-    await expect(page.getByRole('button', { name: '提高预算并继续', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: '继续未完成项', exact: true })).toBeVisible();
     expect(calls).toBe(2);
     const before = await (await page.request.get(`/api/projects/${project.id}`)).json();
     const paused = before.versions[0].runs.find((run) => run.scope === 'scientific-trial');
     expect(paused.status).toBe('budget_paused');
     const oldReport = before.versions[0].reports.at(-1);
-    await page.getByLabel('最大调用次数', { exact: true }).fill('100');
-    await page.getByRole('button', { name: '提高预算并继续', exact: true }).click();
+    await expect(page.getByLabel('最大调用次数', { exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: '继续未完成项', exact: true }).click();
     await expect
       .poll(async () => {
         const p = await (await page.request.get(`/api/projects/${project.id}`)).json();

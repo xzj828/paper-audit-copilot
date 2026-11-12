@@ -2,8 +2,11 @@
 import { ref, shallowRef, computed, nextTick, watch, onBeforeUnmount } from 'vue';
 import Icon from './Icon.vue';
 import ContinuousPdfPage from './ContinuousPdfPage.vue';
-import type { Anchor, PdfPage } from '../types';
+import PaperAnnotations from './PaperAnnotations.vue';
+import type { Anchor, PdfPage, Finding } from '../types';
 import { pdfQuoteBoxes } from '../../shared/pdf-text.js';
+import { usePdfPan } from '../usePdfPan';
+import { usePdfPageMotion } from '../usePdfPageMotion';
 const props = defineProps<{
   url: string;
   page: number;
@@ -15,11 +18,45 @@ const props = defineProps<{
   textAnchor?: Anchor | null;
   searchCandidate?: boolean;
   parsedPage?: PdfPage;
-  allowPageSwap?: boolean;
+  hideControls?: boolean;
+  fitSize?: { width: number; height: number };
+  annotations?: Finding[];
+  annotationActiveId?: string;
+  annotationCharacters?: number;
+  annotationPhase?: string;
+  annotationPaused?: boolean;
+  parsedPages?: PdfPage[];
 }>();
+const annotationOverflow = ref(0);
+const pageAnnotations = computed(
+  () => props.annotations?.filter((f) => (f.anchor.page || 1) === props.page) || [],
+);
 const canvas = ref<HTMLCanvasElement>();
+const naturalPageWidth = ref(0);
+const readerRoot = ref<HTMLElement>();
+const pan = usePdfPan();
+defineExpose({
+  resetPan: pan.reset,
+  fitWidthZoom: () => {
+    const reader = readerRoot.value;
+    const container = reader?.parentElement;
+    if (!reader || !container || !naturalPageWidth.value || !container.clientWidth) return null;
+    const padding = (element: HTMLElement) => {
+      const style = getComputedStyle(element);
+      return parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    };
+    const width = container.clientWidth - padding(container) - padding(reader);
+    return width > 0 ? (width / naturalPageWidth.value) * 100 : null;
+  },
+  displayedZoom: () =>
+    canvas.value && naturalPageWidth.value > 0
+      ? (canvas.value.getBoundingClientRect().width / naturalPageWidth.value) * 100
+      : props.zoom,
+});
 const stage = ref<HTMLElement>();
+const pageMotion = usePdfPageMotion(stage);
 const renderedPage = ref<number | null>(null);
+const displayedPage = computed(() => renderedPage.value ?? props.page);
 const error = ref(''),
   loading = ref(false);
 const evidence = computed(() =>
@@ -43,49 +80,30 @@ const evidenceStatus = computed(() => {
 });
 const emit = defineEmits<{
   pages: [count: number];
-  navigate: [page: number];
   'update:fitWidth': [enabled: boolean];
+  renderedZoom: [percent: number];
+  annotationReady: [id: string];
+  selectAnnotation: [finding: Finding];
+  pauseAnnotations: [];
 }>();
 let pdf: import('pdfjs-dist').PDFDocumentProxy | undefined;
 const continuousPdf = shallowRef<import('pdfjs-dist').PDFDocumentProxy>();
-const comparing = ref(false);
-const comparisonDirection = ref(1);
-const comparisonPage = computed(() => props.page + comparisonDirection.value);
-function swapPages() {
-  const target = comparisonPage.value;
-  if (
-    !props.allowPageSwap ||
-    !continuousPdf.value ||
-    !Number.isSafeInteger(target) ||
-    target < 1 ||
-    target > continuousPdf.value.numPages
-  )
-    return;
-  comparisonDirection.value *= -1;
-  emit('navigate', target);
-}
 watch(
-  () => props.url,
-  () => {
-    comparing.value = false;
-    comparisonDirection.value = 1;
-  },
+  () => [props.url, props.zoom, props.fitWidth, props.fitSize, props.textAnchor, props.query],
+  pan.reset,
 );
-watch(
-  () => [props.page, continuousPdf.value?.numPages],
-  () => {
-    const count = continuousPdf.value?.numPages;
-    if (count && (comparisonPage.value < 1 || comparisonPage.value > count))
-      comparisonDirection.value = props.page === count ? -1 : 1;
-  },
-);
+// Page navigation ends an active gesture but retains the user's reading position.
+watch(() => props.page, pan.end);
 let renderTask: import('pdfjs-dist').RenderTask | undefined;
 let generation = 0;
 let loadTask: import('pdfjs-dist').PDFDocumentLoadingTask | undefined;
 async function load() {
   const token = ++generation;
   rendering++;
+  pageMotion.reset();
   renderedPage.value = null;
+  naturalPageWidth.value = 0;
+  annotationOverflow.value = 0;
   loading.value = true;
   error.value = '';
   // Detach the previous document before asynchronous cleanup. A superseded
@@ -126,14 +144,22 @@ let rendering = 0;
 async function render() {
   if (!pdf || !canvas.value) return;
   const token = ++rendering;
-  renderedPage.value = null;
+  pageMotion.interrupt();
   error.value = '';
   renderTask?.cancel();
+  let buffer: HTMLCanvasElement | undefined;
   try {
     const page = await pdf.getPage(Math.min(props.page, pdf.numPages));
     if (token !== rendering) return;
-    const viewport = page.getViewport({ scale: (props.zoom / 100) * 1.15 });
-    const target = canvas.value;
+    const natural = page.getViewport({ scale: 1.15 });
+    const scale = props.fitSize
+      ? Math.min(props.fitSize.width / natural.width, props.fitSize.height / natural.height)
+      : props.zoom / 100;
+    if (scale <= 0) return;
+    const viewport = page.getViewport({ scale: scale * 1.15 });
+    // Render away from the live canvas so a slow page never clears the page the
+    // user is reading. Only the latest completed bitmap is committed below.
+    const target = (buffer = document.createElement('canvas'));
     const ratio = window.devicePixelRatio || 1;
     target.width = Math.floor(viewport.width * ratio);
     target.height = Math.floor(viewport.height * ratio);
@@ -193,10 +219,34 @@ async function render() {
       }
       ctx.restore();
     }
-    if (token === rendering) renderedPage.value = page.pageNumber;
+    if (token !== rendering) return;
+    const direction =
+      renderedPage.value === null ? 0 : Math.sign(page.pageNumber - renderedPage.value);
+    await pageMotion.swap(
+      () => {
+        const live = canvas.value!;
+        live.width = target.width;
+        live.height = target.height;
+        live.style.width = target.style.width;
+        live.style.height = target.style.height;
+        live.getContext('2d')!.drawImage(target, 0, 0);
+        naturalPageWidth.value = natural.width;
+        if (renderedPage.value !== page.pageNumber) annotationOverflow.value = 0;
+        renderedPage.value = page.pageNumber;
+        target.width = target.height = 0;
+        emit('renderedZoom', scale * 100);
+      },
+      direction,
+      () => token === rendering && !!canvas.value,
+    );
   } catch (e) {
-    if (token === rendering && e instanceof Error && e.name !== 'RenderingCancelledException')
+    if (token === rendering && e instanceof Error && e.name !== 'RenderingCancelledException') {
+      pageMotion.reset();
+      renderedPage.value = null;
       error.value = e.message;
+    }
+  } finally {
+    if (buffer) buffer.width = buffer.height = 0;
   }
 }
 watch(
@@ -207,12 +257,16 @@ watch(
   },
   { immediate: true },
 );
-watch(() => [props.page, props.zoom, props.query, props.bbox], render);
+watch(() => [props.page, props.zoom, props.query, props.bbox, props.fitSize], render);
 watch(
-  () => [props.textAnchor, renderedPage.value, props.fitWidth],
+  () => [props.textAnchor, renderedPage.value, props.fitWidth, pageMotion.moving.value],
   async () => {
     await nextTick();
-    if (renderedPage.value === props.page && evidence.value?.status === 'matched')
+    if (
+      !pageMotion.moving.value &&
+      renderedPage.value === props.page &&
+      evidence.value?.status === 'matched'
+    )
       stage.value?.querySelector('.pdf-quote-box')?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
@@ -229,66 +283,39 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div v-if="continuousPdf" class="pdf-fit-controls">
-    <button
-      class="secondary-button"
-      :aria-pressed="!!fitWidth"
-      :disabled="loading || !!error || renderedPage !== page"
-      @click="emit('update:fitWidth', !fitWidth)"
-    >
-      适合宽度
-    </button>
-    <span v-if="fitWidth">再次点击恢复手动比例；原文与证据位置不变。</span>
-  </div>
   <p v-if="evidenceStatus" class="notice pdf-evidence-status" role="status">
     <span v-if="searchCandidate">换行断词候选，词义与拼写需人工核对。 </span>{{ evidenceStatus }}
   </p>
-  <section
-    v-if="continuousPdf && continuousPdf.numPages > 1"
-    class="pdf-comparison-controls"
-    aria-label="相邻页对照"
-  >
-    <label><input v-model="comparing" type="checkbox" />相邻页对照</label>
-    <template v-if="comparing">
-      <label
-        >对照方向
-        <select v-model.number="comparisonDirection" aria-label="对照方向">
-          <option :value="-1" :disabled="page <= 1">上一页</option>
-          <option :value="1" :disabled="page >= continuousPdf.numPages">下一页</option>
-        </select>
-      </label>
-      <button
-        v-if="allowPageSwap"
-        class="secondary-button"
-        :disabled="loading || !!error || renderedPage !== page"
-        @click="swapPages"
-      >
-        将第 {{ comparisonPage }} 页设为当前页
-      </button>
-      <p>
-        人工核对跨页表格、表头与上下文；两页未拼接，证据仍只定位当前页。可滚动查看原比例页面，关闭后恢复原阅读布局。
-      </p>
-    </template>
-  </section>
   <div
+    ref="readerRoot"
     class="pdf-reader"
+    :aria-busy="loading || (!error && renderedPage !== page)"
     :class="{
-      'pdf-reader-comparing': comparing && continuousPdf && continuousPdf.numPages > 1,
       'pdf-reader-fit-width': fitWidth,
+      'pdf-reader-panning': pan.panning.value,
+      'pdf-with-annotations': annotations !== undefined,
     }"
+    :style="{ '--pdf-pan-x': `${pan.offset.value.x}px`, '--pdf-pan-y': `${pan.offset.value.y}px` }"
+    @pointerdown="pan.start"
+    @pointermove="pan.move"
+    @pointerup="pan.end"
+    @pointercancel="pan.end"
+    @lostpointercapture="pan.end"
   >
     <div v-if="loading" class="empty-state" role="status">
       <Icon name="loading" class="spin" />正在渲染原文…
     </div>
-    <p v-else-if="!error && renderedPage !== page" role="status">正在渲染第 {{ page }} 页…</p>
+    <p v-else-if="!error && renderedPage !== page" class="pdf-render-status" role="status">
+      正在渲染第 {{ page }} 页…
+    </p>
     <div v-if="error" class="notice error-notice" role="alert">
       {{ error }} <button @click="load">重试</button>
     </div>
-    <div class="pdf-current-page">
-      <small v-if="comparing">当前页 · 第 {{ page }} 页 · 证据定位页</small>
-      <div :id="`page-${page}`" ref="stage" class="pdf-page-stage">
+    <div class="pdf-current-page" :style="{ paddingBottom: `${annotationOverflow}px` }">
+      <div :id="`page-${displayedPage}`" ref="stage" class="pdf-page-stage">
         <canvas
-          v-show="renderedPage === page"
+          :style="{ visibility: renderedPage !== null && !error ? 'visible' : 'hidden' }"
+          :aria-hidden="renderedPage === null || !!error"
           ref="canvas"
           aria-label="论文 PDF 原文"
           :data-rendered-page="renderedPage"
@@ -309,36 +336,72 @@ onBeforeUnmount(() => {
             }"
           />
         </template>
+        <PaperAnnotations
+          v-if="renderedPage === page && annotations !== undefined"
+          :findings="pageAnnotations"
+          :parsed-page="parsedPage"
+          :active-id="annotationActiveId"
+          :characters="annotationCharacters"
+          :phase="annotationPhase"
+          :paused="annotationPaused"
+          @ready="emit('annotationReady', $event)"
+          @pause="emit('pauseAnnotations')"
+          @overflow="annotationOverflow = $event"
+          @select="emit('selectAnnotation', $event)"
+        />
       </div>
     </div>
-    <aside
-      v-if="
-        comparing &&
-        continuousPdf &&
-        continuousPdf.numPages > 1 &&
-        comparisonPage >= 1 &&
-        comparisonPage <= continuousPdf.numPages
-      "
-      class="pdf-comparison-page"
-      aria-label="相邻原页"
-    >
-      <small>对照页 · 第 {{ comparisonPage }} 页 · 仅查看原页</small>
+    <template v-if="continuous && continuousPdf">
       <ContinuousPdfPage
-        :key="`${url}-compare-${comparisonPage}`"
+        v-for="offset in Math.max(0, continuousPdf.numPages - displayedPage)"
+        :key="`${url}-${displayedPage + offset}`"
         :pdf="continuousPdf"
-        :page="comparisonPage"
+        :page="displayedPage + offset"
         :zoom="zoom"
-        eager
-      />
-    </aside>
-    <template v-if="continuous && !comparing && continuousPdf">
-      <ContinuousPdfPage
-        v-for="offset in Math.max(0, continuousPdf.numPages - page)"
-        :key="`${url}-${page + offset}`"
-        :pdf="continuousPdf"
-        :page="page + offset"
-        :zoom="zoom"
+        :annotations="annotations?.filter((f) => f.anchor.page === displayedPage + offset)"
+        :parsed-page="parsedPages?.find((p) => p.page === displayedPage + offset)"
+        @select-annotation="emit('selectAnnotation', $event)"
+        @pause-annotations="emit('pauseAnnotations')"
       />
     </template>
   </div>
 </template>
+<style scoped>
+.pdf-reader {
+  position: relative;
+  /* Panning must not create scrollbars and resize a page fitted to its viewport. */
+  overflow: clip;
+}
+.pdf-reader.pdf-with-annotations {
+  padding-right: 216px;
+  overflow: visible;
+}
+.pdf-with-annotations.pdf-reader-fit-width {
+  box-sizing: border-box;
+}
+.pdf-render-status {
+  position: absolute;
+  top: 8px;
+  left: 20px;
+  z-index: 3;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--paper);
+}
+.pdf-page-stage {
+  /* The page turn uses WAAPI; avoid implicit reduced-motion CSS transitions. */
+  transition-property: none;
+}
+.pdf-reader > .pdf-current-page,
+.pdf-reader > :deep(.pdf-continuous-page) {
+  transform: translate(var(--pdf-pan-x, 0px), var(--pdf-pan-y, 0px));
+}
+.pdf-reader :deep(canvas) {
+  cursor: grab;
+}
+.pdf-reader-panning,
+.pdf-reader-panning :deep(canvas) {
+  cursor: grabbing;
+  user-select: none;
+}
+</style>

@@ -54,50 +54,57 @@ defineEmits<{ locate: [anchor: Anchor] }>();
       }}</strong>
       <small>{{ retrieval.selectedChunks }} / {{ retrieval.totalChunks }} 个片段</small>
     </div>
-    <p class="retrieval-scope">{{ retrieval.scope }}</p>
-    <p
-      v-if="retrieval.phraseFilter"
-      class="retrieval-scope"
-      :data-phrase-policy="retrieval.phraseFilter.policy"
+    <details
+      class="retrieval-method"
+      :open="binding !== 'matched' || retrieval.status === 'no_match'"
     >
-      逐字短语：{{ retrieval.phraseFilter.phrases.map((phrase) => `“${phrase}”`).join('、') }}。
-      同一片段须包含全部短语，区分大小写、空格和换行；候选
-      {{ retrieval.phraseFilter.matchingChunks }} / {{ retrieval.totalChunks }}，实际提供
-      {{ retrieval.selectedChunks }}。
-      只检查当前范围的解析文字，不代表科学支持；未命中不能认定全文缺失。
-    </p>
-    <p
-      v-if="citationPolicy === 'markdown-body-labels@1'"
-      class="retrieval-scope"
-      :data-citation-policy="citationPolicy"
-    >
-      仅统计正文证据编号；代码、引述、链接及原始 HTML 中的示例不计入。编号匹配不代表结论已核验。
-    </p>
-    <p v-if="retrieval.requestedScope" class="retrieval-scope">
-      限定区块：{{ retrieval.requestedScope.section }}；全文共
-      {{ retrieval.requestedScope.documentChunks }} 个片段，上方分母仅为限定范围。
-    </p>
-    <p class="retrieval-scope" role="status" :data-source-binding="binding">
-      <template v-if="binding === 'mismatch'"
-        >来源版本或解析身份与当前材料不符，已停用定位。请在当前版本重新提问。</template
+      <summary>检索范围与核验</summary>
+      <p class="retrieval-scope">{{ retrieval.scope }}</p>
+      <p
+        v-if="retrieval.phraseFilter"
+        class="retrieval-scope"
+        :data-phrase-policy="retrieval.phraseFilter.policy"
       >
-      <template v-else-if="binding === 'unavailable'"
-        >来源身份未核验：记录缺少版本或解析身份。定位仅尝试匹配当前原文，请人工核对。</template
+        逐字短语：{{ retrieval.phraseFilter.phrases.map((phrase) => `“${phrase}”`).join('、') }}。
+        同一片段须包含全部短语，区分大小写、空格和换行；候选
+        {{ retrieval.phraseFilter.matchingChunks }} / {{ retrieval.totalChunks }}，实际提供
+        {{ retrieval.selectedChunks }}。
+        只检查当前范围的解析文字，不代表科学支持；未命中不能认定全文缺失。
+      </p>
+      <p
+        v-if="citationPolicy === 'markdown-body-labels@1'"
+        class="retrieval-scope"
+        :data-citation-policy="citationPolicy"
       >
-      <template v-else>来源版本与解析身份一致；文字位置及回答结论仍需核对。</template>
-    </p>
-    <p v-if="retrieval.termMappings?.length" class="retrieval-scope retrieval-terms">
-      有限术语映射：
-      <span v-for="(mapping, index) in retrieval.termMappings" :key="mapping.id"
-        >{{ index ? '；' : '' }}{{ mapping.matched }} → {{ mapping.alternatives.join('、') }}</span
-      >
-      。这只扩展词法匹配，关系仍需核对。
-    </p>
-    <p v-if="retrieval.followUpTo" class="retrieval-scope">
-      沿用上一轮问题检索：{{ retrieval.queryText }}
-    </p>
+        仅统计正文证据编号；代码、引述、链接及原始 HTML 中的示例不计入。编号匹配不代表结论已核验。
+      </p>
+      <p v-if="retrieval.requestedScope" class="retrieval-scope">
+        限定区块：{{ retrieval.requestedScope.section }}；全文共
+        {{ retrieval.requestedScope.documentChunks }} 个片段，上方分母仅为限定范围。
+      </p>
+      <p class="retrieval-scope" role="status" :data-source-binding="binding">
+        <template v-if="binding === 'mismatch'"
+          >来源版本或解析身份与当前材料不符，已停用定位。请在当前版本重新提问。</template
+        >
+        <template v-else-if="binding === 'unavailable'"
+          >来源身份未核验：记录缺少版本或解析身份。定位仅尝试匹配当前原文，请人工核对。</template
+        >
+        <template v-else>来源版本与解析身份一致；文字位置及回答结论仍需核对。</template>
+      </p>
+      <p v-if="retrieval.termMappings?.length" class="retrieval-scope retrieval-terms">
+        有限术语映射：
+        <span v-for="(mapping, index) in retrieval.termMappings" :key="mapping.id"
+          >{{ index ? '；' : '' }}{{ mapping.matched }} →
+          {{ mapping.alternatives.join('、') }}</span
+        >
+        。这只扩展词法匹配，关系仍需核对。
+      </p>
+      <p v-if="retrieval.followUpTo" class="retrieval-scope">
+        沿用上一轮问题检索：{{ retrieval.queryText }}
+      </p>
+    </details>
     <details v-if="sources?.length" class="retrieval-passages" open>
-      <summary>查看本次提供的原文 · 引用编号匹配不代表结论已核验</summary>
+      <summary>原文片段 · {{ sources.length }}</summary>
       <div v-for="{ source, status } in checkedSources" :key="source.id">
         <button
           :key="source.id"
@@ -146,7 +153,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   flex-wrap: wrap;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--font-small);
   color: var(--blue);
 }
 .retrieval-heading small {
@@ -156,13 +163,13 @@ defineEmits<{ locate: [anchor: Anchor] }>();
 .retrieval-scope {
   margin: 8px 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-caption);
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
 .retrieval-passages summary {
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--font-caption);
   color: var(--muted);
 }
 .source-card {
@@ -184,8 +191,9 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   opacity: 0.65;
 }
 .source-card:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 .source-label {
   display: flex;
@@ -193,7 +201,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   align-items: center;
   gap: 6px;
   color: var(--blue);
-  font-size: 11px;
+  font-size: var(--font-caption);
 }
 .source-label small {
   color: var(--muted);
@@ -202,7 +210,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
 .source-quote {
   display: block;
   margin-top: 5px;
-  font-size: 11px;
+  font-size: var(--font-caption);
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
@@ -212,7 +220,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
 .source-full-passage summary {
   cursor: pointer;
   color: var(--blue);
-  font-size: 11px;
+  font-size: var(--font-caption);
 }
 .source-full-text {
   box-sizing: border-box;
@@ -226,7 +234,7 @@ defineEmits<{ locate: [anchor: Anchor] }>();
   background: var(--paper);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-small);
   line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

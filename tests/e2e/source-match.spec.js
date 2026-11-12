@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 test('production source cards explain ambiguous, wrong-page, exact and unavailable text states without false navigation', async ({

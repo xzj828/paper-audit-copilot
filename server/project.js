@@ -5,6 +5,7 @@ export function makeEmpty(title = '未命名论文项目') {
     id: randomUUID(),
     title,
     demo: false,
+    purpose: 'review',
     createdAt: new Date().toISOString(),
     settings: {
       scheme: 'stxb-precheck@0.3.0-trial',

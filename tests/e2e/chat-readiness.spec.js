@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 
 test('pending parsing preserves the draft, blocks Enter and resumes manual sending when ready', async ({

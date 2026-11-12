@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createStore } from '../server/store.js';
 import { createReviewService, normalizeResult, parseReviewJSON } from '../server/review.js';
-import { reviewPack } from '../server/review-pack.js';
+import { reviewPack, genericPack } from '../server/review-pack.js';
 import { reviewReply } from './review-fixtures.js';
 import { buildPdfDiagnostics } from '../shared/pdf-diagnostics.js';
 
@@ -50,6 +50,26 @@ test('quotes must exist exactly; absent materials and unavailable external compa
   assert.equal(external.level, null);
   assert.throws(() => parseReviewJSON('not JSON'));
   assert.throws(() => normalizeResult({ ...result(), level: 8 }, check, parse));
+});
+test('certainty preserves qualified doubts and keeps missing material out of scored defects', () => {
+  const check = reviewPack.checks.find((c) => c.id === 'E04');
+  for (const certainty of ['suspected', 'confirmed']) {
+    const normalized = normalizeResult({ ...result(), certainty, resolutionTest: '比较独立样地的结果。' }, check, parse);
+    assert.equal(normalized.certainty, certainty);
+    assert.equal(normalized.resolutionTest, '比较独立样地的结果。');
+  }
+  const material = normalizeResult({ ...result(), certainty: 'material' }, check, parse);
+  assert.equal(material.assessment, 'unable_to_assess');
+  assert.equal(material.level, null);
+  assert.equal(material.certainty, 'material');
+});
+test('short margin notes survive normalization without replacing full review prose', () => {
+  const check = reviewPack.checks.find((c) => c.id === 'E04');
+  const raw = { ...result(), marginNote: '请核对独立重复的定义，并说明样本之间是否相互独立。' };
+  const normalized = normalizeResult(raw, check, parse);
+  assert.equal(normalized.marginNote, raw.marginNote);
+  assert.equal(normalized.suggestion, raw.suggestion);
+  assert.equal(normalizeResult({ ...raw, marginNote: '长'.repeat(31) }, check, parse).marginNote, undefined);
 });
 function fixture(t, complete, options = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'paper-review-')),
@@ -100,6 +120,52 @@ async function settled(version) {
   }
   throw new Error('review timeout');
 }
+
+test('general and ecology templates review full text beyond the former caps without dropping the final reference', async (t) => {
+  const sent = [];
+  const { service, store, version } = fixture(t, async (_config, messages) => {
+    const input = JSON.parse(messages.at(-1).content);
+    if (input.task === 'review') sent.push(input.paper.map((s) => s.text).join('\n'));
+    return JSON.stringify(reviewReply(messages));
+  });
+  const p = store.get('ws', 'project');
+  p.settings.scheme = genericPack.id;
+  p.versions[0].parse.sections.push(
+    { id: 'long', title: 'Body', text: 'Context. '.repeat(20000) },
+    {
+      id: 'tail',
+      title: 'References',
+      text: 'FINAL REFERENCE MUST BE INCLUDED IN EVERY REVIEW REQUEST.',
+    },
+  );
+  store.save('ws', p);
+  service.start('ws', 'project', 'v1');
+  const done = await settled(version);
+  assert.equal(done.runs.at(-1).status, 'completed');
+  assert.ok(done.runs.at(-1).characterCount > 120000);
+  assert.equal(sent.length, genericPack.checks.length);
+  assert.ok(sent.every((text) => text.includes('FINAL REFERENCE MUST BE INCLUDED')));
+  const ecology = store.get('ws', 'project');
+  ecology.settings.scheme = reviewPack.id;
+  store.save('ws', ecology);
+  sent.length = 0;
+  service.start('ws', 'project', 'v1');
+  const reviewed = await settled(version);
+  assert.equal(reviewed.runs.at(-1).status, 'completed');
+  assert.ok(reviewed.runs.at(-1).characterCount > 120000);
+  assert.equal(sent.length, reviewPack.checks.length);
+  assert.ok(sent.every((text) => text.includes('FINAL REFERENCE MUST BE INCLUDED')));
+});
+
+test('an empty parsed paper remains invalid when template length caps are removed', (t) => {
+  const { service, store } = fixture(t, async () => {
+    throw new Error('must not call model');
+  });
+  const p = store.get('ws', 'project');
+  p.versions[0].parse.sections[0].text = ' \n ';
+  store.save('ws', p);
+  assert.throws(() => service.start('ws', 'project', 'v1'), /尚无可评审的解析文本/);
+});
 test('scientific requests receive bounded extraction diagnostics and reports freeze them', async (t) => {
   const sent = [];
   const { service, version, store } = fixture(t, async (_config, messages) => {
@@ -227,7 +293,7 @@ test('cancel is abortable, concurrent starts fail and restart marks stale runnin
   assert.equal(version().runs[0].modules[0].status, 'interrupted');
   await restarted.shutdown();
 });
-test('large documents and unconfirmed types are rejected before model calls', async (t) => {
+test('unconfirmed and unsupported manuscript types are rejected before model calls', async (t) => {
   const { service, store } = fixture(t, () => {
     throw new Error('must not call');
   });
@@ -236,9 +302,9 @@ test('large documents and unconfirmed types are rejected before model calls', as
   store.save('ws', p);
   assert.throws(() => service.start('ws', 'project', 'v1'), /确认稿件/);
   p.settings.confirmed = true;
-  p.versions[0].parse.sections[0].text = 'x'.repeat(60001);
+  p.settings.articleType = 'theory';
   store.save('ws', p);
-  assert.throws(() => service.start('ws', 'project', 'v1'), /不会截断/);
+  assert.throws(() => service.start('ws', 'project', 'v1'), /不适用于此论文类型/);
 });
 test('duplicate findings reference the primary check and are not charged twice', async (t) => {
   const { service, version } = fixture(t, async (_config, messages) => {

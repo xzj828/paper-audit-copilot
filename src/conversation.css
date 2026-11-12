@@ -1,0 +1,88 @@
+/* Conversation-only styling. Keep the existing navigation and preview shell. */
+.app-shell .conversation {
+  --conversation-reading-width: 736px;
+  --chat-gutter: clamp(16px, 3vw, 40px);
+  --chat-text: #45494f;
+  --user-bubble: #e8f2ff;
+  --user-text: #506a87;
+}
+:root[data-theme='warm'] .app-shell .conversation {
+  --chat-text: #4b463e;
+  --user-bubble: #e5edf7;
+  --user-text: #4c647e;
+}
+:root[data-theme='dark'] .app-shell .conversation {
+  --chat-text: #e1e4e8;
+  --user-bubble: #263d57;
+  --user-text: #d5e5f7;
+}
+.app-shell .conversation .timeline {
+  padding: 24px var(--chat-gutter);
+}
+.app-shell .conversation .timeline > * {
+  max-width: var(--conversation-reading-width);
+  margin-inline: auto;
+}
+.app-shell .conversation .timeline-event {
+  padding-bottom: 24px;
+}
+.app-shell .conversation :is(.event-user, .event-assistant) > .event-marker,
+.app-shell .conversation :is(.event-user, .event-assistant) > .event-content > h3 {
+  display: none;
+}
+.app-shell .conversation :is(.event-user, .event-assistant) > .event-content {
+  padding-top: 0;
+}
+.app-shell .conversation .message-card,
+.app-shell .conversation .message-card > .markdown-content {
+  font: 400 14px/24px var(--font-ui);
+  color: var(--chat-text);
+  letter-spacing: normal;
+}
+.app-shell .conversation .message-card > .markdown-content p {
+  margin: 0 0 16px;
+  line-height: 24px;
+}
+.app-shell .conversation .message-card > .markdown-content > :last-child {
+  margin-bottom: 0;
+}
+.app-shell .conversation .event-assistant .message-card {
+  margin-top: 0;
+}
+.app-shell .conversation .event-user .message-card {
+  width: fit-content;
+  max-width: 70%;
+  margin: 16px 0 20px auto;
+  padding: 10px 16px;
+  background: var(--user-bubble);
+  color: var(--user-text);
+  border: 0;
+  border-radius: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: none;
+}
+.app-shell .conversation .composer-area {
+  padding-inline: var(--chat-gutter);
+}
+.app-shell .conversation .composer-area > * {
+  max-width: var(--conversation-reading-width);
+  margin-inline: auto;
+}
+.app-shell .conversation .composer {
+  border-radius: 22px;
+}
+.app-shell .conversation .composer textarea {
+  font: 400 14px/24px var(--font-ui);
+}
+@media (max-width: 700px) {
+  .app-shell .conversation {
+    --chat-gutter: 16px;
+  }
+  .app-shell .conversation .event-user .message-card {
+    max-width: 88%;
+  }
+  .app-shell .conversation .composer textarea {
+    font-size: 16px;
+  }
+}

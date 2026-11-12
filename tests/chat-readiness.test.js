@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -21,9 +22,9 @@ test('JSON and SSE reject unready parses without messages or model calls, then r
   let store;
   try {
     const { origin } = await app.start({ port: 0 });
-    const first = await fetch(origin + '/api/projects');
+    const first = await loginTestAccount(origin, dir);
     const cookie = first.headers.get('set-cookie').split(';')[0];
-    const ws = cookie.split('=')[1];
+    const ws = (await first.json()).user.workspaceId;
     const request = (route, data, accept = 'application/json', method = 'POST') =>
       fetch(origin + route, {
         method,

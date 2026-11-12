@@ -22,6 +22,7 @@ import {
   Plus,
   Check,
   FileText,
+  FileSearch,
   MapPin,
   MessageCircle,
   UserRound,
@@ -35,6 +36,8 @@ import {
   RotateCcw,
   Trash2,
   Pencil,
+  SquarePen,
+  FolderOpen,
   Clock3,
   ShieldCheck,
   Layers,
@@ -46,6 +49,7 @@ import {
   LoaderCircle,
   Copy,
   CheckCheck,
+  ClipboardCheck,
   Maximize2,
   Minimize2,
   PanelBottomClose,
@@ -56,10 +60,14 @@ import {
   Archive,
   ArchiveRestore,
   List,
+  Square,
 } from 'lucide-vue-next';
 const props = withDefaults(defineProps<{ name: string; size?: number }>(), { size: 19 });
 const icons: Record<string, unknown> = {
+  'new-chat': SquarePen,
+  'folder-open': FolderOpen,
   list: List,
+  stop: Square,
   maximize: Maximize2,
   restore: Minimize2,
   minimize: PanelBottomClose,
@@ -90,6 +98,7 @@ const icons: Record<string, unknown> = {
   plus: Plus,
   check: Check,
   file: FileText,
+  research: FileSearch,
   pin: MapPin,
   chat: MessageCircle,
   user: UserRound,
@@ -114,6 +123,7 @@ const icons: Record<string, unknown> = {
   loading: LoaderCircle,
   copy: Copy,
   checks: CheckCheck,
+  'review-rules': ClipboardCheck,
 };
 const icon = computed(() => icons[props.name] || FileText);
 </script>

@@ -1,50 +1,162 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import ReportIssue from './components/ReportIssue.vue';
+import ReportViewer from './components/ReportViewer.vue';
+import { reportIssues, reportOverview } from '../shared/report-presentation.js';
+import { accountStorage, currentAccount } from './account';
+import { reviewBasisLines } from '../shared/review-basis.js';
+
+import SelectContent from './components/SelectContent';
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import Icon from './components/Icon.vue';
+import FindingPanel from './components/FindingPanel.vue';
 import Modal from './components/Modal.vue';
 import PdfReader from './components/PdfReader.vue';
+import PreviewTabs from './components/PreviewTabs.vue';
+import PaperAnnotations from './components/PaperAnnotations.vue';
+import { useLiveAnnotations } from './useLiveAnnotations';
+import FloatingDropdown from './components/FloatingDropdown.vue';
+import DocumentOutline from './components/DocumentOutline.vue';
 import PdfInspection from './components/PdfInspection.vue';
 import ParseStatusRefresh from './components/ParseStatusRefresh.vue';
 import DocxSection from './components/DocxSection.vue';
 import ModelSettings from './components/ModelSettings.vue';
-import ModelPicker from './components/ModelPicker.vue';
 import MessageContent from './components/MessageContent.vue';
 import EvidenceSources from './components/EvidenceSources.vue';
-import { readSSE } from '../shared/sse.js';
-import ReviewEvaluation from './components/ReviewEvaluation.vue';
-import ReviewControls from './components/ReviewControls.vue';
 import ReferenceAudit from './components/ReferenceAudit.vue';
 import DataAudit from './components/DataAudit.vue';
 import ToolSnapshots from './components/ToolSnapshots.vue';
 import ClaimAudit, { type ClaimAuditDraft } from './components/ClaimAudit.vue';
 import WorkspacePages from './components/WorkspacePages.vue';
+import ResearchApp from './ResearchApp.vue';
+import { usePreviewTabMotion } from './usePreviewTabMotion';
+import SidebarWorkspace from './components/SidebarWorkspace.vue';
+import LoadFailure from './components/LoadFailure.vue';
+import type { StudioProject, StudioChat } from './studio-types';
 import { defaultPreferences, type Preferences, type WorkspaceState } from './workspace';
 import { useLayout } from './useLayout';
-import { useChatDrafts } from './useChatDrafts';
+import { COLLAPSED_SIDEBAR_WIDTH, useSidebarDrag } from './useSidebarDrag';
+import { useManagementNavigationMotion } from './useManagementNavigationMotion';
+import { useNavigationMenuMotion } from './useNavigationMenuMotion';
 import { api, json } from './api';
 import { quoteRange } from '../shared/text-highlight.js';
 import { searchRanges, type SearchRange } from '../shared/source-search.js';
 import { hyphenCandidateRanges, type HyphenCandidateRange } from '../shared/hyphen-candidates.js';
-import type {
-  Project,
-  Version,
-  Finding,
-  Anchor,
-  Comparison,
-  ModelConfig,
-  EvidenceSource,
-  Retrieval,
-  ReviewBudget,
-  Section,
-} from './types';
+import type { Project, Version, Finding, Anchor, Comparison, ModelConfig, Section } from './types';
 
-const managementPage = ref('');
-function syncManagementRoute() {
+const props = defineProps<{
+  previewProjectId?: string;
+  previewVersionId?: string;
+  previewTab?: string;
+  previewRequest?: number;
+}>();
+const embedded = Boolean(props.previewProjectId);
+let previewDisposed = false;
+const PersonalCenter = defineAsyncComponent(() => import('./components/PersonalCenter.vue'));
+const previewRoot = ref<HTMLElement>();
+const emit = defineEmits<{ account: []; discuss: [text: string]; previewReady: [] }>();
+const studio = ref<InstanceType<typeof ResearchApp>>();
+const studioIndex = ref<{ projects: StudioProject[]; chats: StudioChat[] }>({
+  projects: [],
+  chats: [],
+});
+const navigationPapers = ref<Project[]>([]);
+const contentRoute = ref(
+  ['library', 'templates', 'settings', 'profile'].includes(location.hash.slice(1))
+    ? ''
+    : location.hash.slice(1),
+);
+const studioMenu = ref(false);
+const { rendered: studioMenuRendered, menuId: studioMenuId } = useNavigationMenuMotion(studioMenu);
+const studioActive = computed(
+  () =>
+    !embedded &&
+    (/^(new$|chat\/|project\/|paper\/|review\/)/.test(contentRoute.value) ||
+      (!contentRoute.value && !project.value)),
+);
+const activeStudioProject = computed(() =>
+  contentRoute.value.startsWith('project/')
+    ? contentRoute.value.slice(8)
+    : studioIndex.value.chats.find((c) => `chat/${c.id}` === contentRoute.value)?.projectId,
+);
+function navigateStudio(value: string) {
+  studioMenu.value = false;
+  if (!['library', 'templates', 'settings', 'profile'].includes(value)) {
+    contentRoute.value = value;
+    sidebar.value = true;
+  }
+  setManagementPage(['library', 'templates', 'settings', 'profile'].includes(value) ? value : '');
+  location.hash = value;
+  maximized.value = false;
+  minimized.value = false;
+  if (value.startsWith('review/'))
+    void safe(() => openProject(value.slice(7), { navigate: false }));
+}
+function startStudioProject() {
+  if (!studioActive.value || managementPage.value) navigateStudio('new');
+  studio.value?.openModal('new-project');
+}
+function startStudioChat(projectId?: string) {
+  navigateStudio(projectId ? `project/${projectId}` : 'new');
+  studio.value?.newChat(projectId);
+}
+function openSidebarPaper(id: string) {
+  studioMenu.value = false;
+  navigateStudio(`paper/${id}`);
+}
+function refreshSidebar() {
+  void safe(async () => {
+    await Promise.all([refreshList(), studio.value?.refreshNavigation()]);
+    if (project.value && !navigationPapers.value.some((p) => p.id === project.value?.id))
+      project.value = null;
+  });
+}
+function updateSidebarPaper(value: Project) {
+  if (project.value?.id === value.id) project.value = value;
+}
+function configureSidebarProject(id: string) {
+  studioMenu.value = false;
+  void studio.value?.configureProject(id);
+}
+function readManagementRoute() {
   const route = window.location.hash.slice(1);
-  managementPage.value = ['library', 'templates', 'settings'].includes(route) ? route : '';
+  return ['library', 'templates', 'settings', 'profile'].includes(route) ? route : '';
+}
+// Resolve the entry page before the first render, not after startup API calls.
+const managementPage = ref(embedded ? '' : readManagementRoute());
+const managementSidebarExpanded = ref(false);
+const managementNavigationPages = ['library', 'templates', 'settings'];
+const managementNavigationActive = computed(
+  () => !embedded && managementNavigationPages.includes(managementPage.value),
+);
+function setManagementPage(value: string) {
+  if (
+    value &&
+    !(managementNavigationActive.value && managementNavigationPages.includes(value))
+  )
+    managementSidebarExpanded.value = false;
+  managementPage.value = value;
+}
+const managementMounted = ref(Boolean(managementPage.value && managementPage.value !== 'profile')),
+  lastManagementPage = ref(managementPage.value && managementPage.value !== 'profile' ? managementPage.value : 'library');
+watch(managementPage, (value) => {
+  if (value && value !== 'profile') {
+    managementMounted.value = true;
+    lastManagementPage.value = value;
+  }
+});
+function syncManagementRoute() {
+  setManagementPage(readManagementRoute());
+  if (!managementPage.value) {
+    contentRoute.value = location.hash.slice(1);
+    if (
+      contentRoute.value.startsWith('review/') &&
+      project.value?.id !== contentRoute.value.slice(7)
+    )
+      void safe(() => openProject(contentRoute.value.slice(7), { navigate: false }));
+  }
 }
 watch(managementPage, (value) => {
-  const hash = value ? `#${value}` : '';
+  const hash = value ? `#${value}` : contentRoute.value ? `#${contentRoute.value}` : '';
   if (window.location.hash !== hash)
     window.history.pushState(
       null,
@@ -54,8 +166,10 @@ watch(managementPage, (value) => {
 });
 const readingPreferences = ref<Preferences>({ ...defaultPreferences });
 function jumpToSection(section: { id: string; page?: number }) {
+  if (embedded) liveAnnotations.pause();
   searchNavigationKey.value = null;
   page.value = section.page || page.value;
+  if (version.value?.format === 'pdf') return;
   void nextTick(() =>
     document.getElementById(section.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }),
   );
@@ -66,10 +180,7 @@ function applyPreferences(value: Preferences) {
   zoom.value = value.zoom;
 }
 async function openLibraryDocument(projectId: string, versionId: string) {
-  await safe(async () => {
-    await openProject(projectId);
-    await switchVersion(versionId);
-  });
+  navigateStudio(`paper/${projectId}/${versionId}`);
 }
 const projects = ref<Project[]>([]),
   project = ref<Project | null>(null);
@@ -97,6 +208,18 @@ function preserveClaimDraft(update: {
   const keys = Object.keys(claimDrafts.value);
   if (keys.length > 30) delete claimDrafts.value[keys[0]];
 }
+const conversationMessages = computed(() =>
+  (version.value?.messages || []).filter(
+    (item) =>
+      timelineTab.value === 'all' ||
+      ['user', 'assistant', 'review-result', 'error'].includes(item.kind),
+  ),
+);
+const latestProcess = computed(() =>
+  version.value?.messages
+    .filter((item) => !['user', 'assistant', 'review-result', 'error'].includes(item.kind))
+    .at(-1),
+);
 const findings = computed(() => version.value?.findings || []);
 const selected = ref(0),
   finding = computed(() => findings.value[selected.value]);
@@ -114,22 +237,20 @@ const docxEvidenceStatus = computed(() => {
   return '引文与当前原文位置不匹配，未标亮文字；请重新核对。';
 });
 const configuration = ref<{
-  packs: { id: string; name: string }[];
+  packs: { id: string; name: string; supportedTypes?: string[] }[];
   templates: { id: string; name: string }[];
 }>({ packs: [], templates: [] });
-const reportTemplateId = ref('review-report@1');
 async function loadConfiguration() {
   configuration.value = await api('/review-configuration');
 }
-async function renderReportTemplate() {
-  if (!project.value || !version.value || !report.value) return;
-  await safe(async () => {
-    project.value = await api<Project>(
-      `/projects/${project.value!.id}/reports/${report.value!.id}/render`,
-      json('POST', { versionId: version.value!.id, templateId: reportTemplateId.value }),
-    );
-    selectedReportId.value = '';
-  });
+const reportExportFormat = ref<'pdf' | 'docx' | 'md'>('pdf');
+const reportExportLabel = computed(() =>
+  reportExportFormat.value === 'md' ? 'Markdown' : reportExportFormat.value.toUpperCase(),
+);
+function chooseReportExport(format: 'pdf' | 'docx' | 'md', close: () => void) {
+  reportExportFormat.value = format;
+  close();
+  void exportDocument(format);
 }
 async function exportDocument(format: 'pdf' | 'docx' | 'md') {
   if (!project.value || !report.value || !version.value) return;
@@ -217,6 +338,10 @@ const assessmentLabel = (value: string) =>
     available: '已提取',
     not_checked: '未检查',
   })[value] || value;
+const reportGroups = computed(() =>
+  report.value ? reportIssues(report.value) : { major: [], minor: [], pending: [] },
+);
+
 const repairabilityLabel = (value?: string) =>
   ({
     clarification: '补充说明或收缩结论',
@@ -225,54 +350,85 @@ const repairabilityLabel = (value?: string) =>
     unknown: '修复路径待核实',
   })[value || ''] || '';
 const tab = ref('annotations'),
-  timelineTab = ref('chat'),
-  detailTab = ref('details');
+  timelineTab = ref('chat');
+const visitedTabs = ref(new Set<string>());
+watch(
+  [claimDraftKey, tab],
+  ([scope, current], old) => {
+    if (!old || scope !== old[0]) visitedTabs.value = new Set();
+    visitedTabs.value.add(current);
+  },
+  { immediate: true },
+);
 const inspector = ref(true),
   sidebar = ref(true),
   mobilePane = ref('paper');
+// Re-entering a chat restores the expanded navigation; manual toggles stay local to that visit.
+watch([managementPage, contentRoute], () => {
+  if (!managementPage.value && studioActive.value) sidebar.value = true;
+});
+const pdfReader = ref<InstanceType<typeof PdfReader>>();
 const zoom = ref(100),
   page = ref(1),
   pageCount = ref(1);
-const pdfFitWidth = ref(false);
+const initialPdfFitPending = ref(embedded);
+const minimumZoom = computed(() => (version.value?.format === 'pdf' ? 10 : 70));
+const maximumZoom = computed(() => (version.value?.format === 'pdf' ? 500 : 170));
+function adjustZoom(delta: number) {
+  zoom.value = Math.max(minimumZoom.value, Math.min(maximumZoom.value, Math.round(zoom.value) + delta));
+  pdfReader.value?.resetPan();
+}
+function fitPdfToWidth() {
+  const percent = pdfReader.value?.fitWidthZoom();
+  if (percent == null) return;
+  initialPdfFitPending.value = false;
+  zoom.value = Math.floor(percent * 100) / 100;
+  pdfReader.value?.resetPan();
+}
+function applyInitialPdfFit() {
+  if (initialPdfFitPending.value && tab.value === 'annotations') fitPdfToWidth();
+}
+watch(tab, async () => {
+  await nextTick();
+  applyInitialPdfFit();
+});
 watch(
   () => version.value?.id,
   () => {
-    pdfFitWidth.value = false;
+    initialPdfFitPending.value = embedded;
   },
 );
-const retrievalScope = ref<{ parseId: string; elementId: string } | null>(null);
-const locatedScopeSection = computed(() =>
-  version.value?.parse?.sections.find((section) =>
-    version.value?.format === 'pdf'
-      ? section.page === page.value
-      : section.id === textAnchor.value?.elementId,
-  ),
-);
-watch(
-  () => [project.value?.id, version.value?.id, version.value?.parse?.id, locatedScopeSection.value?.id].join(':'),
-  () => { retrievalScope.value = null; },
-);
-function toggleRetrievalScope(event: Event) {
-  retrievalScope.value =
-    (event.target as HTMLInputElement).checked && locatedScopeSection.value && version.value?.parse
-      ? { parseId: version.value.parse.id, elementId: locatedScopeSection.value.id }
-      : null;
-}
-const chatDrafts = useChatDrafts(project, version);
-const { message, contextFinding } = chatDrafts;
-const sending = ref(false),
-  uploading = ref(false);
+const uploading = ref(false);
 const initialLoading = ref(true),
   fatalError = ref(''),
   toast = ref(''),
   busy = ref(false);
+const previewTabMotion = usePreviewTabMotion(
+  previewRoot,
+  tab,
+  computed(() => embedded && !initialLoading.value),
+);
 const dialog = ref(''),
   nameInput = ref(''),
   searchInput = ref(''),
   searchHyphenCandidates = ref(false),
   projectSearch = ref('');
-const reviewSettingsOpen = ref(false);
-const savingSettings = ref(false);
+const formError = ref('');
+const sourceSearchInput = ref<HTMLInputElement>();
+const reviewStatusLabels: Record<string, string> = {
+  completed: '已完成',
+  running: '评审中',
+  partial: '部分完成',
+  failed: '失败',
+  interrupted: '已中断',
+  cancelled: '已取消',
+  budget_paused: '预算用尽，已暂停',
+  queued: '等待中',
+  pending: '等待中',
+};
+watch(dialog, () => {
+  formError.value = '';
+});
 let settingsRevision = 0;
 const menu = ref(false),
   dragging = ref(false),
@@ -284,8 +440,105 @@ const selectedReportId = ref(''),
       version.value?.reports.filter((r) => r.trial).at(-1) ||
       version.value?.reports.at(-1),
   );
+type EvidenceReturn = {
+  scope: string;
+  label: string;
+  tab: string;
+  dialog: string;
+  mobilePane: string;
+  selected: number;
+  inspector: boolean;
+  page: number;
+  quote: string;
+  text: Anchor | null;
+  visual: Anchor | null;
+  scrolls: { selector: string; top: number; left: number }[];
+  focus: HTMLElement | null;
+  modalFocus: number;
+  searchKey: string | null;
+};
+const evidenceReturn = ref<EvidenceReturn | null>(null);
+watch(claimDraftKey, () => {
+  evidenceReturn.value = null;
+  findingError.value = '';
+});
+function rememberEvidenceOrigin() {
+  if (evidenceReturn.value || !version.value) return;
+  const focused = document.activeElement as HTMLElement | null;
+  const fromChat = !!focused?.closest('.conversation');
+  if (tab.value === 'annotations' && !dialog.value && !fromChat) return;
+  const selectors = [
+    '.timeline',
+    '.paper-scroll',
+    '.report-viewer',
+    '[aria-label="证据工具滚动区"]',
+    '.modal-body',
+    '.finding-panel-scroll',
+  ];
+  evidenceReturn.value = {
+    scope: claimDraftKey.value,
+    label:
+      dialog.value === 'compare'
+        ? '版本比较'
+        : dialog.value === 'search'
+          ? '搜索结果'
+          : fromChat
+            ? '对话'
+            : tab.value === 'report'
+              ? '评审报告'
+              : tab.value === 'tools'
+                ? '证据工具'
+                : '原任务',
+    tab: tab.value,
+    dialog: dialog.value,
+    mobilePane: mobilePane.value,
+    selected: selected.value,
+    inspector: inspector.value,
+    page: page.value,
+    quote: evidenceQuote.value,
+    text: textAnchor.value,
+    visual: visualAnchor.value,
+    scrolls: selectors.flatMap((selector) => {
+      const el = document.querySelector<HTMLElement>(selector);
+      return el ? [{ selector, top: el.scrollTop, left: el.scrollLeft }] : [];
+    }),
+    focus: focused,
+    searchKey: searchNavigationKey.value,
+    modalFocus: [
+      ...document.querySelectorAll('.modal-body button, .modal-body input, .modal-body select'),
+    ].indexOf(focused!),
+  };
+}
+async function returnFromEvidence() {
+  const origin = evidenceReturn.value;
+  evidenceReturn.value = null;
+  if (!origin || origin.scope !== claimDraftKey.value) return;
+  tab.value = origin.tab;
+  dialog.value = origin.dialog;
+  mobilePane.value = origin.mobilePane;
+  selected.value = origin.selected;
+  inspector.value = origin.inspector;
+  page.value = origin.page;
+  evidenceQuote.value = origin.quote;
+  textAnchor.value = origin.text;
+  visualAnchor.value = origin.visual;
+  await nextTick();
+  searchNavigationKey.value = origin.searchKey;
+  const focus = origin.focus?.isConnected
+    ? origin.focus
+    : document.querySelectorAll<HTMLElement>(
+        '.modal-body button, .modal-body input, .modal-body select',
+      )[origin.modalFocus];
+  focus?.focus({ preventScroll: true });
+  for (const position of origin.scrolls) {
+    const el = document.querySelector<HTMLElement>(position.selector);
+    if (el) {
+      el.scrollTop = position.top;
+      el.scrollLeft = position.left;
+    }
+  }
+}
 const fileInput = ref<HTMLInputElement>(),
-  textarea = ref<HTMLTextAreaElement>(),
   timeline = ref<HTMLElement>(),
   paperScroll = ref<HTMLElement>();
 const pendingFile = ref<File | null>(null),
@@ -301,37 +554,111 @@ const {
   maximized,
   minimized,
 } = layout;
+const activeSidebarExpanded = computed({
+  get: () => (managementPage.value ? managementSidebarExpanded.value : sidebar.value),
+  set: (value: boolean) => {
+    if (managementPage.value) managementSidebarExpanded.value = value;
+    else sidebar.value = value;
+  },
+});
+const appSurface = ref<HTMLElement>();
+const sidebarNavigation = ref<InstanceType<typeof SidebarWorkspace>>();
+const sidebarDrag = useSidebarDrag({
+  expanded: activeSidebarExpanded,
+  enabled: layout.desktopSidebar,
+  surface: appSurface,
+  expandedWidth: () => (managementPage.value ? 216 : layout.expandedSidebarWidth.value),
+  navigationGroup: managementNavigationActive,
+});
+useManagementNavigationMotion(appSurface, managementNavigationActive);
+const shellStyles = computed(() => ({
+  ...layoutStyles.value,
+  '--drawer-width': `${managementPage.value ? 216 : layout.expandedSidebarWidth.value}px`,
+  '--studio-sidebar-overhang': `${
+    layout.desktopSidebar.value && activeSidebarExpanded.value
+      ? layout.expandedSidebarWidth.value - COLLAPSED_SIDEBAR_WIDTH
+      : 0
+  }px`,
+  '--sidebar-width': `${
+    layout.desktopSidebar.value
+      ? COLLAPSED_SIDEBAR_WIDTH
+      : managementPage.value
+        ? managementSidebarExpanded.value
+          ? 216
+          : 68
+        : sidebarWidth.value
+  }px`,
+}));
 const showInspector = computed(
   () => inspector.value && (!layout.inspectorOverlaysPaper.value || Boolean(finding.value)),
 );
 const modelConfig = ref<ModelConfig>({ baseUrl: '', model: '', enabled: false, hasKey: false });
-const pendingChat = ref<{
-  projectId: string;
-  versionId: string;
-  question: string;
-  answer: string;
-  error: string;
-  cancelled?: boolean;
-  sources?: EvidenceSource[];
-  retrieval?: Retrieval;
-} | null>(null);
-const activeChat = computed(() =>
-  pendingChat.value?.projectId === project.value?.id &&
-  pendingChat.value?.versionId === version.value?.id
-    ? pendingChat.value
-    : null,
-);
-const startingReview = ref<{ projectId: string; versionId: string } | null>(null);
 const runningReview = computed(() =>
   version.value?.runs.find((r) => r.scope === 'scientific-trial' && r.status === 'running'),
 );
-const reviewThinking = computed(
-  () =>
-    Boolean(runningReview.value) ||
-    (startingReview.value?.projectId === project.value?.id &&
-      startingReview.value?.versionId === version.value?.id &&
-      Boolean(startingReview.value)),
+const reviewThinking = computed(() => Boolean(runningReview.value));
+const reportOpened = ref(props.previewTab === 'report');
+const docxAnnotationOverflow = ref(0);
+const annotationScope = computed(
+  () => `${claimDraftKey.value}:${version.value?.runs.at(-1)?.id || ''}`,
 );
+const annotationsVisible = computed(
+  () => embedded && tab.value === 'annotations' && !initialLoading.value,
+);
+const liveAnnotations = useLiveAnnotations(
+  annotationScope,
+  findings,
+  reviewThinking,
+  annotationsVisible,
+  (item) => {
+    page.value = item.anchor.page || 1;
+    selected.value = Math.max(
+      0,
+      findings.value.findIndex((f) => f.id === item.id),
+    );
+    void nextTick(() => {
+      const target = Array.from(
+        paperScroll.value?.querySelectorAll<HTMLElement>('[id]') || [],
+      ).find((node) => node.id === item.anchor.elementId);
+      if (version.value?.format !== 'pdf')
+        target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  },
+);
+function annotationReady(id: string) {
+  if (id !== liveAnnotations.activeId.value || liveAnnotations.phase.value !== 'waiting') return;
+  liveAnnotations.ready(id);
+  if (!liveAnnotations.following.value) return;
+  void nextTick(() => {
+    const target = Array.from(
+      paperScroll.value?.querySelectorAll<HTMLElement>('.paper-ink-mark, .paper-margin-note') || [],
+    ).find((node) => node.dataset.findingId === id);
+    target?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+  });
+}
+function selectAnnotation(item: Finding) {
+  liveAnnotations.pause();
+  chooseFinding(findings.value.findIndex((f) => f.id === item.id));
+}
+function manualRead(event: Event) {
+  if (
+    event instanceof KeyboardEvent &&
+    !['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)
+  )
+    return;
+  if (reviewThinking.value || liveAnnotations.waiting.value) liveAnnotations.pause();
+}
+watch(
+  () => props.previewRequest,
+  () => {
+    if (!embedded) return;
+    if (props.previewTab === 'report') reportOpened.value = true;
+    tab.value = props.previewTab === 'report' ? 'report' : 'annotations';
+  },
+);
+watch(tab, (value) => {
+  if (value === 'report') reportOpened.value = true;
+});
 async function showLatestConversation() {
   await nextTick();
   timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
@@ -342,7 +669,6 @@ watch(
     if (active) void showLatestConversation();
   },
 );
-let chatController: AbortController | null = null;
 const projectMenuId = ref(''),
   projectMenuPosition = ref({ left: '0px', top: '0px' });
 const menuProject = computed(() => projects.value.find((p) => p.id === projectMenuId.value));
@@ -396,7 +722,7 @@ function projectAction(kind: string, item: Project) {
     );
   });
 }
-const theme = ref(localStorage.getItem('audit-theme') || 'light');
+const theme = ref(accountStorage.getItem('audit-theme') || 'light');
 const titles: Record<string, string> = {
   new: '新建论文项目',
   projects: '项目管理',
@@ -454,7 +780,10 @@ const searchResults = computed(() => {
 const searchNavigationKey = ref<string | null>(null);
 const searchContextKey = computed(() =>
   JSON.stringify([
-    project.value?.id, version.value?.id, version.value?.parse?.id, version.value?.status,
+    project.value?.id,
+    version.value?.id,
+    version.value?.parse?.id,
+    version.value?.status,
   ]),
 );
 const searchResultIndex = computed(() => {
@@ -468,7 +797,8 @@ const searchResultIndex = computed(() => {
     return -1;
   return searchResults.value.findIndex(
     ({ section, range }) =>
-      section.id === anchor.elementId && range.start === anchor.offset &&
+      section.id === anchor.elementId &&
+      range.start === anchor.offset &&
       section.text.slice(range.start, range.end) === anchor.quote,
   );
 });
@@ -488,8 +818,10 @@ async function selectSearchResult(result: SearchResult) {
   // a stale range after a parse, query or document change.
   const current = searchResults.value.find(
     ({ section, range }) =>
-      section.id === result.section.id && range.start === result.range.start &&
-      range.end === result.range.end && range.matchKind === result.range.matchKind &&
+      section.id === result.section.id &&
+      range.start === result.range.start &&
+      range.end === result.range.end &&
+      range.matchKind === result.range.matchKind &&
       section.text.slice(range.start, range.end) ===
         result.section.text.slice(result.range.start, result.range.end),
   );
@@ -497,9 +829,11 @@ async function selectSearchResult(result: SearchResult) {
   const anchor = searchAnchor(current);
   await locate(anchor, undefined, true);
   if (
-    key === searchContextKey.value && query === searchInput.value &&
+    key === searchContextKey.value &&
+    query === searchInput.value &&
     candidates === searchHyphenCandidates.value &&
-    textAnchor.value?.elementId === anchor.elementId && textAnchor.value?.offset === anchor.offset &&
+    textAnchor.value?.elementId === anchor.elementId &&
+    textAnchor.value?.offset === anchor.offset &&
     textAnchor.value?.quote === anchor.quote
   )
     searchNavigationKey.value = key;
@@ -583,11 +917,14 @@ async function safe(task: () => Promise<void>) {
   try {
     await task();
   } catch (e) {
-    notify(e instanceof Error ? e.message : '操作失败，请重试');
+    const message = e instanceof Error ? e.message : '操作失败，请重试';
+    if (dialog.value) formError.value = message;
+    notify(message);
   }
 }
 async function refreshList() {
-  projects.value = await api<Project[]>('/projects');
+  navigationPapers.value = await api<Project[]>('/projects');
+  projects.value = navigationPapers.value.filter((p) => p.purpose !== 'library');
 }
 let toolUpdateSequence = 0;
 async function acceptToolUpdate(updated: Project) {
@@ -612,7 +949,7 @@ async function acceptToolUpdate(updated: Project) {
 }
 function persistView() {
   if (project.value && version.value)
-    localStorage.setItem(
+    accountStorage.setItem(
       `audit-view-${project.value.id}-${version.value.id}`,
       JSON.stringify({
         tab: tab.value,
@@ -622,7 +959,7 @@ function persistView() {
       }),
     );
 }
-async function openProject(id: string) {
+async function openProject(id: string, { navigate = true } = {}) {
   persistView();
   const before = project.value;
   const sequence = ++requestSequence;
@@ -633,8 +970,14 @@ async function openProject(id: string) {
   // completes even if the previous project changes while this read is pending.
   if (before?.id === id && project.value !== before) return;
   project.value = data;
-  managementPage.value = '';
-  localStorage.setItem('audit-active-project', id);
+  if (navigate) {
+    contentRoute.value = data.activeVersionId
+      ? `paper/${id}/${data.activeVersionId}`
+      : `review/${id}`;
+    managementPage.value = '';
+    location.hash = contentRoute.value;
+  }
+  if (!embedded) accountStorage.setItem('audit-active-project', id);
   restoreView();
   menu.value = false;
   dialog.value = '';
@@ -643,7 +986,7 @@ function restoreView() {
   let view: Record<string, unknown> = {};
   try {
     view = JSON.parse(
-      localStorage.getItem(`audit-view-${project.value?.id}-${version.value?.id}`) || '{}',
+      accountStorage.getItem(`audit-view-${project.value?.id}-${version.value?.id}`) || '{}',
     );
   } catch {
     /* Ignore obsolete browser state. */
@@ -664,24 +1007,49 @@ async function initialize() {
   initialLoading.value = true;
   fatalError.value = '';
   try {
+    if (embedded && props.previewProjectId) {
+      await openProject(props.previewProjectId, { navigate: false });
+      if (
+        project.value &&
+        props.previewVersionId &&
+        project.value.versions.some((v) => v.id === props.previewVersionId)
+      )
+        project.value.activeVersionId = props.previewVersionId;
+      restoreView();
+      tab.value = props.previewTab === 'annotations' ? 'annotations' : 'report';
+      mobilePane.value = 'paper';
+      inspector.value = false;
+      await loadConfiguration();
+      return;
+    }
     await refreshList();
-    const id = localStorage.getItem('audit-active-project');
-    const target = projects.value.find((p) => p.id === id) || projects.value[0];
-    if (target) await openProject(target.id);
+    const id = contentRoute.value.startsWith('review/')
+      ? contentRoute.value.slice(7)
+      : accountStorage.getItem('audit-active-project');
+    const target = navigationPapers.value.find((p) => p.id === id) || projects.value[0];
+    // Restore data without navigating away from the URL or an early user click.
+    if (target) await openProject(target.id, { navigate: false });
+    if (!contentRoute.value && !managementPage.value)
+      navigateStudio(
+        target?.activeVersionId ? `paper/${target.id}/${target.activeVersionId}` : 'new',
+      );
     modelConfig.value = await api<ModelConfig>('/model-config');
     await loadConfiguration();
     const workspace = await api<WorkspaceState>('/workspace');
     applyPreferences(workspace.preferences);
-    syncManagementRoute();
   } catch (e) {
     fatalError.value = e instanceof Error ? e.message : '无法连接服务';
   } finally {
     initialLoading.value = false;
+    if (embedded && !previewDisposed) {
+      await nextTick();
+      if (!previewDisposed) emit('previewReady');
+    }
   }
 }
 function openDialog(value: string) {
-  if (['library', 'templates', 'settings'].includes(value)) {
-    managementPage.value = value;
+  if (['library', 'templates', 'settings', 'profile'].includes(value)) {
+    setManagementPage(value);
     dialog.value = '';
     projectMenuId.value = '';
     maximized.value = false;
@@ -701,6 +1069,8 @@ function openDialog(value: string) {
   }
 }
 async function createProject() {
+  if (busy.value) return;
+  formError.value = '';
   busy.value = true;
   await safe(async () => {
     const data = await api<Project>('/projects', json('POST', { title: nameInput.value }));
@@ -712,7 +1082,9 @@ async function createProject() {
 }
 async function renameProject() {
   const target = dialogProject.value;
-  if (!target || !nameInput.value.trim()) return;
+  if (!target || !nameInput.value.trim() || busy.value) return;
+  busy.value = true;
+  formError.value = '';
   await safe(async () => {
     const updated = await api<Project>(
       `/projects/${target.id}`,
@@ -723,6 +1095,7 @@ async function renameProject() {
     dialog.value = '';
     notify('项目名称已更新');
   });
+  busy.value = false;
 }
 async function deleteProject() {
   const target = dialogProject.value;
@@ -730,7 +1103,6 @@ async function deleteProject() {
   busy.value = true;
   await safe(async () => {
     await api(`/projects/${target.id}`, json('DELETE'));
-    chatDrafts.forgetProject(target.id);
     const wasCurrent = project.value?.id === target.id;
     if (wasCurrent) project.value = null;
     await refreshList();
@@ -739,22 +1111,6 @@ async function deleteProject() {
     notify('项目、文件、对话及报告已删除');
   });
   busy.value = false;
-}
-async function saveSettings() {
-  if (!project.value || savingSettings.value || busy.value) return;
-  const id = project.value.id;
-  const settings = { ...project.value.settings };
-  settingsRevision++;
-  savingSettings.value = true;
-  try {
-    await safe(async () => {
-      const data = await api<Project>(`/projects/${id}`, json('PATCH', { settings }));
-      if (project.value?.id === id) project.value = data;
-      notify('评审设置已保存，将用于下一次任务');
-    });
-  } finally {
-    savingSettings.value = false;
-  }
 }
 async function switchVersion(id: string) {
   if (!project.value?.versions.some((item) => item.id === id)) return;
@@ -791,7 +1147,7 @@ function requestUpload(file?: File) {
   } else void uploadFile(file);
 }
 async function uploadFile(file: File) {
-  if (!project.value) return;
+  if (!project.value || uploading.value) return;
   const projectId = project.value.id;
   uploading.value = true;
   dialog.value = '';
@@ -806,7 +1162,6 @@ async function uploadFile(file: File) {
       project.value = data;
       tab.value = 'parse';
       page.value = 1;
-      contextFinding.value = null;
     }
     notify('上传完成，正在解析论文');
   });
@@ -840,10 +1195,16 @@ function parseStatusReceiver() {
     revision = settingsRevision;
   return (data: Project) => {
     if (
-      !before || project.value !== before || version.value?.id !== versionId ||
-      navigation !== requestSequence || revision !== settingsRevision ||
-      savingSettings.value || uploading.value || busy.value || data.id !== before.id
-    ) return false;
+      !before ||
+      project.value !== before ||
+      version.value?.id !== versionId ||
+      navigation !== requestSequence ||
+      revision !== settingsRevision ||
+      uploading.value ||
+      busy.value ||
+      data.id !== before.id
+    )
+      return false;
     project.value = { ...data, activeVersionId: versionId! };
     return true;
   };
@@ -881,7 +1242,6 @@ async function poll() {
       revision === settingsRevision &&
       navigation === requestSequence &&
       project.value.activeVersionId === activeVersionId &&
-      !savingSettings.value &&
       !busy.value
     ) {
       project.value = { ...data, activeVersionId };
@@ -903,7 +1263,7 @@ async function poll() {
           revision !== settingsRevision
         )
           return;
-        notify('任务状态已更新，可查看报告');
+        if (!embedded && !studioActive.value) notify('任务状态已更新，可查看报告');
       }
     }
   } catch {
@@ -911,38 +1271,6 @@ async function poll() {
   } finally {
     clearTimeout(timeout);
     pollingProjects.delete(before);
-  }
-}
-async function startReview(retryId?: string, budget?: ReviewBudget) {
-  if (!project.value || !version.value || busy.value || savingSettings.value) return;
-  if (project.value.settings.articleType !== 'empirical') {
-    reviewSettingsOpen.value = true;
-    notify('请选择实证研究；综述与理论研究尚未适配');
-    return;
-  }
-  const id = project.value.id,
-    versionId = version.value.id;
-  const settings = { ...project.value.settings, confirmed: true };
-  settingsRevision++;
-  busy.value = true;
-  startingReview.value = { projectId: id, versionId };
-  timelineTab.value = 'chat';
-  mobilePane.value = 'chat';
-  try {
-    await safe(async () => {
-      // Starting the review confirms the visible selection, including an unchanged default.
-      const saved = await api<Project>(`/projects/${id}`, json('PATCH', { settings }));
-      if (project.value?.id === id) project.value = saved;
-      const data = await api<Project>(
-        `/projects/${id}/review`,
-        json('POST', { versionId, retryId, budget }),
-      );
-      if (project.value?.id === id) project.value = data;
-      notify('评审已开始，分析结果将逐条显示在对话中');
-    });
-  } finally {
-    startingReview.value = null;
-    busy.value = false;
   }
 }
 async function cancelReview(runId: string) {
@@ -962,89 +1290,27 @@ async function retry() {
     project.value = await api<Project>(`/projects/${project.value!.id}`);
   });
 }
-function composerEnter(event: KeyboardEvent) {
-  // Let IME Enter confirm its candidate, including the legacy 229 signal.
-  // Only an ordinary Enter enters the shared send/shortcut path.
-  if (event.isComposing || event.keyCode === 229) return;
-  event.preventDefault();
-  void sendMessage();
-}
-async function sendMessage() {
-  if (message.value.trim() === '/') {
-    message.value = '';
-    openDialog('shortcuts');
+function continueConversation(text = '') {
+  if (embedded) {
+    emit('discuss', text);
     return;
   }
-  if (!project.value || !version.value || !message.value.trim() || sending.value) return;
-  if (uploading.value || version.value.status !== 'ready' || !version.value.parse) return;
-  const id = project.value.id,
-    versionId = version.value.id,
-    text = message.value,
-    draftKey = chatDrafts.key.value,
-    findingId = contextFinding.value?.id,
-    contextParseId = findingId ? version.value.parse.id : undefined;
-  sending.value = true;
-  pendingChat.value = { projectId: id, versionId, question: text, answer: '', error: '' };
-  mobilePane.value = 'chat';
-  void showLatestConversation();
-  const pending = pendingChat.value;
-  chatController = new AbortController();
-  await safe(async () => {
-    try {
-      const response = await fetch(`/api/projects/${id}/messages`, {
-        ...json('POST', { text, findingId, versionId, retrievalScope: retrievalScope.value || undefined }),
-        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-        signal: chatController!.signal,
-      });
-      if (!response.ok) throw new Error((await response.json()).error || '发送失败');
-      if (!response.body) throw new Error('浏览器未收到响应流');
-      chatDrafts.clearTextIfUnchanged(draftKey, text);
-      let completed = false;
-      for await (const frame of readSSE(response.body)) {
-        const data = JSON.parse(frame);
-        if (data.type === 'error') throw new Error(data.error);
-        if (data.type === 'delta') pending.answer += data.text;
-        if (data.type === 'context') {
-          pending.sources = data.sources;
-          pending.retrieval = data.retrieval;
-        }
-        if (data.type === 'done') {
-          completed = true;
-          if (project.value?.id === id && version.value?.id === versionId)
-            project.value = data.project;
-          pendingChat.value = null;
-          chatDrafts.clearContextIfUnchanged(draftKey, findingId, contextParseId);
-        }
-        await nextTick();
-        if (project.value?.id === id && version.value?.id === versionId)
-          timeline.value?.scrollTo({ top: timeline.value.scrollHeight });
-      }
-      if (!completed) throw new Error('连接中断，回答尚未完成，请重试');
-    } catch (e) {
-      pending.error = pending.cancelled
-        ? '已停止接收回答。若服务端已完成，记录仍可能保留，请刷新核对后重试。'
-        : (e as Error).message;
-      chatDrafts.restoreTextIfEmpty(draftKey, text);
-      if (!pending.cancelled) throw e;
-    }
-  });
-  sending.value = false;
-  chatController = null;
-}
-function stopChat() {
-  if (!sending.value || !pendingChat.value || pendingChat.value.cancelled) return;
-  pendingChat.value.cancelled = true;
-  chatController?.abort();
+  if (!project.value || !version.value) return;
+  const p = project.value,
+    v = version.value;
+  if (text) accountStorage.setItem(`audit-paper-draft-${p.id}-${v.id}`, text);
+  navigateStudio(`paper/${p.id}/${v.id}`);
 }
 function askCopilot() {
-  if (!finding.value) return;
-  retrievalScope.value = null;
-  contextFinding.value = finding.value;
-  message.value = `请解释「${finding.value.title}」，并给出具体修改建议。`;
-  mobilePane.value = 'chat';
-  nextTick(() => textarea.value?.focus());
+  const f = finding.value;
+  if (!f) return;
+  continueConversation(
+    `请解释「${f.title}」，并给出具体修改建议。\n问题编号：${f.id}\n原文依据：${f.anchor?.quote || ''}`,
+  );
 }
 async function locate(anchor: Anchor, findingId?: string, keepSearchNavigation = false) {
+  if (embedded) liveAnnotations.pause();
+  rememberEvidenceOrigin();
   if (!keepSearchNavigation) searchNavigationKey.value = null;
   evidenceQuote.value = anchor.kind === 'visual' ? '' : anchor.quote;
   textAnchor.value = anchor.kind === 'visual' ? null : anchor;
@@ -1073,6 +1339,7 @@ async function locate(anchor: Anchor, findingId?: string, keepSearchNavigation =
 async function openPdfInspectionPage(target: number) {
   if (version.value?.format !== 'pdf' || !version.value.parse?.pages.some((p) => p.page === target))
     return;
+  rememberEvidenceOrigin();
   evidenceQuote.value = '';
   textAnchor.value = null;
   visualAnchor.value = null;
@@ -1089,22 +1356,59 @@ async function openPdfInspectionPage(target: number) {
 function chooseFinding(index: number) {
   selected.value = index;
   inspector.value = true;
-  detailTab.value = 'details';
   const f = findings.value[index];
   if (f) void locate(f.anchor, f.id);
 }
-async function markFinding() {
-  if (!project.value || !finding.value) return;
-  await safe(async () => {
-    project.value = await api<Project>(
-      `/projects/${project.value!.id}/findings/${finding.value!.id}`,
+const markingFinding = ref(false),
+  findingError = ref('');
+watch(
+  () => finding.value?.id,
+  () => {
+    findingError.value = '';
+  },
+);
+async function markFinding(resolve = false) {
+  if (!project.value || !finding.value || !version.value || markingFinding.value) return;
+  const target = {
+    projectId: project.value.id,
+    versionId: version.value.id,
+    findingId: finding.value.id,
+    status: finding.value.status,
+  };
+  markingFinding.value = true;
+  findingError.value = '';
+  try {
+    const updated = await api<Project>(
+      `/projects/${target.projectId}/findings/${target.findingId}`,
       json('PATCH', {
-        versionId: version.value!.id,
-        status: finding.value!.status === 'open' ? 'acknowledged' : 'open',
+        versionId: target.versionId,
+        status: resolve ? 'resolved' : target.status === 'open' ? 'acknowledged' : 'open',
       }),
     );
-    notify('问题跟踪状态已更新；历史报告保持不变');
-  });
+    const saved = updated.versions
+      .find((v) => v.id === target.versionId)
+      ?.findings.find((f) => f.id === target.findingId);
+    if (saved && project.value?.id === target.projectId)
+      project.value = {
+        ...project.value,
+        versions: project.value.versions.map((v) =>
+          v.id !== target.versionId
+            ? v
+            : {
+                ...v,
+                findings: v.findings.map((f) =>
+                  f.id === target.findingId ? { ...f, status: saved.status } : f,
+                ),
+              },
+        ),
+      };
+    notify(resolve ? '已确认问题解决，个人中心修改进度已更新' : '阅读状态已保存；不代表问题已解决，历史报告保持不变');
+  } catch (e) {
+    if (finding.value?.id === target.findingId)
+      findingError.value = e instanceof Error ? e.message : '保存失败';
+  } finally {
+    markingFinding.value = false;
+  }
 }
 function openReport() {
   selectedReportId.value = '';
@@ -1129,18 +1433,21 @@ async function generateReport() {
   });
   busy.value = false;
 }
-function downloadReport() {
-  void exportDocument('md');
-}
+const comparing = ref(false);
 async function compare() {
-  if (!project.value || !compareBefore.value || !version.value) return;
+  if (!project.value || !compareBefore.value || !version.value || comparing.value) return;
+  comparing.value = true;
+  formError.value = '';
   await safe(async () => {
     comparison.value = await api<Comparison>(
       `/projects/${project.value!.id}/compare?before=${compareBefore.value}&after=${version.value!.id}`,
     );
   });
+  comparing.value = false;
 }
 function shortcuts(event: KeyboardEvent) {
+  if (embedded && !previewRoot.value?.contains(event.target as Node)) return;
+  if (!embedded && (event.target as Element)?.closest('.embedded-review')) return;
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     openDialog('search');
@@ -1149,28 +1456,31 @@ function shortcuts(event: KeyboardEvent) {
     menu.value = false;
     projectMenuId.value = '';
     maximized.value = false;
-    if (!dialog.value) contextFinding.value = null;
   }
 }
 watch([tab, selected, page, bookmarked], persistView);
 watch(
   theme,
   (value) => {
-    localStorage.setItem('audit-theme', value);
+    accountStorage.setItem('audit-theme', value);
     document.documentElement.dataset.theme = value;
   },
   { immediate: true },
 );
 onMounted(() => {
   void initialize();
-  window.addEventListener('popstate', syncManagementRoute);
+  if (!embedded) {
+    window.addEventListener('popstate', syncManagementRoute);
+    window.addEventListener('hashchange', syncManagementRoute);
+  }
   document.addEventListener('click', closeProjectMenu);
   pollTimer = setInterval(poll, 1000);
   document.addEventListener('keydown', shortcuts);
 });
 onUnmounted(() => {
+  previewDisposed = true;
   window.removeEventListener('popstate', syncManagementRoute);
-  chatController?.abort();
+  window.removeEventListener('hashchange', syncManagementRoute);
   document.removeEventListener('click', closeProjectMenu);
   clearInterval(pollTimer);
   clearTimeout(toastTimer);
@@ -1180,33 +1490,47 @@ onUnmounted(() => {
 
 <template>
   <div
+    ref="previewRoot"
     class="app-shell"
     :class="{
+      'embedded-review': embedded,
       'management-open': !!managementPage,
-      'sidebar-collapsed': !sidebar,
+      'profile-open': managementPage === 'profile',
+      'studio-open': studioActive && !managementPage,
+      'sidebar-collapsed': !layout.desktopSidebar.value && !activeSidebarExpanded,
+      'drawer-compact': layout.desktopSidebar.value && !activeSidebarExpanded,
       'mobile-chat': mobilePane === 'chat',
       'layout-stacked': displayMode === 'stacked',
       'preview-maximized': maximized,
       'preview-minimized': minimized,
     }"
-    :style="layoutStyles"
+    :style="shellStyles"
+    @pointerdown.capture="!embedded && sidebarDrag.start($event)"
+    @click.capture="!embedded && sidebarDrag.suppressClick($event)"
   >
-    <aside class="sidebar">
+    <aside v-if="!embedded" class="sidebar">
+      <span class="sidebar-portrait" aria-hidden="true"></span>
       <button
         class="brand"
-        aria-label="学术审稿 Copilot 首页"
-        @click="projects[0] && safe(() => openProject(projects[0]!.id))"
+        aria-label="星笺 学术审稿agent 首页"
+        title="星笺首页"
+        @click="navigateStudio('new')"
       >
-        <img src="/favicon.svg" alt="" /><span
-          ><strong>学术审稿 Copilot</strong><small>专注 · 严谨 · 更好的研究</small></span
+        <img src="/brand/xingjian.png" alt="" /><span
+          ><strong>星笺</strong><small>学术审稿agent</small></span
         >
       </button>
       <nav class="primary-nav" aria-label="主导航">
-        <button :disabled="initialLoading" @click="openDialog('new')">
-          <Icon name="new" /><span>新建项目</span><kbd>＋</kbd>
+        <button
+          aria-label="新聊天"
+          title="新聊天"
+          @click="startStudioChat(activeStudioProject || undefined)"
+        >
+          <Icon name="new-chat" /><span>新聊天</span>
         </button>
         <button
           aria-label="文献库"
+          title="文献库"
           :class="{ active: managementPage === 'library' }"
           :aria-current="managementPage === 'library' ? 'page' : undefined"
           @click="openDialog('library')"
@@ -1215,6 +1539,7 @@ onUnmounted(() => {
         </button>
         <button
           aria-label="模板与规范"
+          title="模板与规范"
           :class="{ active: managementPage === 'templates' }"
           :aria-current="managementPage === 'templates' ? 'page' : undefined"
           @click="openDialog('templates')"
@@ -1223,6 +1548,7 @@ onUnmounted(() => {
         </button>
         <button
           aria-label="设置"
+          title="设置"
           :class="{ active: managementPage === 'settings' }"
           :aria-current="managementPage === 'settings' ? 'page' : undefined"
           :disabled="initialLoading"
@@ -1231,1394 +1557,1069 @@ onUnmounted(() => {
           <Icon name="settings" /><span>设置</span>
         </button>
       </nav>
-      <div class="recent-projects">
-        <div class="sidebar-label">
-          最近的项目<button class="subtle-icon" aria-label="新建项目" @click="openDialog('new')">
-            <Icon name="plus" :size="15" />
-          </button>
-        </div>
-        <div
-          v-for="item in sidebarProjects"
-          :key="item.id"
-          class="project-row"
-          :class="{ selected: !managementPage && project?.id === item.id }"
-        >
-          <button
-            class="project-link"
-            :title="item.title"
-            @click="safe(() => openProject(item.id))"
-          >
-            <Icon v-if="item.pinned" name="pushpin" :size="13" /><span>{{ item.title }}</span
-            ><small>v{{ item.versions.at(-1)?.number || 1 }}</small>
-          </button>
-          <button
-            class="project-more-button"
-            :aria-label="`项目菜单：${item.title}`"
-            :aria-expanded="projectMenuId === item.id"
-            aria-haspopup="menu"
-            @click.stop="toggleProjectMenu($event, item)"
-          >
-            <Icon name="more" :size="17" />
-          </button>
-        </div>
-        <button
-          class="more-projects"
-          @click="
-            showArchived = false;
-            openDialog('projects');
-          "
-        >
-          更多项目 <Icon name="more" :size="17" />
+      <nav class="sidebar-compact-shortcuts" aria-label="项目与最近记录">
+        <button aria-label="搜索项目" title="搜索项目" @click="sidebarNavigation?.openSearch('project')">
+          <Icon name="folder" />
         </button>
-        <div class="workspace-note">
-          <span class="status-dot"></span>本地匿名工作空间<small>论文与研究，尽在掌握</small>
-        </div>
+        <button aria-label="搜索最近记录" title="搜索最近记录" @click="sidebarNavigation?.openSearch('all')">
+          <Icon name="clock" />
+        </button>
+      </nav>
+      <SidebarWorkspace
+        ref="sidebarNavigation"
+        :projects="studioIndex.projects"
+        :chats="studioIndex.chats"
+        :papers="navigationPapers"
+        :active-route="
+          managementPage
+            ? ''
+            : contentRoute || (!studioActive && project ? `review/${project.id}` : '')
+        "
+        :active-project="activeStudioProject"
+        @navigate="navigateStudio"
+        @paper="openSidebarPaper"
+        @new-chat="startStudioChat"
+        @new-project="startStudioProject"
+        @project-settings="configureSidebarProject"
+        @refresh="refreshSidebar"
+        @paper-updated="updateSidebarPaper"
+      />
+      <div v-if="layout.desktopSidebar.value" class="sidebar-toggle-row">
+        <button
+          class="drawer-toggle"
+          :aria-label="activeSidebarExpanded ? '收起导航栏' : '展开导航栏'"
+          :title="activeSidebarExpanded ? '收起导航栏' : '展开导航栏'"
+          :aria-expanded="activeSidebarExpanded"
+          @click="activeSidebarExpanded = !activeSidebarExpanded"
+        >
+          <Icon :name="activeSidebarExpanded ? 'collapse' : 'expand'" :size="18" />
+          <span>{{ activeSidebarExpanded ? '收起导航栏' : '展开导航栏' }}</span>
+        </button>
       </div>
       <div class="sidebar-bottom">
-        <button class="user-profile" @click="openDialog('settings')">
-          <span class="avatar">研</span
-          ><span>我的研究空间<small>数据保存在当前设备服务端</small></span></button
+        <button
+          class="user-profile"
+          :class="{ 'profile-active': managementPage === 'profile' }"
+          title="个人中心"
+          aria-label="个人中心"
+          :aria-current="managementPage === 'profile' ? 'page' : undefined"
+          @click="navigateStudio('profile')"
+        >
+          <span class="avatar"><img v-if="currentAccount?.avatar" :src="currentAccount.avatar" alt="" /><template v-else>{{
+            (currentAccount?.displayName || currentAccount?.username || '研').slice(0, 1).toUpperCase()
+          }}</template></span
+          ><span>{{ currentAccount?.displayName || currentAccount?.username || '我的空间' }}</span></button
         ><button
           class="collapse-button"
-          :aria-label="sidebar ? '收起侧栏' : '展开侧栏'"
-          @click="sidebar = !sidebar"
+          :aria-label="
+            (managementPage ? managementSidebarExpanded : sidebar) ? '收起侧栏' : '展开侧栏'
+          "
+          @click="
+            managementPage
+              ? (managementSidebarExpanded = !managementSidebarExpanded)
+              : (sidebar = !sidebar)
+          "
         >
-          <Icon :name="sidebar ? 'collapse' : 'expand'" :size="18" />
+          <Icon
+            :name="(managementPage ? managementSidebarExpanded : sidebar) ? 'collapse' : 'expand'"
+            :size="18"
+          />
         </button>
       </div>
     </aside>
-
-    <WorkspacePages
-      v-if="managementPage"
-      :page="managementPage"
-      :model="modelConfig"
-      @open="openLibraryDocument"
-      @preferences="applyPreferences"
-      @preferences-preview="applyPreferences"
-      @model="modelConfig = $event"
-      @configuration="loadConfiguration"
-      @refresh="refreshList"
-    />
-
-    <div
-      v-if="sidebar"
-      class="sidebar-resizer resize-handle"
-      role="separator"
-      aria-label="调整项目栏宽度"
-      aria-orientation="vertical"
-      :aria-valuenow="sidebarWidth"
-      tabindex="0"
-      @pointerdown="layout.resize($event, 'sidebar')"
-      @keydown.left.prevent="layout.adjust('sidebar', -10)"
-      @keydown.right.prevent="layout.adjust('sidebar', 10)"
-    ></div>
-    <section class="conversation" aria-label="对话与进展">
-      <header class="conversation-header">
-        <button
-          class="mobile-menu icon-button"
-          aria-label="打开项目"
-          @click="openDialog('projects')"
-        >
-          <Icon name="menu" />
-        </button>
-        <h1 :title="project?.title">{{ project?.title || '你的下一篇好论文' }}</h1>
-        <button
-          v-if="version"
-          class="version-chip"
-          aria-label="切换论文版本"
-          @click="openDialog('versions')"
-        >
-          v{{ version.number }}
-        </button>
-        <div class="menu-wrap">
-          <button
-            class="icon-button"
-            aria-label="项目操作"
-            :aria-expanded="menu"
-            @click="menu = !menu"
-          >
-            <Icon name="more" />
-          </button>
-          <div v-if="menu" class="dropdown">
-            <button @click="openDialog('rename')"><Icon name="edit" :size="16" />重命名项目</button
-            ><button @click="openDialog('versions')">
-              <Icon name="layers" :size="16" />论文版本</button
-            ><button @click="openDialog('compare')">
-              <Icon name="switch" :size="16" />比较版本</button
-            ><button :disabled="!version" @click="openDialog('chat-export')">
-              <Icon name="download" :size="16" />导出对话与证据</button
-            ><button :disabled="!uploadUrl || version?.format === 'demo'" @click="downloadOriginal">
-              <Icon name="download" :size="16" />下载当前版本原文件</button
-            ><button class="danger-text" @click="openDialog('delete')">
-              <Icon name="delete" :size="16" />删除项目
-            </button>
-          </div>
-        </div>
-      </header>
-      <div class="conversation-tabs" role="tablist" aria-label="时间线视图">
-        <button
-          role="tab"
-          :aria-selected="timelineTab === 'chat'"
-          :class="{ active: timelineTab === 'chat' }"
-          @click="timelineTab = 'chat'"
-        >
-          对话与进展</button
-        ><button
-          role="tab"
-          :aria-selected="timelineTab === 'all'"
-          :class="{ active: timelineTab === 'all' }"
-          @click="timelineTab = 'all'"
-        >
-          全部记录
-        </button>
-      </div>
-
-      <div ref="timeline" class="timeline" tabindex="0" aria-label="聊天记录滚动区">
-        <div v-if="initialLoading" class="empty-state">
-          <Icon name="loading" class="spin" />正在打开工作空间…
-        </div>
-        <div v-else-if="fatalError" class="empty-state">
-          <Icon name="error" />
-          <p>{{ fatalError }}</p>
-          <button class="secondary-button" @click="initialize">重新连接</button>
-        </div>
-        <div v-else-if="!version" class="upload-guide" @dragover.prevent @drop.prevent="onDrop">
-          <div class="upload-illustration">
-            <Icon name="file" :size="40" /><span><Icon name="plus" :size="15" /></span>
-          </div>
-          <h2>从一篇论文开始</h2>
-          <p>上传论文，梳理研究脉络，<br />让每一条建议都有据可循。</p>
-          <button class="primary-button" @click="requestUpload()">
-            <Icon name="upload" :size="17" />上传论文</button
-          ><small>PDF / DOCX · 最大 25 MB<br />也可以直接拖入文件</small>
-        </div>
-        <template v-else>
-          <article
-            v-for="item in version.messages"
-            :key="item.id"
-            class="timeline-event"
-            :class="[`event-${item.kind}`, { 'compact-event': timelineTab === 'all' }]"
-          >
-            <div class="event-marker">
-              <Icon
-                :name="
-                  item.kind === 'upload'
-                    ? 'file'
-                    : item.kind === 'user'
-                      ? 'user'
-                      : item.kind === 'error'
-                        ? 'error'
-                        : item.kind === 'assistant'
-                          ? 'chat'
-                          : 'check'
-                "
-                :size="19"
-              />
-            </div>
-            <div class="event-content">
-              <h3>{{ item.title }}</h3>
-              <time>{{ formattedDate(item.at) }}</time>
-              <button v-if="item.kind === 'upload'" class="file-card" @click="tab = 'annotations'">
-                <span class="pdf-icon"><Icon name="file" :size="23" /></span
-                ><span
-                  ><strong>{{ version.filename }}</strong
-                  ><small
-                    >{{ fileSize(version.size)
-                    }}<template v-if="version.pageCount"> · {{ version.pageCount }} 页</template
-                    ><template v-else-if="version.format === 'docx'"> · Word 文档</template></small
-                  ></span
-                >
-              </button>
-              <div
-                v-else-if="item.text"
-                :class="
-                  item.kind === 'user' || item.kind === 'assistant' ? 'message-card' : 'event-text'
-                "
-              >
-                <MessageContent
-                  v-if="item.kind === 'assistant' || item.kind === 'review-result'"
-                  :text="item.text"
-                  :sources="item.kind === 'assistant' ? item.sources : undefined"
-                  :retrieval="item.kind === 'assistant' ? item.retrieval : undefined"
-                  :version-id="version.id"
-                  :parse="version.parse"
-                  @locate="locate($event)"
-                />
-                <template v-else>{{ item.text }}</template
-                ><button
-                  v-if="item.anchor && !item.sources?.length"
-                  class="citation-link"
-                  @click="locate(item.anchor!, item.findingId)"
-                >
-                  <Icon name="pin" :size="14" />{{ item.anchor.section
-                  }}<Icon name="arrow" :size="13" />
-                </button>
-                <EvidenceSources
-                  v-if="item.kind === 'assistant'"
-                  :citation-policy="item.citationPolicy"
-                  :sources="item.sources"
-                  :retrieval="item.retrieval"
-                  :version-id="version.id"
-                  :parse-id="version.parse?.id"
-                  :parse="version.parse"
-                  @locate="locate($event)"
-                />
-              </div>
-              <button v-if="item.kind === 'report'" class="artifact-button" @click="openReport">
-                <Icon name="file" :size="16" />查看已保存报告<Icon name="right" :size="15" />
-              </button>
-            </div>
-          </article>
-          <div v-if="reviewThinking" class="review-thinking" role="status" aria-live="polite">
-            <Icon name="loading" class="spin" :size="20" />
-            <span
-              >正在思考中……<small>{{ runningReview?.stage || '正在启动评审' }}</small></span
-            >
-          </div>
-          <article
-            v-for="run in version.runs.filter((r) => r.scope === 'scientific-trial')"
-            :key="`progress-${run.id}`"
-            class="review-conversation"
-          >
-            <p
-              v-for="module in run.modules?.filter((m) => m.status === 'failed')"
-              :key="module.id"
-              class="notice error-notice"
-            >
-              {{ module.checkId }}：{{ module.error }}
-            </p>
-            <p v-if="run.error" class="notice error-notice">{{ run.error }}</p>
-          </article>
-          <template v-if="activeChat">
-            <article class="event-user">
-              <strong>你</strong>
-              <div class="message-card">{{ activeChat.question }}</div>
-            </article>
-            <article class="event-assistant streaming-message" aria-live="polite">
-              <strong>Copilot</strong>
-              <div class="message-card">
-                <MessageContent
-                  v-if="activeChat.answer"
-                  :text="activeChat.answer"
-                  :sources="activeChat.sources"
-                  :retrieval="activeChat.retrieval"
-                  :version-id="version.id"
-                  :parse="version.parse"
-                  @locate="locate($event)"
-                /><span
-                  v-else-if="sending && !activeChat.error"
-                  class="review-thinking"
-                  role="status"
-                  ><Icon name="loading" class="spin" :size="20" />正在思考中……</span
-                ><span
-                  v-if="sending && activeChat.answer && !activeChat.error"
-                  class="stream-cursor"
-                  >▋</span
-                >
-                <EvidenceSources
-                  :sources="activeChat.sources"
-                  :retrieval="activeChat.retrieval"
-                  :version-id="version.id"
-                  :parse-id="version.parse?.id"
-                  :parse="version.parse"
-                  @locate="locate($event)"
-                />
-              </div>
-              <p v-if="activeChat.error" class="notice error-notice" role="alert">
-                {{ activeChat.error
-                }}<template v-if="!activeChat.cancelled">（本次回答未保存，可重新发送。）</template>
-              </p>
-            </article>
-          </template>
-          <div v-if="version.status === 'parsing'" class="inline-progress">
-            <Icon name="loading" class="spin" :size="17" /><span
-              >正在提取文档结构… {{ version.progress || 0 }}%</span
-            ><progress :value="version.progress || 0" max="100" />
-          </div>
-          <div v-if="version.status === 'failed'" class="notice error-notice">
-            {{ version.error }}<button class="text-button" @click="retry">重新解析</button>
-          </div>
-          <template v-if="timelineTab === 'all'"
-            ><div class="record-divider">任务与产物</div>
-            <div v-for="run in version.runs" :key="run.id" class="record-card">
-              <Icon name="checks" :size="18" />
-              <div>
-                <strong>{{ run.scheme }}</strong
-                ><small>{{ formattedDate(run.createdAt) }} · 已完成</small>
-              </div>
-            </div>
-            <p v-if="!version.runs.length" class="muted">尚未运行评审任务</p></template
-          >
-        </template>
-      </div>
+    <div ref="appSurface" class="app-surface">
+      <ResearchApp
+        v-if="!embedded"
+        ref="studio"
+        :active="studioActive && !managementPage"
+        :model-config="modelConfig"
+        v-show="studioActive && !managementPage"
+        @navigate="navigateStudio"
+        @index="studioIndex = $event"
+        @model="modelConfig = $event"
+        @menu="studioMenu = true"
+      />
+      <WorkspacePages
+        v-if="managementMounted"
+        v-show="!!managementPage && managementPage !== 'profile'"
+        :page="managementPage === 'profile' ? lastManagementPage : managementPage || lastManagementPage"
+        :active="!!managementPage && managementPage !== 'profile'"
+        :model="modelConfig"
+        @open="openLibraryDocument"
+        @preferences="applyPreferences"
+        @preferences-preview="applyPreferences"
+        @model="modelConfig = $event"
+        @configuration="loadConfiguration"
+        @refresh="refreshList"
+      />
+      <PersonalCenter v-if="managementPage === 'profile'" @menu="studioMenu = true" @account="emit('account')" />
 
       <div
-        class="composer-area"
-        :class="{ 'review-workbench': !!project }"
-        @dragover.prevent="dragging = true"
-        @dragleave.prevent="dragging = false"
-        @drop.prevent="onDrop"
-      >
-        <ReviewControls
-          v-if="project"
-          :version="version"
-          :busy="busy || savingSettings"
-          @start="startReview"
-          @cancel="cancelReview"
-          @report="openReport"
-        >
+        v-if="!embedded"
+        class="sidebar-drag-handle"
+        role="separator"
+        aria-label="拖动展开或收起导航栏"
+        aria-orientation="vertical"
+        :aria-valuenow="activeSidebarExpanded ? 100 : 0"
+        :aria-valuemin="0"
+        :aria-valuemax="100"
+        title="左右拖动展开或收起导航栏"
+        tabindex="0"
+        @keydown.left.prevent="activeSidebarExpanded = false"
+        @keydown.right.prevent="activeSidebarExpanded = true"
+      ></div>
+      <LoadFailure
+        v-if="embedded && fatalError"
+        :description="fatalError"
+        :retrying="initialLoading"
+        @retry="initialize"
+      />
+      <template v-if="!studioActive && !(embedded && fatalError)">
+        <header class="conversation-header project-header">
           <button
-            class="review-settings-toggle"
-            :aria-expanded="reviewSettingsOpen"
-            aria-controls="review-settings"
-            @click="reviewSettingsOpen = !reviewSettingsOpen"
+            class="mobile-menu icon-button"
+            aria-label="打开项目"
+            @click="openDialog('projects')"
           >
-            <Icon name="sliders" :size="18" />评审配置
-            <Icon name="down" :size="13" :class="{ 'is-open': reviewSettingsOpen }" />
+            <Icon name="menu" />
           </button>
-        </ReviewControls>
-        <div v-if="project && reviewSettingsOpen" id="review-settings" class="review-context">
+          <h1 :title="project?.title">{{ project?.title || '新建项目' }}</h1>
           <button
-            :class="{ active: managementPage === 'templates' }"
-            :aria-current="managementPage === 'templates' ? 'page' : undefined"
-            @click="openDialog('templates')"
+            v-if="version"
+            class="version-chip"
+            aria-label="切换论文版本"
+            @click="openDialog('versions')"
           >
-            <Icon name="settings" :size="16" />管理模板与规范
+            v{{ version.number }}
           </button>
-          <div>
-            <select
-              v-model="project.settings.scheme"
-              aria-label="规则版本"
-              :disabled="busy || savingSettings"
-              @change="saveSettings"
+          <div class="menu-wrap">
+            <button
+              class="icon-button"
+              aria-label="项目操作"
+              :aria-expanded="menu"
+              @click="menu = !menu"
             >
-              <option v-for="p in configuration.packs" :key="p.id" :value="p.id">
-                {{ p.name }}
-              </option>
-            </select>
-            <select
-              v-model="project.settings.articleType"
-              aria-label="稿件类型"
-              :disabled="busy || savingSettings"
-              @change="
-                project.settings.confirmed = true;
-                saveSettings();
-              "
-            >
-              <option value="">稿件类型：待确认</option>
-              <option value="empirical">实证研究</option>
-              <option value="review">综述（待适配）</option>
-              <option value="theory">理论研究（待适配）</option></select
-            ><select
-              v-model="project.settings.outputMode"
-              aria-label="评审输出方式"
-              :disabled="busy || savingSettings"
-              @change="saveSettings"
-            >
-              <option value="narrative">文字意见</option>
-              <option value="scored">文字 + 评分</option>
-            </select>
+              <Icon name="more" />
+            </button>
+            <div v-if="menu" class="dropdown">
+              <button @click="openDialog('rename')">
+                <Icon name="edit" :size="16" />重命名项目</button
+              ><button @click="openDialog('versions')">
+                <Icon name="layers" :size="16" />论文版本</button
+              ><button @click="openDialog('compare')">
+                <Icon name="switch" :size="16" />比较版本</button
+              ><button :disabled="!version" @click="openDialog('chat-export')">
+                <Icon name="download" :size="16" />导出对话与证据</button
+              ><button
+                :disabled="!uploadUrl || version?.format === 'demo'"
+                @click="downloadOriginal"
+              >
+                <Icon name="download" :size="16" />下载当前版本原文件</button
+              ><button class="danger-text" @click="openDialog('delete')">
+                <Icon name="delete" :size="16" />删除项目
+              </button>
+            </div>
           </div>
-        </div>
-        <div v-if="contextFinding" class="context-chip">
-          <Icon name="pin" :size="13" /><span>{{ contextFinding.title }}</span
-          ><button aria-label="移除问题上下文" @click="contextFinding = null">
-            <Icon name="close" :size="14" />
-          </button>
-        </div>
-        <section class="question-panel">
-          <form class="composer" :class="{ dragging }" @submit.prevent="sendMessage">
-          <label class="muted chat-scope-control">
-            <input type="checkbox" aria-label="仅检索已定位区块"
-              :checked="Boolean(retrievalScope)"
-              :disabled="!locatedScopeSection || !version?.parse || version.status !== 'ready' || sending || Boolean(contextFinding)"
-              @change="toggleRetrievalScope" />
-            仅检索已定位区块<span v-if="retrievalScope"> · {{ locatedScopeSection?.title }}</span>
-          </label>
-          <p v-if="retrievalScope" class="muted chat-scope-note">未包含其他区块；切换位置或版本恢复全文检索。</p>
-            <textarea
-              ref="textarea"
-              v-model="message"
-              :disabled="!version || uploading"
-              maxlength="4000"
-              rows="2"
-              aria-label="询问 Copilot"
-              :placeholder="
-                uploading
-                  ? '正在上传论文…'
-                  : dragging
-                    ? '松开以上传论文'
-                    : '输入问题；可用双引号限定逐字短语…'
-              "
-              @keydown.enter.exact="composerEnter"
-            ></textarea>
-            <div v-if="message === '/'" class="slash-menu">
-              <button
-                type="button"
-                @click="
-                  message = '';
-                  tab = 'parse';
-                "
-              >
-                查看论文解析</button
-              ><button
-                type="button"
-                @click="
-                  message = '';
-                  generateReport();
-                "
-              >
-                生成报告预览
-              </button>
-            </div>
-            <div class="composer-tools">
-              <button
-                type="button"
-                class="icon-button"
-                aria-label="上传论文"
-                :disabled="uploading"
-                @click="requestUpload()"
-              >
-                <Icon name="plus" /></button
-              ><button
-                type="button"
-                class="icon-button"
-                aria-label="引用论文片段"
-                @click="openDialog('search')"
-              >
-                <Icon name="at" />
-              </button>
-              <ModelPicker
-                :config="modelConfig"
-                :disabled="sending"
-                @updated="modelConfig = $event"
-                @configure="openDialog('model')"
-              />
-              <button
-                v-if="sending"
-                type="button"
-                class="send-button"
-                aria-label="停止回答"
-                title="停止回答"
-                :disabled="pendingChat?.cancelled"
-                @click="stopChat"
-              >
-                停止
-              </button>
-              <button
-                v-else
-                type="submit"
-                class="send-button"
-                :disabled="
-                  !message.trim() ||
-                  !version?.parse ||
-                  version.status !== 'ready' ||
-                  uploading ||
-                  sending
-                "
-                aria-label="发送消息"
-              >
-                <Icon :name="sending ? 'loading' : 'up'" :class="{ spin: sending }" :size="21" />
-              </button>
-            </div>
-          </form>
-          <p v-if="version" class="muted chat-draft-note">
-            草稿按项目和版本分别保留，仅限当前页面会话；刷新后清除。
-          </p>
-          <p
-            v-if="version && (version.status !== 'ready' || !version.parse)"
-            class="retrieval-scope"
-            role="status"
-            data-chat-readiness
+        </header>
+        <main v-show="!minimized" class="workspace">
+          <div
+            v-if="evidenceReturn && tab === 'annotations'"
+            class="evidence-return-bar"
+            role="region"
+            aria-label="证据返回导航"
           >
-            {{
-              version.status === 'failed'
-                ? '论文解析失败，请重试解析后再提问。'
-                : '论文解析尚未就绪，完成后即可发送问题。'
-            }}输入草稿会保留，不会自动发送。
-          </p>
-        </section>
-      </div>
-    </section>
-    <div
-      v-if="!minimized"
-      class="panel-resizer resize-handle"
-      role="separator"
-      aria-label="调整对话栏宽度"
-      :aria-orientation="displayMode === 'stacked' ? 'horizontal' : 'vertical'"
-      :aria-valuenow="chatWidth"
-      tabindex="0"
-      @pointerdown="layout.resize($event, 'chat')"
-      @keydown.left.prevent="layout.adjust('chat', -10)"
-      @keydown.right.prevent="layout.adjust('chat', 10)"
-      @keydown.up.prevent="layout.adjust('chat', -10)"
-      @keydown.down.prevent="layout.adjust('chat', 10)"
-    ></div>
-    <main v-show="!minimized" class="workspace">
-      <header class="workspace-toolbar">
-        <div class="workspace-tabs" role="tablist" aria-label="论文工作区">
-          <button
-            v-for="item in [
-              { id: 'annotations', label: '论文批注' },
-              { id: 'parse', label: '论文解析' },
-              { id: 'tools', label: '证据工具' },
-              { id: 'report', label: '评审报告' },
+            <span>正在核对原文证据</span
+            ><button class="text-button" @click="returnFromEvidence">
+              返回{{ evidenceReturn.label }}
+            </button>
+          </div>
+          <PreviewTabs
+            v-if="embedded"
+            :tabs="[
+              { id: 'annotations', label: version?.filename || '论文批注', title: '论文批注' },
+              ...(reportOpened ? [{ id: 'report', label: '评审报告', closable: true }] : []),
             ]"
-            :key="item.id"
-            role="tab"
-            :aria-selected="tab === item.id"
-            :class="{ active: tab === item.id }"
-            @click="tab = item.id"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-        <div class="view-tools">
-          <div class="preview-display-controls">
-            <button
-              class="icon-button"
-              :aria-label="maximized ? '还原预览' : '最大化预览'"
-              :title="maximized ? '还原预览 · Esc' : '最大化预览'"
-              :aria-pressed="maximized"
-              @click="maximized = !maximized"
-            >
-              <Icon :name="maximized ? 'restore' : 'maximize'" :size="17" />
-            </button>
-            <button
-              class="icon-button"
-              aria-label="最小化预览"
-              title="最小化预览"
-              @click="
-                maximized = false;
-                minimized = true;
-                mobilePane = 'chat';
-              "
-            >
-              <Icon name="minimize" :size="17" />
-            </button>
-            <button
-              class="icon-button"
-              :aria-label="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
-              :title="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
-              @click="displayMode = displayMode === 'columns' ? 'stacked' : 'columns'"
-            >
-              <Icon :name="displayMode === 'columns' ? 'columns' : 'rows'" :size="17" />
-            </button>
-          </div>
-          <div v-if="tab === 'annotations'" class="zoom-control">
-            <button
-              aria-label="缩小"
-              :disabled="pdfFitWidth || zoom <= 70"
-              @click="zoom = Math.max(70, zoom - 10)"
-            >
-              <Icon name="minus" :size="15" /></button
-            ><button
-              class="zoom-label"
-              aria-label="重置缩放"
-              @click="
-                pdfFitWidth = false;
-                zoom = 100;
-              "
-            >
-              {{ pdfFitWidth ? '适合宽度' : `${zoom}%` }}</button
-            ><button
-              aria-label="放大"
-              :disabled="pdfFitWidth || zoom >= 170"
-              @click="zoom = Math.min(170, zoom + 10)"
-            >
-              <Icon name="plus" :size="15" />
-            </button>
-          </div>
-          <button
-            class="icon-button"
-            :class="{ pressed: showInspector }"
-            aria-label="切换批注面板"
-            :aria-pressed="showInspector"
-            :disabled="layout.inspectorOverlaysPaper.value && !finding"
-            @click="inspector = !inspector"
-          >
-            <Icon name="panel" :size="18" /></button
-          ><button
-            class="icon-button"
-            aria-label="搜索论文"
-            title="搜索论文 Ctrl+K"
-            @click="openDialog('search')"
-          >
-            <Icon name="search" /></button
-          ><span class="toolbar-divider"></span
-          ><button
-            class="icon-button"
-            :class="{ bookmarked }"
-            :aria-pressed="bookmarked"
-            aria-label="收藏当前阅读位置"
-            @click="
-              bookmarked = !bookmarked;
-              notify(bookmarked ? '阅读位置已收藏' : '已取消收藏');
+            :active="tab"
+            @select="
+              tab = $event;
+              evidenceReturn = null;
+            "
+            @close="
+              reportOpened = false;
+              tab = 'annotations';
             "
           >
-            <Icon name="bookmark" :size="18" />
-          </button>
-        </div>
-      </header>
-
-      <nav
-        v-if="version && tab === 'annotations' && searchResultIndex >= 0"
-        class="source-search-navigation"
-        aria-label="原文匹配导航"
-      >
-        <span :title="searchInput">查找：{{ searchInput.slice(0, 32) }}{{ searchInput.length > 32 ? '…' : '' }}</span>
-        <small role="status" aria-live="polite">匹配 {{ searchResultIndex + 1 }} / {{ searchResults.length }} · 最多 60 处</small>
-        <div>
-          <button :disabled="searchResultIndex <= 0" aria-label="上一处匹配" @click="stepSearchResult(-1)">上一处</button>
-          <button :disabled="searchResultIndex >= searchResults.length - 1" aria-label="下一处匹配" @click="stepSearchResult(1)">下一处</button>
-          <button aria-label="结束连续查找" @click="endSearchNavigation">结束查找</button>
-        </div>
-      </nav>
-
-      <div v-if="!version" class="workspace-empty">
-        <div class="empty-paper"><Icon name="book" :size="44" /><i></i><i></i><i></i></div>
-        <h2>让研究更扎实，让投稿更从容</h2>
-        <p>上传论文后，在这里查看原文、解析结果与评审意见。</p>
-        <div class="empty-features">
-          <span><Icon name="pin" :size="17" />原文证据定位</span
-          ><span><Icon name="layers" :size="17" />版本持续跟踪</span
-          ><span><Icon name="shield" :size="17" />有据可循的建议</span>
-        </div>
-      </div>
-
-      <div v-else-if="tab === 'annotations'" class="annotation-workspace">
-        <div ref="paperScroll" class="paper-scroll" tabindex="0" aria-label="论文预览滚动区">
-          <details
-            v-if="readingPreferences.showOutline && version.parse?.sections.length"
-            class="document-outline"
-          >
-            <summary><Icon name="list" :size="17" /> 文档目录</summary>
-            <button
-              v-for="section in version.parse.sections"
-              :key="section.id"
-              @click="jumpToSection(section)"
-            >
-              {{ section.title.slice(0, 100) }}
-            </button>
-          </details>
-          <template v-if="version.status === 'ready'"
-            ><PdfReader
-              v-if="version.format === 'pdf'"
-              v-model:fit-width="pdfFitWidth"
-              :key="version.id"
-              :url="uploadUrl"
-              :page="page"
-              :zoom="zoom"
-              :continuous="readingPreferences.layout === 'continuous'"
-              :query="evidenceQuote || searchInput"
-              :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
-              :text-anchor="textAnchor"
-              :search-candidate="activeHyphenCandidate"
-              :parsed-page="version.parse?.pages.find((item) => item.page === page)"
-              allow-page-swap
-              @navigate="openPdfInspectionPage"
-              @pages="pageCount = $event" />
-            <article
-              v-else
-              class="paper docx-paper"
-              :style="{ fontSize: `${(16 * zoom) / 100}px` }"
-            >
-              <div class="notice">
-                {{
-                  version.parse?.structure
-                    ? 'Word 段落与表格预览 · 保留行列与合并范围'
-                    : 'Word 结构化文本预览'
-                }}
-                · 不还原原始分页、图像内容与公式
-              </div>
-              <p
-                v-if="docxEvidenceStatus"
-                class="docx-evidence-status"
-                role="status"
-                aria-live="polite"
-              >
-                {{ docxEvidenceStatus }}
-              </p>
-              <DocxSection
-                v-for="section in version.parse?.sections"
-                :key="section.id"
-                :section="section"
-                :anchor="textAnchor"
-              /></article
-          ></template>
-          <div v-else class="empty-state document-wait">
-            <Icon
-              :name="version.status === 'failed' ? 'error' : 'loading'"
-              :class="{ spin: version.status === 'parsing' }"
-              :size="35"
-            />
-            <h3>{{ version.status === 'failed' ? '暂时无法预览' : '正在准备论文原文' }}</h3>
-            <p>{{ version.error || '解析完成后，原文将出现在这里' }}</p>
-            <button v-if="version.status === 'failed'" class="secondary-button" @click="retry">
-              重新解析
-            </button>
-          </div>
-          <div v-if="version.format === 'pdf' && version.status === 'ready'" class="page-controls">
-            <button class="icon-button" aria-label="上一页" :disabled="page <= 1" @click="page--">
-              <Icon name="left" :size="17" /></button
-            ><label
-              ><input
-                v-model.number="page"
-                type="number"
-                min="1"
-                :max="pageCount"
-                aria-label="PDF 页码"
-                @change="page = Math.max(1, Math.min(pageCount, Number(page) || 1))"
-              />
-              / {{ pageCount }}</label
-            ><button
-              class="icon-button"
-              aria-label="下一页"
-              :disabled="page >= pageCount"
-              @click="page++"
-            >
-              <Icon name="right" :size="17" />
-            </button>
-          </div>
-        </div>
-
-        <div
-          v-if="showInspector"
-          class="inspector-resizer resize-handle"
-          role="separator"
-          aria-label="调整批注栏宽度"
-          aria-orientation="vertical"
-          :aria-valuenow="inspectorWidth"
-          tabindex="0"
-          @pointerdown="layout.resize($event, 'inspector')"
-          @keydown.left.prevent="layout.adjust('inspector', 10)"
-          @keydown.right.prevent="layout.adjust('inspector', -10)"
-        ></div>
-        <aside v-if="showInspector" class="inspector" aria-label="批注详情">
-          <template v-if="finding"
-            ><div class="inspector-navigation">
-              <button :disabled="selected === 0" @click="chooseFinding(selected - 1)">
-                <Icon name="left" :size="16" />上一条</button
-              ><span>{{ selected + 1 }} / {{ findings.length }}</span
-              ><button
-                :disabled="selected >= findings.length - 1"
-                class="next-finding"
-                @click="chooseFinding(selected + 1)"
-              >
-                下一条<Icon name="right" :size="17" /></button
-              ><button class="close-inspector" aria-label="关闭批注详情" @click="inspector = false">
-                <Icon name="close" :size="18" />
-              </button>
-            </div>
-            <div class="finding-heading">
-              <span class="severity" :class="{ mild: finding.severity !== '主要问题' }">{{
-                finding.severity
-              }}</span>
-              <h2>{{ finding.title }}</h2>
-            </div>
-            <div class="detail-tabs" role="tablist" aria-label="批注内容">
+            <template v-if="$slots['preview-actions']" #actions><slot name="preview-actions" /></template>
+          </PreviewTabs>
+          <header class="workspace-toolbar">
+            <div v-if="!embedded" class="workspace-tabs" role="tablist" aria-label="论文工作区">
               <button
+                v-for="item in [
+                  { id: 'annotations', label: '论文批注' },
+                  { id: 'parse', label: '论文解析' },
+                  { id: 'tools', label: '证据工具' },
+                  { id: 'report', label: '评审报告' },
+                ].filter((item) => !embedded || ['annotations', 'report'].includes(item.id))"
+                :key="item.id"
                 role="tab"
-                :aria-selected="detailTab === 'details'"
-                :class="{ active: detailTab === 'details' }"
-                @click="detailTab = 'details'"
-              >
-                详情</button
-              ><button
-                role="tab"
-                :aria-selected="detailTab === 'source'"
-                :class="{ active: detailTab === 'source' }"
-                @click="detailTab = 'source'"
-              >
-                相关片段</button
-              ><button
-                role="tab"
-                :aria-selected="detailTab === 'suggestions'"
-                :class="{ active: detailTab === 'suggestions' }"
-                @click="detailTab = 'suggestions'"
-              >
-                建议
-              </button>
-            </div>
-            <div class="finding-body">
-              <template v-if="detailTab === 'details'"
-                ><section class="finding-section">
-                  <h3>问题位置</h3>
-                  <button class="location-button" @click="locate(finding.anchor, finding.id)">
-                    <Icon name="pin" :size="18" /><span
-                      >{{ finding.anchor.page ? `第 ${finding.anchor.page} 页` : '文本段落' }} ·
-                      {{ finding.anchor.section }}<small>{{ '相关原文片段' }}</small></span
-                    >
-                  </button>
-                </section>
-                <section class="finding-section">
-                  <h3>问题描述</h3>
-                  <p>{{ finding.explanation }}</p>
-                </section>
-                <section class="evidence-check">
-                  <h3>证据核验</h3>
-                  <div>
-                    <p>
-                      {{
-                        finding.anchor.kind === 'visual'
-                          ? '视觉证据：已核对输入归属，位置为模型定位，需人工确认'
-                          : `原文引用：${finding.verification.citation === 'passed' ? (finding.anchor.quality === 'typography-normalized' ? '排版归一化匹配' : '精确匹配') : '待核验'}`
-                      }}
-                    </p>
-                    <p>
-                      规则适用：{{
-                        finding.verification.applicability === 'passed' ? '模型复核通过' : '待核验'
-                      }}
-                    </p>
-                    <p>
-                      论证复核：{{
-                        finding.verification.reasoning === 'passed' ? '模型复核通过' : '待核验'
-                      }}
-                    </p>
-                    <p>{{ finding.verification.reason }}</p>
-                    <small>模型复核不是专家确认。</small>
-                  </div>
-                </section>
-                <section class="finding-section">
-                  <h3>
-                    {{
-                      finding.anchor.kind === 'visual' ? '视觉观察（非逐字引文）' : '相关原文片段'
-                    }}
-                  </h3>
-                  <blockquote>{{ finding.anchor.quote }}</blockquote>
-                </section></template
-              >
-              <template v-else-if="detailTab === 'source'"
-                ><section class="finding-section">
-                  <h3>原文证据</h3>
-                  <p class="muted">
-                    {{ finding.anchor.section
-                    }}{{ finding.anchor.page ? ` · 第 ${finding.anchor.page} 页` : '' }}
-                  </p>
-                  <blockquote>{{ finding.anchor.quote }}</blockquote>
-                  <button class="text-button" @click="locate(finding.anchor, finding.id)">
-                    在论文中查看完整上下文 <Icon name="arrow" :size="14" />
-                  </button>
-                </section>
-                <div class="notice">
-                  引用匹配不等于专业判断已验证。意见仍需领域专家核验。
-                </div></template
-              >
-              <template v-else
-                ><section class="finding-section">
-                  <h3>修改建议</h3>
-                  <p>{{ finding.suggestion }}</p>
-                </section>
-                <section class="finding-section">
-                  <h3>复查条件</h3>
-                  <p v-if="finding.repairability">
-                    修复路径：{{ repairabilityLabel(finding.repairability) }}
-                  </p>
-                  <p>
-                    {{
-                      finding.resolutionTest ||
-                      '补充相关说明后重新检查原文证据与适用范围。确认意见仅代表已阅读，不代表问题已解决。'
-                    }}
-                  </p>
-                </section>
-                <button class="secondary-button full" @click="markFinding">
-                  <Icon name="checks" :size="17" />{{
-                    finding.status === 'open' ? '标记为已确认' : '恢复为待处理'
-                  }}
-                </button>
-                <p class="small muted">
-                  当前状态：{{ finding.status === 'open' ? '待处理' : '已确认，待修改复查' }}
-                </p></template
-              >
-            </div>
-            <div class="finding-actions">
-              <button class="primary-button full" @click="askCopilot">
-                <Icon name="chat" :size="18" />询问 Copilot</button
-              ><button class="secondary-button full" @click="locate(finding.anchor, finding.id)">
-                <Icon name="file" :size="17" />在文中定位此处
-              </button>
-            </div></template
-          >
-          <template v-else
-            ><div class="inspector-empty">
-              <div class="circle-illustration"><Icon name="chat" :size="28" /></div>
-              <h3>让每条意见都有出处</h3>
-              <p>这里将显示论文批注、原文证据与修改建议。</p>
-              <div class="notice">
-                可从左侧开始评审。暂无批注不代表论文没有问题，请同时查看报告中的待核验项。
-              </div>
-              <button
-                class="secondary-button full"
-                :disabled="version.status !== 'ready' || busy"
-                @click="generateReport"
-              >
-                生成解析报告
-              </button>
-            </div></template
-          >
-        </aside>
-      </div>
-
-      <div
-        v-else-if="tab === 'parse'"
-        class="artifact-scroll"
-        tabindex="0"
-        aria-label="预览内容滚动区"
-      >
-        <div class="artifact-content">
-          <div class="eyebrow">PAPER COMPILER <span>文档结构层</span></div>
-          <div class="artifact-title">
-            <div>
-              <h2>论文解析</h2>
-              <p>把复杂的研究，整理成清晰的脉络。</p>
-            </div>
-            <span class="status-pill" :class="{ warning: version.status !== 'ready' }"
-              ><span class="status-dot"></span
-              >{{
-                version.status === 'ready'
-                  ? '解析完成'
-                  : version.status === 'failed'
-                    ? '解析失败'
-                    : '解析中'
-              }}</span
-            >
-          </div>
-          <div v-if="version.status === 'parsing'" class="parse-progress">
-            <Icon name="loading" class="spin" />
-            <h3>正在读取论文</h3>
-            <progress max="100" :value="version.progress || 0" />
-            <p>已完成 {{ version.progress || 0 }}% · 任务进度会自动更新</p>
-            <ParseStatusRefresh :project-id="project!.id" :version-id="version.id"
-              :disabled="busy || savingSettings || uploading" :capture-receiver="parseStatusReceiver" />
-          </div>
-          <div v-else-if="version.status === 'failed'" class="notice error-notice">
-            {{ version.error }}<button class="secondary-button" @click="retry">重试解析</button>
-          </div>
-          <template v-else-if="version.parse"
-            ><div class="parse-metrics">
-              <div>
-                <Icon name="file" /><strong>{{ version.pageCount || '—' }}</strong
-                ><span>{{ version.format === 'docx' ? '未映射 Word 页码' : '论文页数' }}</span>
-              </div>
-              <div>
-                <Icon name="layers" /><strong>{{ version.parse.sections.length }}</strong
-                ><span>文本区块</span>
-              </div>
-              <div>
-                <Icon name="book" /><strong>{{
-                  version.parse.characterCount.toLocaleString()
-                }}</strong
-                ><span>已提取字符</span>
-              </div>
-            </div>
-            <div v-if="version.parse.structure" class="notice document-structure-summary">
-              <Icon name="layers" :size="17" /><span
-                >已保留 {{ version.parse.structure.tableCount }} 个表格、{{
-                  version.parse.structure.rowCount
-                }}
-                行、{{ version.parse.structure.cellCount }} 个单元格，含
-                {{ version.parse.structure.mergedCellCount }} 个合并单元格。表格证据可点击定位；Word
-                页码未映射。</span
-              >
-            </div>
-            <PdfInspection
-              v-if="version.format === 'pdf'"
-              :diagnostics="version.parse.pdfDiagnostics"
-              :export-url="`/api/projects/${project!.id}/versions/${version.id}/pdf-diagnostics/export`"
-              @page="openPdfInspectionPage"
-            />
-            <div v-for="warning in version.parse.warnings" :key="warning" class="notice">
-              <Icon name="info" :size="17" /><span>{{ warning }}</span>
-            </div>
-            <div class="section-heading">
-              <h3>文档结构</h3>
-              <span>点击区块，回到原文</span>
-            </div>
-            <div class="structure-list">
-              <button
-                v-for="(section, index) in version.parse.sections"
-                :key="section.id"
+                :aria-selected="tab === item.id"
+                :class="{ active: tab === item.id }"
                 @click="
-                  locate({
-                    elementId: section.id,
-                    section: section.title,
-                    page: section.page,
-                    quote: section.text.slice(0, 80),
-                  })
+                  evidenceReturn = null;
+                  tab = item.id;
                 "
               >
-                <span class="section-number">{{ String(index + 1).padStart(2, '0') }}</span
-                ><span
-                  ><strong>{{ section.title }}</strong
-                  ><small>{{ section.text.slice(0, 85) }}…</small></span
-                ><Icon name="right" :size="17" />
+                {{ item.label }}
               </button>
             </div>
-            <div class="semantic-note">
-              <Icon name="shield" :size="23" />
-              <div>
-                <h3>语义分析与专业评审</h3>
-                <p>结构提取不等于科学评审。确认实证研究类型并配置模型后，可从左侧启动评审。</p>
-              </div>
-            </div>
-            <div class="artifact-footer">
-              <span>{{ version.parse.parser }} · {{ version.parse.coverage }}</span
-              ><button class="primary-button" :disabled="busy" @click="generateReport">
-                <Icon name="file" :size="17" />生成报告预览
-              </button>
-            </div></template
-          >
-        </div>
-      </div>
-
-      <div
-        v-else-if="tab === 'tools'"
-        class="artifact-scroll"
-        tabindex="0"
-        aria-label="证据工具滚动区"
-      >
-        <div class="artifact-content evidence-tools">
-          <div class="artifact-title">
-            <div>
-              <h2>证据工具</h2>
-              <p>梳理主张与证据，核对文献和数据，留下可复查的判断与来源。</p>
-            </div>
-            <span class="status-pill">当前版本 v{{ version.number }}</span>
-          </div>
-          <ClaimAudit
-            v-if="project"
-            :key="`claims-${version.id}`"
-            :project-id="project.id"
-            :version="version"
-            :draft="claimDrafts[claimDraftKey]"
-            @draft="preserveClaimDraft"
-            @updated="acceptToolUpdate"
-            @evidence="locate"
-          />
-          <ReferenceAudit
-            v-if="project"
-            :key="`references-${version.id}`"
-            :project-id="project.id"
-            :version="version"
-            @updated="acceptToolUpdate"
-            @evidence="locate"
-          />
-          <DataAudit
-            v-if="project"
-            :key="`data-${version.id}`"
-            :project-id="project.id"
-            :version="version"
-            @updated="acceptToolUpdate"
-            @evidence="locate"
-          />
-          <p class="small muted">
-            工具结果与科学评审分开记录。完成核对后，可生成解析报告，保存当前工具快照并导出。
-          </p>
-          <button class="secondary-button" :disabled="busy" @click="generateReport">
-            保存工具快照到报告
-          </button>
-        </div>
-      </div>
-
-      <div v-else class="artifact-scroll report-viewer" tabindex="0" aria-label="预览内容滚动区">
-        <div v-if="report" class="report-toolbar" role="region" aria-label="报告操作">
-          <select
-            v-if="version.reports.length > 1"
-            v-model="selectedReportId"
-            aria-label="选择历史报告"
-          >
-            <option value="">最新报告</option>
-            <option v-for="r in version.reports" :key="r.id" :value="r.id">
-              {{ formattedDate(r.createdAt) }}
-            </option>
-          </select>
-          <button class="secondary-button" :disabled="busy" @click="exportDocument('pdf')">
-            导出 PDF
-          </button>
-          <button class="secondary-button" :disabled="busy" @click="exportDocument('docx')">
-            导出 DOCX
-          </button>
-          <button class="secondary-button" :disabled="busy" @click="downloadReport">
-            导出 Markdown
-          </button>
-          <select v-model="reportTemplateId" aria-label="报告模板">
-            <option v-for="t in configuration.templates" :key="t.id" :value="t.id">
-              {{ t.name }}
-            </option>
-          </select>
-          <button class="secondary-button" :disabled="busy" @click="renderReportTemplate">
-            按模板保存新快照
-          </button>
-        </div>
-        <ReviewEvaluation
-          v-if="report && project"
-          :key="`${project.id}:${version.id}:${report.id}`"
-          :project-id="project.id"
-          :version-id="version.id"
-          :report-id="report.id"
-        />
-        <article class="artifact-content report-content" aria-label="报告正文">
-          <header class="report-document-header">
-            <h2>
-              {{
-                report?.templateSnapshot?.title || (report?.trial ? '论文评审报告' : '论文解析报告')
-              }}
-            </h2>
-            <div class="report-document-meta">
-              <p>论文题目：{{ project?.title }}</p>
-              <p>
-                论文版本：v{{ version.number
-                }}<template v-if="report"
-                  >　·　生成时间：{{ formattedDate(report.createdAt) }}</template
+            <div class="view-tools">
+              <DocumentOutline
+                v-if="
+                  embedded &&
+                  tab === 'annotations' &&
+                  readingPreferences.showOutline &&
+                  version?.parse?.sections.length
+                "
+                :key="version.id"
+                :sections="version.parse.sections"
+                @select="jumpToSection"
+              />
+              <div v-if="!embedded" class="preview-display-controls">
+                <button
+                  class="icon-button"
+                  :aria-label="maximized ? '还原预览' : '最大化预览'"
+                  :title="maximized ? '还原预览 · Esc' : '最大化预览'"
+                  :aria-pressed="maximized"
+                  @click="maximized = !maximized"
                 >
-              </p>
+                  <Icon :name="maximized ? 'restore' : 'maximize'" :size="17" />
+                </button>
+                <button
+                  class="icon-button"
+                  aria-label="最小化预览"
+                  title="最小化预览"
+                  @click="
+                    maximized = false;
+                    minimized = true;
+                    mobilePane = 'chat';
+                  "
+                >
+                  <Icon name="minimize" :size="17" />
+                </button>
+                <button
+                  class="icon-button"
+                  :aria-label="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
+                  :title="displayMode === 'columns' ? '切换为上下布局' : '切换为左右布局'"
+                  @click="displayMode = displayMode === 'columns' ? 'stacked' : 'columns'"
+                >
+                  <Icon :name="displayMode === 'columns' ? 'columns' : 'rows'" :size="17" />
+                </button>
+              </div>
+              <button
+                class="icon-button"
+                :class="{ pressed: showInspector }"
+                aria-label="切换批注面板"
+                :title="showInspector ? '收起批注面板' : '展开批注面板'"
+                :aria-pressed="showInspector"
+                :disabled="layout.inspectorOverlaysPaper.value && !finding"
+                @click="inspector = !inspector"
+              >
+                <Icon name="panel" :size="18" /></button
+              ><button
+                class="icon-button"
+                aria-label="搜索论文"
+                title="搜索论文 Ctrl+K"
+                @click="openDialog('search')"
+              >
+                <Icon name="search" /></button
+              ><span class="toolbar-divider"></span
+              ><button
+                class="icon-button"
+                :class="{ bookmarked }"
+                :aria-pressed="bookmarked"
+                aria-label="收藏当前阅读位置"
+                :title="bookmarked ? '取消收藏当前阅读位置' : '收藏当前阅读位置'"
+                @click="
+                  bookmarked = !bookmarked;
+                  notify(bookmarked ? '阅读位置已收藏' : '已取消收藏');
+                "
+              >
+                <Icon name="bookmark" :size="18" />
+              </button>
+              <slot name="preview-controls" />
             </div>
-            <p v-if="report?.templateSnapshot?.introduction" class="report-introduction">
-              {{ report.templateSnapshot.introduction }}
-            </p>
           </header>
-          <div v-if="!report" class="empty-report">
-            <Icon name="file" :size="40" />
-            <h3>还没有生成报告</h3>
-            <p>解析完成后，可以生成一份包含覆盖情况的报告。<br />未执行的检查将如实标明。</p>
-            <button
-              class="primary-button"
-              :disabled="version.status !== 'ready' || busy"
-              @click="generateReport"
+
+          <nav
+            v-if="version && tab === 'annotations' && searchResultIndex >= 0"
+            class="source-search-navigation"
+            aria-label="原文匹配导航"
+          >
+            <span :title="searchInput"
+              >查找：{{ searchInput.slice(0, 32) }}{{ searchInput.length > 32 ? '…' : '' }}</span
             >
-              生成解析报告
-            </button>
-          </div>
-          <template v-else>
-            <div class="recommendation" :data-recommendation="report.recommendation || 'pending'">
-              <div>
-                <small>{{ report.trial ? '评审建议' : '专业评审状态' }}</small>
-                <h3>
-                  {{ recommendationLabel(report.recommendation) }}
-                </h3>
-                <p>
-                  {{ report.conclusion || '当前为结构解析报告，尚未执行专业评审。' }}
-                </p>
-              </div>
+            <small role="status" aria-live="polite"
+              >匹配 {{ searchResultIndex + 1 }} / {{ searchResults.length }} · 最多 60 处</small
+            >
+            <div>
+              <button
+                :disabled="searchResultIndex <= 0"
+                aria-label="上一处匹配"
+                @click="stepSearchResult(-1)"
+              >
+                上一处
+              </button>
+              <button
+                :disabled="searchResultIndex >= searchResults.length - 1"
+                aria-label="下一处匹配"
+                @click="stepSearchResult(1)"
+              >
+                下一处
+              </button>
+              <button aria-label="结束连续查找" @click="endSearchNavigation">结束查找</button>
             </div>
-            <div class="report-section">
-              <h3>一、评审覆盖与能力边界</h3>
-              <p>{{ report.coverage }}</p>
-              <PdfInspection
-                v-if="report.pdfDiagnostics"
-                :diagnostics="report.pdfDiagnostics"
-                :navigate="report.parseId === version.parse?.id"
-                @page="openPdfInspectionPage"
-              />
-              <p v-if="report.usage" class="small muted">
-                本次调用 {{ report.usage.requests }} 次（失败
-                {{ report.usage.failedRequests }} 次），累计图片输入
-                {{ report.usage.imageInputs }} 张次；已返回用量的
-                {{ report.usage.reportedRequests }} 次请求：输入
-                {{ report.usage.promptTokens.toLocaleString() }} token，输出
-                {{ report.usage.completionTokens.toLocaleString() }} token，缓存命中
-                {{ report.usage.cachedTokens.toLocaleString() }} token。
-              </p>
-              <p v-if="report.wallMs !== undefined" class="small muted">
-                任务累计运行 {{ (report.wallMs / 60000).toFixed(2) }} 分钟，暂停等待不计时。
-                <template v-if="report.budget"
-                  >预算：调用 {{ report.budget.maxRequests ?? '不限' }} 次，运行
-                  {{ report.budget.maxMinutes ?? '不限' }} 分钟。</template
-                >
-              </p>
-              <ToolSnapshots
-                v-if="report.toolAudits"
-                :snapshots="report.toolAudits"
-                :parse-id="version.parse?.id"
-                @evidence="locate"
-              />
-              <details v-if="report.visual" class="visual-coverage">
-                <summary>
-                  逐页视觉核查 · {{ report.visual.renderedPages }}/{{ report.visual.pageCount }} 页
-                  ·
-                  {{
-                    report.visual.complete && report.visual.readable
-                      ? '已覆盖，可读'
-                      : '存在待核验内容'
-                  }}
-                </summary>
-                <article v-for="entry in report.visual.pages" :key="entry.page" class="result-row">
+          </nav>
+
+          <div v-if="!version" class="workspace-empty">
+            <div class="empty-paper"><Icon name="book" :size="44" /><i></i><i></i><i></i></div>
+            <h2>论文预览</h2>
+            <p>上传论文后显示原文</p>
+          </div>
+
+          <Transition v-bind="previewTabMotion">
+            <div v-if="version" v-show="tab === 'annotations'" class="annotation-workspace">
+              <div class="paper-viewport">
+                <div v-if="!embedded" class="document-reader-toolbar">
+                  <DocumentOutline
+                    v-if="readingPreferences.showOutline && version.parse?.sections.length"
+                    :key="version.id"
+                    :sections="version.parse.sections"
+                    @select="jumpToSection"
+                  />
                   <button
-                    class="text-button"
+                    v-if="version.format === 'pdf' && version.status === 'ready'"
+                    class="primary-button pdf-fit-button"
+                    @click="fitPdfToWidth"
+                  >
+                    适合宽度
+                  </button>
+                </div>
+                <div
+                  v-if="embedded && (reviewThinking || liveAnnotations.waiting.value)"
+                  class="annotation-playback"
+                  role="region"
+                  aria-label="批注播放控制"
+                >
+                  <span>{{
+                    liveAnnotations.following.value ? '正在跟随评审批注' : '已暂停跟随，可自由阅读'
+                  }}</span>
+                  <button v-if="liveAnnotations.following.value" @click="liveAnnotations.pause">
+                    暂停跟随
+                  </button>
+                  <button v-else @click="liveAnnotations.resume">继续跟随</button>
+                  <button v-if="liveAnnotations.activeId.value" @click="liveAnnotations.finish">
+                    跳过当前动画
+                  </button>
+                </div>
+                <div
+                  ref="paperScroll"
+                  class="paper-scroll"
+                  :class="{ 'annotated-paper-scroll': embedded }"
+                  tabindex="0"
+                  aria-label="论文预览滚动区"
+                  @wheel.passive="manualRead"
+                  @touchstart.passive="manualRead"
+                  @pointerdown="manualRead"
+                  @keydown="manualRead"
+                >
+                  <template v-if="version.status === 'ready'"
+                    ><PdfReader
+                      v-if="version.format === 'pdf'"
+                      ref="pdfReader"
+                      :key="version.id"
+                      :url="uploadUrl"
+                      :page="page"
+                      :zoom="zoom"
+                      :continuous="readingPreferences.layout === 'continuous'"
+                      :query="evidenceQuote || searchInput"
+                      :bbox="visualAnchor?.page === page ? visualAnchor.bbox : undefined"
+                      :text-anchor="textAnchor"
+                      :search-candidate="activeHyphenCandidate"
+                      :parsed-page="version.parse?.pages.find((item) => item.page === page)"
+                      :parsed-pages="version.parse?.pages"
+                      :annotations="embedded ? liveAnnotations.displayed.value : undefined"
+                      :annotation-active-id="liveAnnotations.activeId.value"
+                      :annotation-characters="liveAnnotations.characters.value"
+                      :annotation-phase="liveAnnotations.phase.value"
+                      :annotation-paused="!liveAnnotations.following.value || !annotationsVisible"
+                      @annotation-ready="annotationReady"
+                      @pause-annotations="liveAnnotations.pause"
+                      @select-annotation="selectAnnotation"
+                      @rendered-zoom="applyInitialPdfFit"
+                      @pages="pageCount = $event" />
+                    <article
+                      v-else
+                      class="paper docx-paper"
+                      :class="{ 'docx-with-annotations': embedded }"
+                      :style="{
+                        fontSize: `${(16 * zoom) / 100}px`,
+                        marginBottom: `${docxAnnotationOverflow}px`,
+                      }"
+                    >
+                      <details class="preview-format-note">
+                        <summary>Word 文本预览</summary>
+                        <p>
+                          {{
+                            version.parse?.structure
+                              ? 'Word 段落与表格预览 · 保留行列与合并范围'
+                              : 'Word 结构化文本预览'
+                          }}
+                          · 不还原原始分页、图像内容与公式
+                        </p>
+                      </details>
+                      <p
+                        v-if="docxEvidenceStatus"
+                        class="docx-evidence-status"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {{ docxEvidenceStatus }}
+                      </p>
+                      <DocxSection
+                        v-for="section in version.parse?.sections"
+                        :key="section.id"
+                        :section="section"
+                        :anchor="textAnchor"
+                      />
+                      <PaperAnnotations
+                        v-if="embedded"
+                        :findings="liveAnnotations.displayed.value"
+                        :sections="version.parse?.sections"
+                        :active-id="liveAnnotations.activeId.value"
+                        :characters="liveAnnotations.characters.value"
+                        :phase="liveAnnotations.phase.value"
+                        :paused="!liveAnnotations.following.value || !annotationsVisible"
+                        @ready="annotationReady"
+                        @pause="liveAnnotations.pause"
+                        @overflow="docxAnnotationOverflow = $event"
+                        @select="selectAnnotation"
+                      /></article
+                  ></template>
+                  <div v-else class="empty-state document-wait">
+                    <Icon
+                      :name="version.status === 'failed' ? 'error' : 'loading'"
+                      :class="{ spin: version.status === 'parsing' }"
+                      :size="35"
+                    />
+                    <h3>{{ version.status === 'failed' ? '暂时无法预览' : '正在准备论文原文' }}</h3>
+                    <p>{{ version.error || '解析完成后，原文将出现在这里' }}</p>
+                    <button
+                      v-if="version.status === 'failed'"
+                      class="secondary-button"
+                      @click="retry"
+                    >
+                      重新解析
+                    </button>
+                  </div>
+                </div>
+                <div
+                  v-if="version.status === 'ready'"
+                  class="reader-controls"
+                  role="group"
+                  aria-label="阅读控制"
+                >
+                  <div
+                    v-if="version.format === 'pdf' && version.status === 'ready'"
+                    class="page-controls"
+                  >
+                    <button
+                      class="icon-button"
+                      aria-label="上一页"
+                      :disabled="page <= 1"
+                      @click="
+                        liveAnnotations.pause();
+                        page--;
+                      "
+                    >
+                      <Icon name="left" :size="17" /></button
+                    ><label
+                      ><input
+                        v-model.number="page"
+                        type="number"
+                        min="1"
+                        :max="pageCount"
+                        aria-label="PDF 页码"
+                        @change="
+                          liveAnnotations.pause();
+                          page = Math.max(1, Math.min(pageCount, Number(page) || 1));
+                        "
+                      />
+                      / {{ pageCount }}</label
+                    ><button
+                      class="icon-button"
+                      aria-label="下一页"
+                      :disabled="page >= pageCount"
+                      @click="
+                        liveAnnotations.pause();
+                        page++;
+                      "
+                    >
+                      <Icon name="right" :size="17" />
+                    </button>
+                  </div>
+                  <button
+                    v-if="embedded && version.format === 'pdf'"
+                    class="primary-button pdf-fit-button"
+                    @click="fitPdfToWidth"
+                  >
+                    适合宽度
+                  </button>
+                  <div class="zoom-control">
+                    <button
+                      aria-label="缩小"
+                      :disabled="zoom <= minimumZoom"
+                      @click="adjustZoom(-10)"
+                    >
+                      <Icon name="minus" :size="15" /></button
+                    ><button
+                      class="zoom-label"
+                      aria-label="重置缩放"
+                      @click="
+                        zoom = 100;
+                        pdfReader?.resetPan();
+                      "
+                    >
+                      {{ Math.round(zoom) }}%</button
+                    ><button
+                      aria-label="放大"
+                      :disabled="zoom >= maximumZoom"
+                      @click="adjustZoom(10)"
+                    >
+                      <Icon name="plus" :size="15" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="showInspector"
+                class="inspector-resizer resize-handle"
+                role="separator"
+                aria-label="调整批注栏宽度"
+                aria-orientation="vertical"
+                :aria-valuenow="inspectorWidth"
+                tabindex="0"
+                @pointerdown="layout.resize($event, 'inspector')"
+                @keydown.left.prevent="layout.adjust('inspector', 10)"
+                @keydown.right.prevent="layout.adjust('inspector', -10)"
+              ></div>
+              <aside v-show="showInspector" class="inspector" aria-label="批注详情">
+                <FindingPanel
+                  :findings="findings"
+                  :selected="selected"
+                  :scope="claimDraftKey"
+                  :busy="markingFinding"
+                  :error="findingError"
+                  @select="chooseFinding"
+                  @locate="locate($event.anchor, $event.id)"
+                  @ask="askCopilot"
+                  @mark="markFinding()"
+                  @resolve="markFinding(true)"
+                  @close="inspector = false"
+                />
+              </aside>
+            </div>
+
+          </Transition>
+          <div
+            v-if="version && visitedTabs.has('parse')"
+            v-show="tab === 'parse'"
+            class="artifact-scroll"
+            tabindex="0"
+            aria-label="预览内容滚动区"
+          >
+            <div class="artifact-content">
+              <div class="artifact-title">
+                <div>
+                  <h2>论文解析</h2>
+                </div>
+                <span class="status-pill" :class="{ warning: version.status !== 'ready' }"
+                  ><span class="status-dot"></span
+                  >{{
+                    version.status === 'ready'
+                      ? '解析完成'
+                      : version.status === 'failed'
+                        ? '解析失败'
+                        : '解析中'
+                  }}</span
+                >
+              </div>
+              <div v-if="version.status === 'parsing'" class="parse-progress">
+                <Icon name="loading" class="spin" />
+                <h3>正在读取论文</h3>
+                <progress max="100" :value="version.progress || 0" />
+                <p>已完成 {{ version.progress || 0 }}% · 任务进度会自动更新</p>
+                <ParseStatusRefresh
+                  :project-id="project!.id"
+                  :version-id="version.id"
+                  :disabled="busy || uploading"
+                  :capture-receiver="parseStatusReceiver"
+                />
+              </div>
+              <div v-else-if="version.status === 'failed'" class="notice error-notice">
+                {{ version.error }}<button class="secondary-button" @click="retry">重试解析</button>
+              </div>
+              <template v-else-if="version.parse"
+                ><div class="parse-metrics">
+                  <div>
+                    <Icon name="file" /><strong>{{ version.pageCount || '—' }}</strong
+                    ><span>{{ version.format === 'docx' ? '未映射 Word 页码' : '论文页数' }}</span>
+                  </div>
+                  <div>
+                    <Icon name="layers" /><strong>{{ version.parse.sections.length }}</strong
+                    ><span>文本区块</span>
+                  </div>
+                  <div>
+                    <Icon name="book" /><strong>{{
+                      version.parse.characterCount.toLocaleString()
+                    }}</strong
+                    ><span>已提取字符</span>
+                  </div>
+                </div>
+                <div v-if="version.parse.structure" class="notice document-structure-summary">
+                  <Icon name="layers" :size="17" /><span
+                    >已保留 {{ version.parse.structure.tableCount }} 个表格、{{
+                      version.parse.structure.rowCount
+                    }}
+                    行、{{ version.parse.structure.cellCount }} 个单元格，含
+                    {{ version.parse.structure.mergedCellCount }}
+                    个合并单元格。表格证据可点击定位；Word 页码未映射。</span
+                  >
+                </div>
+                <PdfInspection
+                  v-if="version.format === 'pdf'"
+                  :diagnostics="version.parse.pdfDiagnostics"
+                  :export-url="`/api/projects/${project!.id}/versions/${version.id}/pdf-diagnostics/export`"
+                  @page="openPdfInspectionPage"
+                />
+                <div v-for="warning in version.parse.warnings" :key="warning" class="notice">
+                  <Icon name="info" :size="17" /><span>{{ warning }}</span>
+                </div>
+                <div class="section-heading">
+                  <h3>文档结构</h3>
+                  <span>点击区块，回到原文</span>
+                </div>
+                <div class="structure-list">
+                  <button
+                    v-for="(section, index) in version.parse.sections"
+                    :key="section.id"
                     @click="
-                      page = entry.page;
-                      tab = 'annotations';
+                      locate({
+                        elementId: section.id,
+                        section: section.title,
+                        page: section.page,
+                        quote: section.text.slice(0, 80),
+                      })
                     "
                   >
-                    第 {{ entry.page }} 页 · {{ entry.readable ? '已阅读' : '存在不可读内容' }} ·
-                    查看原页
+                    <span class="section-number">{{ String(index + 1).padStart(2, '0') }}</span
+                    ><span
+                      ><strong>{{ section.title }}</strong
+                      ><small>{{ section.text.slice(0, 85) }}…</small></span
+                    ><Icon name="right" :size="17" />
                   </button>
-                  <p>{{ entry.observation }}</p>
-                  <p v-for="note in entry.uncertainties" :key="note">待核验：{{ note }}</p>
-                </article>
-                <p
-                  v-for="batch in report.visual.batches?.filter((b) => b.status !== 'completed')"
-                  :key="batch.key"
-                  class="notice error-notice"
-                >
-                  第 {{ batch.pages.join('、') }} 页：{{ batch.error || '未完成' }}
-                </p>
-                <article
-                  v-for="detail in report.visual.details"
-                  :key="detail.id"
-                  class="result-row"
-                >
-                  <strong
-                    >局部放大核查 · {{ detail.id }} ·
-                    {{ detail.readable ? '可读' : '待核验' }}</strong
-                  >
-                  <p>{{ detail.observation }}</p>
-                  <p v-for="note in detail.uncertainties" :key="note">{{ note }}</p>
-                </article>
-              </details>
-
-              <div v-if="report.score" class="notice">
-                已评项得分 {{ report.score.earned.toFixed(1) }} /
-                {{ report.score.assessedMaximum }} · 加权覆盖率
-                {{ (report.score.coverage * 100).toFixed(1) }}%<br />完整总分：{{
-                  report.score.total === null
-                    ? '未形成（不能把缺失项记为零分或满分）'
-                    : report.score.total.toFixed(1)
-                }}
-              </div>
-              <div v-for="warning in report.warnings" :key="warning" class="notice">
-                {{ warning }}
-              </div>
-            </div>
-            <div class="report-section">
-              <h3>二、{{ report.findings.length ? '问题与修改优先级' : '检查项状态' }}</h3>
-              <button
-                v-for="(f, index) in report.findings"
-                :key="f.id"
-                class="report-finding"
-                @click="locate(f.anchor, f.id)"
+                </div>
+                <div class="semantic-note">
+                  <Icon name="shield" :size="23" />
+                  <div>
+                    <h3>语义分析与专业评审</h3>
+                    <p>结构提取不等于科学评审。可在对话中选择模板并发起评审。</p>
+                  </div>
+                </div>
+                <div class="artifact-footer">
+                  <span>{{ version.parse.parser }} · {{ version.parse.coverage }}</span
+                  ><button class="primary-button" :disabled="busy" @click="generateReport">
+                    <Icon name="file" :size="17" />生成报告预览
+                  </button>
+                </div></template
               >
-                <span>{{ String(index + 1).padStart(2, '0') }}</span>
+            </div>
+          </div>
+
+          <div
+            v-if="version && visitedTabs.has('tools')"
+            v-show="tab === 'tools'"
+            class="artifact-scroll"
+            tabindex="0"
+            aria-label="证据工具滚动区"
+          >
+            <div class="artifact-content evidence-tools">
+              <div class="artifact-title">
                 <div>
-                  <small :class="{ 'danger-text': f.severity === '主要问题' }">{{
-                    f.severity
-                  }}</small>
-                  <h4>{{ f.title }}</h4>
-                  <p>{{ f.suggestion }}</p>
-                  <em><Icon name="pin" :size="13" />{{ f.anchor.section }} · 查看证据</em>
+                  <h2>证据工具</h2>
                 </div>
-                <Icon name="arrow" :size="16" />
+                <span class="status-pill">当前版本 v{{ version.number }}</span>
+              </div>
+              <ClaimAudit
+                v-if="project"
+                :key="`claims-${version.id}`"
+                :project-id="project.id"
+                :version="version"
+                :draft="claimDrafts[claimDraftKey]"
+                @draft="preserveClaimDraft"
+                @updated="acceptToolUpdate"
+                @evidence="locate"
+              />
+              <ReferenceAudit
+                v-if="project"
+                :key="`references-${version.id}`"
+                :project-id="project.id"
+                :version="version"
+                @updated="acceptToolUpdate"
+                @evidence="locate"
+              />
+              <DataAudit
+                v-if="project"
+                :key="`data-${version.id}`"
+                :project-id="project.id"
+                :version="version"
+                @updated="acceptToolUpdate"
+                @evidence="locate"
+              />
+              <p class="small muted">
+                工具结果与科学评审分开记录。完成核对后，可生成解析报告，保存当前工具快照并导出。
+              </p>
+              <button class="secondary-button" :disabled="busy" @click="generateReport">
+                保存工具快照到报告
               </button>
-              <div v-for="result in report.results" :key="result.id" class="result-row">
-                <div>
-                  <strong>{{
-                    result.checkId === 'document-text' ? '文档文本' : result.checkId
-                  }}</strong>
-                  <p>{{ result.observation }}</p>
-                  <p v-if="result.verification?.reason">
-                    核验说明：{{ result.verification.reason }}
-                  </p>
-                  <p v-if="result.suggestion">建议：{{ result.suggestion }}</p>
-                  <details v-if="result.issues?.length">
-                    <summary>逐条问题与材料请求（{{ result.issues.length }}）</summary>
-                    <article v-for="issue in result.issues" :key="issue.id" class="notice">
-                      <strong>{{ issue.id }} · {{ issue.title }}</strong>
-                      <p>
-                        {{
-                          issue.kind === 'material_request'
-                            ? '材料请求，不计分'
-                            : issue.duplicateOf
-                              ? `与 ${issue.duplicateOf} 重复，不重复计分`
-                              : issue.verification.reasoning === 'passed'
-                                ? '已复核独立问题'
-                                : '待核验，不计分'
-                        }}
-                      </p>
-                      <p>{{ issue.observation }}</p>
-                      <p>建议：{{ issue.suggestion }}</p>
-                      <p>复查条件：{{ issue.resolutionTest }}</p>
-                      <p>修复路径：{{ repairabilityLabel(issue.repairability) }}</p>
-                      <small>{{ issue.verification.reason }}</small>
-                      <button
-                        v-for="(e, index) in issue.evidence"
-                        :key="index"
-                        class="text-button"
-                        @click="locate(e)"
-                      >
-                        查看证据 · {{ e.section }}
-                      </button>
-                    </article>
-                  </details>
-                  <details v-if="result.comparisons?.length">
-                    <summary>摘要范围的创新性比较</summary>
-                    <div v-for="c in result.comparisons" :key="c.sourceId">
-                      <a :href="c.url" target="_blank" rel="noopener noreferrer">{{ c.title }}</a>
-                      <p>本文主张：{{ c.claim }}</p>
-                      <p>已有工作：{{ c.priorWork }}</p>
-                      <p>本文增量：{{ c.increment }}</p>
-                      <p>本文证据：{{ c.evidence }}</p>
-                      <p>剩余疑问：{{ c.remainingQuestion }}</p>
-                    </div>
-                  </details>
-                  <small v-if="report.trial"
-                    >{{ result.name }} · 等级 {{ result.level ?? '未评分' }} ·
-                    {{ result.verification?.reason || '尚无通过的论证复核' }}</small
-                  >
+            </div>
+          </div>
+
+          <Transition v-bind="previewTabMotion">
+            <ReportViewer
+              v-if="version && visitedTabs.has('report')"
+              v-show="tab === 'report'"
+            >
+              <template #toolbar>
+                <div v-if="report" class="report-toolbar" role="region" aria-label="报告操作">
+                  <div class="report-export" role="group" aria-label="导出报告">
+                    <button
+                      class="secondary-button report-export-primary"
+                      :disabled="busy"
+                      @click="exportDocument(reportExportFormat)"
+                    >
+                      <Icon name="download" :size="16" />导出 {{ reportExportLabel }}
+                    </button>
+                    <FloatingDropdown
+                      class="report-export-formats"
+                      label="选择导出格式"
+                      :min-width="192"
+                      :disabled="busy"
+                    >
+                      <template #trigger><Icon name="down" :size="16" /></template>
+                      <template #default="{ close }">
+                        <button :disabled="busy" @click="chooseReportExport('pdf', close)">
+                          导出 PDF
+                        </button>
+                        <button :disabled="busy" @click="chooseReportExport('docx', close)">
+                          导出 DOCX
+                        </button>
+                        <button :disabled="busy" @click="chooseReportExport('md', close)">
+                          导出 Markdown
+                        </button>
+                      </template>
+                    </FloatingDropdown>
+                  </div>
+                </div>
+              </template>
+              <article class="artifact-content report-content" aria-label="报告正文">
+                <header class="report-document-header">
+                  <div class="report-heading-line">
+                    <h2>审稿意见</h2>
+                    <p
+                      v-if="report"
+                      class="report-verdict"
+                      :data-recommendation="report.recommendation || 'pending'"
+                    >
+                      评审建议：<strong>{{ recommendationLabel(report.recommendation) }}</strong>
+                    </p>
+                  </div>
+                </header>
+                <div v-if="!report" class="empty-report">
+                  <Icon name="file" :size="40" />
+                  <h3>还没有生成报告</h3>
+                  <p>解析完成后，可以生成一份包含覆盖情况的报告。<br />未执行的检查将如实标明。</p>
                   <button
-                    v-for="e in result.evidence"
-                    :key="e.elementId + e.quote"
-                    class="text-button"
-                    @click="locate(e)"
+                    class="primary-button"
+                    :disabled="version.status !== 'ready' || busy"
+                    @click="generateReport"
                   >
-                    查看原文：{{ e.quote.slice(0, 60) }}
+                    生成解析报告
                   </button>
                 </div>
-                <span
-                  class="status-pill"
-                  :class="{ warning: result.executionStatus !== 'completed' }"
-                  >{{ assessmentLabel(result.assessment) }}</span
+                <template v-else>
+                  <section class="report-section">
+                    <h3>评审建议与总体意见</h3>
+                    <p>{{ reportOverview(report) }}</p>
+                  </section>
+                  <section
+                    v-for="group in [
+                      { key: 'major' as const, title: '主要问题' },
+                      { key: 'minor' as const, title: '次要问题' },
+                    ]"
+                    :key="group.key"
+                    class="report-section"
+                  >
+                    <h3>{{ group.title }}</h3>
+                    <ReportIssue
+                      v-for="(issue, index) in reportGroups[group.key]"
+                      :key="issue.id"
+                      :issue="issue"
+                      :index="index"
+                    />
+                    <p v-if="!reportGroups[group.key].length">
+                      本轮未列出此类问题，不代表已排除所有缺陷。
+                    </p>
+                  </section>
+                  <section class="report-section">
+                    <h3>待澄清事项与材料</h3>
+                    <ReportIssue
+                      v-for="(issue, index) in reportGroups.pending"
+                      :key="issue.id"
+                      :issue="issue"
+                      :index="index"
+                    />
+                    <p v-if="!reportGroups.pending.length">暂无单独列出的待澄清事项与材料。</p>
+                  </section>
+                  <div class="report-section">
+                    <h3>评审范围与附录</h3>
+                    <p>{{ report.coverage }}</p>
+                    <details class="report-appendix">
+                      <summary>附录：核验记录</summary>
+                      <details v-if="report.criteriaSnapshot" class="visual-coverage review-basis">
+                        <summary>本次评审依据 · {{ report.criteriaSnapshot.name }}</summary>
+                        <p
+                          v-for="(line, index) in reviewBasisLines(report.criteriaSnapshot)"
+                          :key="index"
+                        >
+                          {{ line }}
+                        </p>
+                      </details>
+
+                      <PdfInspection
+                        v-if="report.pdfDiagnostics"
+                        :diagnostics="report.pdfDiagnostics"
+                        :navigate="report.parseId === version.parse?.id"
+                        @page="openPdfInspectionPage"
+                      />
+                      <p v-if="report.usage" class="small muted">
+                        本次调用 {{ report.usage.requests }} 次（失败
+                        {{ report.usage.failedRequests }} 次），累计图片输入
+                        {{ report.usage.imageInputs }} 张次；已返回用量的
+                        {{ report.usage.reportedRequests }} 次请求：输入
+                        {{ report.usage.promptTokens.toLocaleString() }} token，输出
+                        {{ report.usage.completionTokens.toLocaleString() }} token，缓存命中
+                        {{ report.usage.cachedTokens.toLocaleString() }} token。
+                      </p>
+                      <p v-if="report.wallMs !== undefined" class="small muted">
+                        任务累计运行 {{ (report.wallMs / 60000).toFixed(2) }} 分钟，暂停等待不计时。
+                        <template v-if="report.budget"
+                          >预算：调用 {{ report.budget.maxRequests ?? '不限' }} 次，运行
+                          {{ report.budget.maxMinutes ?? '不限' }} 分钟。</template
+                        >
+                      </p>
+                      <ToolSnapshots
+                        v-if="report.toolAudits"
+                        :snapshots="report.toolAudits"
+                        :parse-id="version.parse?.id"
+                        @evidence="locate"
+                      />
+                      <details v-if="report.visual" class="visual-coverage">
+                        <summary>
+                          逐页视觉核查 · {{ report.visual.renderedPages }}/{{
+                            report.visual.pageCount
+                          }}
+                          页 ·
+                          {{
+                            report.visual.complete && report.visual.readable
+                              ? '已覆盖，可读'
+                              : '存在待核验内容'
+                          }}
+                        </summary>
+                        <article
+                          v-for="entry in report.visual.pages"
+                          :key="entry.page"
+                          class="result-row"
+                        >
+                          <button
+                            class="text-button"
+                            @click="
+                              rememberEvidenceOrigin();
+                              page = entry.page;
+                              tab = 'annotations';
+                            "
+                          >
+                            第 {{ entry.page }} 页 ·
+                            {{ entry.readable ? '已阅读' : '存在不可读内容' }} · 查看原页
+                          </button>
+                          <p>{{ entry.observation }}</p>
+                          <p v-for="note in entry.uncertainties" :key="note">待核验：{{ note }}</p>
+                        </article>
+                        <p
+                          v-for="batch in report.visual.batches?.filter(
+                            (b) => b.status !== 'completed',
+                          )"
+                          :key="batch.key"
+                          class="notice error-notice"
+                        >
+                          第 {{ batch.pages.join('、') }} 页：{{ batch.error || '未完成' }}
+                        </p>
+                        <article
+                          v-for="detail in report.visual.details"
+                          :key="detail.id"
+                          class="result-row"
+                        >
+                          <strong
+                            >局部放大核查 · {{ detail.id }} ·
+                            {{ detail.readable ? '可读' : '待核验' }}</strong
+                          >
+                          <p>{{ detail.observation }}</p>
+                          <p v-for="note in detail.uncertainties" :key="note">{{ note }}</p>
+                        </article>
+                      </details>
+
+                      <div v-if="report.score" class="notice">
+                        已评项得分 {{ report.score.earned.toFixed(1) }} /
+                        {{ report.score.assessedMaximum }} · 加权覆盖率
+                        {{ (report.score.coverage * 100).toFixed(1) }}%<br />完整总分：{{
+                          report.score.total === null
+                            ? '未形成（不能把缺失项记为零分或满分）'
+                            : report.score.total.toFixed(1)
+                        }}
+                      </div>
+                      <div v-for="warning in report.warnings" :key="warning" class="notice">
+                        {{ warning }}
+                      </div>
+                      <div class="report-section">
+                        <h4>分项核验记录</h4>
+                        <div v-for="result in report.results" :key="result.id" class="result-row">
+                          <div>
+                            <strong>{{
+                              result.checkId === 'document-text' ? '文档文本' : result.checkId
+                            }}</strong>
+                            <p>{{ result.observation }}</p>
+                            <p v-if="result.verification?.reason">
+                              核验说明：{{ result.verification.reason }}
+                            </p>
+                            <p v-if="result.suggestion">建议：{{ result.suggestion }}</p>
+                            <details v-if="result.issues?.length">
+                              <summary>逐条问题与材料请求（{{ result.issues.length }}）</summary>
+                              <article v-for="issue in result.issues" :key="issue.id" class="notice">
+                                <strong>{{ issue.id }} · {{ issue.title }}</strong>
+                                <p>
+                                  {{
+                                    issue.kind === 'material_request'
+                                      ? '材料请求，不计分'
+                                      : issue.duplicateOf
+                                        ? `与 ${issue.duplicateOf} 重复，不重复计分`
+                                        : issue.verification.reasoning === 'passed'
+                                          ? '已复核独立问题'
+                                          : '待核验，不计分'
+                                  }}
+                                </p>
+                                <p>{{ issue.observation }}</p>
+                                <p>建议：{{ issue.suggestion }}</p>
+                                <p>复查条件：{{ issue.resolutionTest }}</p>
+                                <p>修复路径：{{ repairabilityLabel(issue.repairability) }}</p>
+                                <small>{{ issue.verification.reason }}</small>
+                                <button
+                                  v-for="(e, index) in issue.evidence"
+                                  :key="index"
+                                  class="text-button"
+                                  @click="locate(e)"
+                                >
+                                  查看证据 · {{ e.section }}
+                                </button>
+                              </article>
+                            </details>
+                            <details v-if="result.comparisons?.length">
+                              <summary>摘要范围的创新性比较</summary>
+                              <div v-for="c in result.comparisons" :key="c.sourceId">
+                                <a :href="c.url" target="_blank" rel="noopener noreferrer">{{
+                                  c.title
+                                }}</a>
+                                <p>本文主张：{{ c.claim }}</p>
+                                <p>已有工作：{{ c.priorWork }}</p>
+                                <p>本文增量：{{ c.increment }}</p>
+                                <p>本文证据：{{ c.evidence }}</p>
+                                <p>剩余疑问：{{ c.remainingQuestion }}</p>
+                              </div>
+                            </details>
+                            <small v-if="report.trial"
+                              >{{ result.name
+                              }}<template v-if="report.score">
+                                · 等级 {{ result.level ?? '未评分' }}</template
+                              >
+                              · {{ result.verification?.reason || '尚无通过的论证复核' }}</small
+                            >
+                            <button
+                              v-for="e in result.evidence"
+                              :key="e.elementId + e.quote"
+                              class="text-button"
+                              @click="locate(e)"
+                            >
+                              查看原文：{{ e.quote.slice(0, 60) }}
+                            </button>
+                          </div>
+                          <span
+                            class="status-pill"
+                            :class="{ warning: result.executionStatus !== 'completed' }"
+                            >{{ assessmentLabel(result.assessment) }}</span
+                          >
+                        </div>
+                      </div>
+                      <div class="report-section">
+                        <h4>版本与溯源</h4>
+                        <dl class="provenance">
+                          <dt>评判方案</dt>
+                          <dd>{{ report.scheme }}</dd>
+                          <dt>评审任务</dt>
+                          <dd>{{ report.runId }}</dd>
+                          <dt>论文版本</dt>
+                          <dd>{{ report.versionId }}</dd>
+                          <template v-if="report.model"
+                            ><dt>评审模型</dt>
+                            <dd>{{ report.model.model }}</dd>
+                            <dt>规则指纹</dt>
+                            <dd style="overflow-wrap: anywhere">{{ report.packHash }}</dd></template
+                          >
+                        </dl>
+                      </div>
+                    </details>
+                  </div>
+                  <p class="report-disclaimer">
+                    系统建议不代表期刊正式决定。报告保存生成时的结果快照，后续问题状态更新不会改写此报告。
+                  </p></template
                 >
-              </div>
-            </div>
-            <div class="report-section">
-              <h3>三、版本与溯源</h3>
-              <dl class="provenance">
-                <dt>评判方案</dt>
-                <dd>{{ report.scheme }}</dd>
-                <dt>报告模板</dt>
-                <dd>{{ report.template }}</dd>
-                <dt>评审任务</dt>
-                <dd>{{ report.runId }}</dd>
-                <dt>论文版本</dt>
-                <dd>{{ report.versionId }}</dd>
-                <template v-if="report.model"
-                  ><dt>评审模型</dt>
-                  <dd>{{ report.model.model }}</dd>
-                  <dt>规则指纹</dt>
-                  <dd style="overflow-wrap: anywhere">{{ report.packHash }}</dd></template
-                >
-              </dl>
-            </div>
-            <p class="report-disclaimer">
-              系统建议不代表期刊正式决定。报告保存生成时的结果快照，后续问题状态更新不会改写此报告。
-            </p></template
+              </article>
+            </ReportViewer>
+          </Transition>
+        </main>
+        <aside v-if="minimized" class="preview-rail">
+          <button
+            class="icon-button"
+            aria-label="恢复预览"
+            title="恢复预览"
+            @click="
+              minimized = false;
+              mobilePane = 'paper';
+            "
           >
-        </article>
-      </div>
-    </main>
-    <aside v-if="minimized" class="preview-rail">
-      <button
-        class="icon-button"
-        aria-label="恢复预览"
-        title="恢复预览"
-        @click="
-          minimized = false;
-          mobilePane = 'paper';
-        "
-      >
-        <Icon name="panel" /></button
-      ><span>论文预览</span>
-    </aside>
+            <Icon name="panel" /></button
+          ><span>论文预览</span>
+        </aside>
+      </template>
+    </div>
     <Teleport to="body"
       ><div
         v-if="menuProject"
@@ -2647,19 +2648,59 @@ onUnmounted(() => {
         </button>
       </div></Teleport
     >
-    <div class="mobile-switch">
-      <button :class="{ active: mobilePane === 'chat' }" @click="mobilePane = 'chat'">
-        <Icon name="chat" :size="17" />对话</button
-      ><button
-        :class="{ active: mobilePane === 'paper' }"
-        @click="
-          mobilePane = 'paper';
-          minimized = false;
+    <Modal
+      v-if="studioMenuRendered"
+      :navigation-menu="studioMenuId"
+      title="工作空间"
+      @close="studioMenu = false"
+    >
+      <div class="studio-menu-actions">
+        <button class="secondary-button" @click="startStudioChat(activeStudioProject || undefined)">
+          新聊天
+        </button>
+        <button
+          class="secondary-button"
+          @click="
+            studioMenu = false;
+            startStudioProject();
+          "
+        >
+          新建项目
+        </button>
+        <button class="secondary-button" @click="navigateStudio('library')">文献库</button>
+        <button class="secondary-button" @click="navigateStudio('templates')">模板与规范</button>
+        <button class="secondary-button" @click="navigateStudio('settings')">设置</button>
+        <button class="secondary-button" @click="navigateStudio('profile')">个人中心</button>
+        <button
+          class="secondary-button"
+          @click="
+            studioMenu = false;
+            emit('account');
+          "
+        >
+          账号菜单
+        </button>
+      </div>
+      <SidebarWorkspace
+        compact
+        :projects="studioIndex.projects"
+        :chats="studioIndex.chats"
+        :papers="navigationPapers"
+        :active-route="
+          managementPage
+            ? ''
+            : contentRoute || (!studioActive && project ? `review/${project.id}` : '')
         "
-      >
-        <Icon name="book" :size="17" />论文工作区
-      </button>
-    </div>
+        :active-project="activeStudioProject"
+        @navigate="navigateStudio"
+        @paper="openSidebarPaper"
+        @new-chat="startStudioChat"
+        @new-project="startStudioProject"
+        @project-settings="configureSidebarProject"
+        @refresh="refreshSidebar"
+        @paper-updated="updateSidebarPaper"
+      />
+    </Modal>
     <input
       ref="fileInput"
       aria-label="上传论文文件"
@@ -2681,8 +2722,12 @@ onUnmounted(() => {
       v-if="dialog"
       :title="titles[dialog] || '项目详情'"
       :wide="['projects', 'library', 'compare', 'templates'].includes(dialog)"
+      :body-class="dialog === 'search' ? 'source-search-body' : undefined"
       @close="dialog = ''"
     >
+      <p v-if="formError" class="notice error-notice" role="alert">
+        {{ formError }} 输入已保留，请重试。
+      </p>
       <form
         v-if="dialog === 'new' || dialog === 'rename'"
         @submit.prevent="dialog === 'new' ? createProject() : renameProject()"
@@ -2707,7 +2752,7 @@ onUnmounted(() => {
             class="primary-button"
             :disabled="busy || (dialog === 'rename' && !nameInput.trim())"
           >
-            {{ dialog === 'new' ? '创建项目' : '保存名称' }}
+            {{ busy ? '正在保存…' : dialog === 'new' ? '创建项目' : '保存名称' }}
           </button>
         </div>
       </form>
@@ -2715,13 +2760,6 @@ onUnmounted(() => {
         <p>当前版本 v{{ version?.number }} · {{ savedChatCount }} 条已保存问答记录。</p>
         <p class="muted">
           导出问题、回答、原文证据和检索范围，便于整理研究笔记或交给同伴复核。证据编号只在各条回答内有效，文字匹配不代表结论已核验。
-        </p>
-        <p v-if="activeChat" class="muted">
-          {{
-            activeChat.cancelled
-              ? '停止接收的临时回答不在本次导出中；以服务端已保存记录为准。'
-              : '正在生成的回答尚未保存，本次导出不包含该回答。'
-          }}
         </p>
         <div class="modal-actions">
           <button
@@ -2753,21 +2791,30 @@ onUnmounted(() => {
           />
         </div>
         <div class="project-grid">
-          <button
-            v-for="p in filteredProjects"
-            :key="p.id"
-            @click="showArchived ? projectAction('archive', p) : safe(() => openProject(p.id))"
-          >
+          <div v-for="p in filteredProjects" :key="p.id" class="project-management-tile">
             <Icon name="folder" :size="24" />
             <h3>{{ p.title }}</h3>
             <p>{{ `${p.versions.length} 个论文版本` }}</p>
-            <span
-              >{{ showArchived ? '恢复项目' : '打开项目' }} <Icon name="arrow" :size="15"
-            /></span></button
-          ><button class="new-project-tile" @click="openDialog('new')">
+            <div class="project-tile-actions">
+              <button
+                class="text-button"
+                @click="showArchived ? projectAction('archive', p) : safe(() => openProject(p.id))"
+              >
+                {{ showArchived ? '恢复项目' : '打开项目' }} <Icon name="arrow" :size="15" />
+              </button>
+              <button
+                v-if="showArchived"
+                class="text-button danger-text"
+                :aria-label="`删除项目：${p.title}`"
+                @click="projectAction('delete', p)"
+              >
+                删除
+              </button>
+            </div>
+          </div>
+          <button class="new-project-tile" @click="openDialog('new')">
             <Icon name="plus" :size="25" />
             <h3>新建论文项目</h3>
-            <p>开始你的下一项研究</p>
           </button>
         </div>
         <p v-if="!filteredProjects.length" class="muted">没有找到匹配的项目。</p></template
@@ -2777,7 +2824,7 @@ onUnmounted(() => {
       /></template>
       <template v-else-if="dialog === 'delete'"
         ><div class="notice error-notice">
-          将永久删除该项目的原始文件、全部版本、对话、批注与报告，无法撤销。
+          将永久删除该项目的原始文件、全部版本、对话、批注与报告，相关论文也会从文献库移除，无法撤销。
         </div>
         <p>
           删除项目：<strong>{{ dialogProject?.title }}</strong>
@@ -2787,54 +2834,90 @@ onUnmounted(() => {
           ><button class="danger-button" :disabled="busy" @click="deleteProject">永久删除</button>
         </div></template
       >
-      <template v-else-if="dialog === 'search'"
-        ><div class="search-field">
-          <Icon name="search" :size="18" /><input
-            v-model="searchInput"
-            autofocus
-            placeholder="输入原文关键词…"
-            aria-label="原文搜索关键词"
-          /><kbd>Ctrl K</kbd>
-        </div>
-        <label v-if="version?.format === 'pdf'" class="search-candidate-option small">
-          <input v-model="searchHyphenCandidates" type="checkbox" />
-          查找 PDF 换行断词候选
-        </label>
-        <p v-if="version?.format === 'pdf' && searchHyphenCandidates" class="small muted">
-          候选需核对原文：只兼容英文字母间的行末连字符，可能含真正的复合词。仅支持200字符以内查询，不跨页或区块。
-        </p>
-        <p class="small muted">
-          {{
-            searchInput
-              ? `显示 ${searchResults.length} 处匹配（最多 60 处，按原文顺序）`
-              : '搜索当前版本原文，可兼容空格与单次换行差异'
-          }}
-        </p>
-        <button
-          v-for="result in searchResults"
-          :key="`${result.section.id}:${result.range.start}`"
-          class="search-result"
-          @click="selectSearchResult(result)"
-        >
-          <strong>{{ result.section.title }} · 原文位置 {{ result.range.start + 1 }}</strong>
-          <p>
-            {{ searchPreview(result) }}
+      <template v-else-if="dialog === 'search'">
+        <div class="source-search-controls">
+          <label for="source-search-query">原文关键词</label>
+          <div class="search-field">
+            <Icon name="search" :size="18" /><input
+              id="source-search-query"
+              ref="sourceSearchInput"
+              v-model="searchInput"
+              autofocus
+              autocomplete="off"
+              placeholder="输入原文关键词…"
+              aria-label="原文搜索关键词"
+              aria-describedby="source-search-status"
+            />
+            <button
+              v-if="searchInput"
+              class="icon-button"
+              aria-label="清空搜索"
+              @click="
+                searchInput = '';
+                sourceSearchInput?.focus();
+              "
+            >
+              <Icon name="close" :size="16" />
+            </button>
+          </div>
+          <label v-if="version?.format === 'pdf'" class="search-candidate-option">
+            <input v-model="searchHyphenCandidates" type="checkbox" />
+            查找 PDF 换行断词候选
+          </label>
+          <p v-if="version?.format === 'pdf' && searchHyphenCandidates" class="small muted">
+            候选需核对原文：只兼容英文字母间的行末连字符，可能含真正的复合词。仅支持200字符以内查询，不跨页或区块。
           </p>
-          <small
-            >{{
-              result.range.matchKind === 'hyphenation_candidate'
-                ? '断词候选 · 请核对原文 · '
-                : result.range.matchKind === 'whitespace'
-                  ? '空格 / 换行兼容匹配 · '
-                  : ''
-            }}定位到原文 <Icon name="arrow" :size="13"
-          /></small>
-        </button>
-        <div v-if="searchInput && !searchResults.length" class="empty-state">
-          <Icon name="search" :size="28" />
-          <p>没有找到相关内容，试试其他关键词。</p>
-        </div></template
-      >
+          <p
+            v-show="!version || version.status !== 'ready' || !version.parse || searchInput.trim()"
+            id="source-search-status"
+            role="status"
+            aria-live="polite"
+          >
+            {{
+              !version
+                ? '上传论文后即可搜索原文。'
+                : version.status !== 'ready' || !version.parse
+                  ? version.status === 'failed'
+                    ? '论文解析失败，请重试解析后再搜索。'
+                    : '论文解析中，完成后即可搜索。'
+                  : searchInput.trim()
+                    ? `显示 ${searchResults.length} 处匹配（最多 60 处，按原文顺序）`
+                    : ''
+            }}
+          </p>
+        </div>
+        <div
+          v-if="searchInput.trim() && version?.status === 'ready' && version.parse"
+          class="source-search-results"
+          role="region"
+          aria-label="原文搜索结果"
+        >
+          <button
+            v-for="result in searchResults"
+            :key="`${result.section.id}:${result.range.start}`"
+            class="search-result"
+            @click="selectSearchResult(result)"
+          >
+            <strong>{{ result.section.title }} · 原文位置 {{ result.range.start + 1 }}</strong>
+            <p>
+              {{ searchPreview(result) }}
+            </p>
+            <small
+              >{{
+                result.range.matchKind === 'hyphenation_candidate'
+                  ? '断词候选 · 请核对原文 · '
+                  : result.range.matchKind === 'whitespace'
+                    ? '空格 / 换行兼容匹配 · '
+                    : ''
+              }}定位到原文 <Icon name="arrow" :size="13"
+            /></small>
+          </button>
+          <div v-if="!searchResults.length" class="empty-state">
+            <Icon name="search" :size="28" />
+            <p>没有找到相关内容，试试其他关键词。</p>
+          </div>
+        </div>
+      </template>
       <template v-else-if="dialog === 'versions'"
         ><p class="muted">每次上传独立保存原始论文、解析与报告。</p>
         <button
@@ -2890,11 +2973,11 @@ onUnmounted(() => {
           </button>
         </div></template
       >
-      <template v-else-if="dialog === 'compare'"
-        ><p class="muted">比较已解析的文本区块，区分内容变化与问题状态。</p>
+      <template v-else-if="dialog === 'compare'">
         <div class="compare-select">
           <label
             >旧版本<select v-model="compareBefore">
+              <SelectContent />
               <option value="">请选择</option>
               <option
                 v-for="v in project?.versions.filter(
@@ -2909,10 +2992,10 @@ onUnmounted(() => {
           ><Icon name="right" /><span>当前 v{{ version?.number || '—' }}</span
           ><button
             class="primary-button"
-            :disabled="!compareBefore || version?.status !== 'ready'"
+            :disabled="comparing || !compareBefore || version?.status !== 'ready'"
             @click="compare"
           >
-            开始比较
+            {{ comparing ? '正在比较…' : '开始比较' }}
           </button>
         </div>
         <button

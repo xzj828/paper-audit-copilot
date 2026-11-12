@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -102,22 +103,126 @@ before(async () => {
   });
   for (let i = 0; i < 80; i++) {
     try {
-      const response = await request('/api/projects', 'GET', undefined, '');
-      cookie = response.cookie;
+      const response = await loginTestAccount(base, directory);
+      cookie = response.headers.get('set-cookie').split(';')[0];
       break;
     } catch {
       await delay(100);
     }
   }
   assert.ok(cookie, 'API should start');
-  otherCookie = (await request('/api/projects', 'GET', undefined, '')).cookie;
+  otherCookie = (await loginTestAccount(base, directory)).headers.get('set-cookie').split(';')[0];
 });
 after(async () => {
   server?.kill();
   await delay(300);
 });
 
-test('anonymous workspaces isolate project, file, report and mutation access', async () => {
+test('library-only imports parse without review work and promote in place with metadata intact', async () => {
+  assert.equal((await request('/api/projects', 'POST', { purpose: 'unknown' })).status, 400);
+  const item = (await request('/api/projects', 'POST', { title: '仅收藏论文', purpose: 'library' }))
+    .data;
+  await upload(item.id, '收藏.docx', docxFixture());
+  const saved = await parsed(item.id);
+  const v = saved.versions[0];
+  assert.equal(v.status, 'ready');
+  assert.equal(saved.purpose, 'library');
+  assert.ok(v.parse.sections.length);
+  assert.deepEqual(v.runs, []);
+  assert.deepEqual(v.reports, []);
+  assert.deepEqual(v.findings, []);
+  assert.ok(!(await request('/api/projects?purpose=review')).data.some((p) => p.id === item.id));
+  assert.ok((await request('/api/projects?purpose=library')).data.some((p) => p.id === item.id));
+  const collections = (
+    await request('/api/workspace/collections', 'POST', { name: '收藏测试集合' })
+  ).data;
+  const collectionId = collections.collections.at(-1).id;
+  await request('/api/workspace/documents', 'PATCH', {
+    ids: [v.id],
+    collectionId,
+    starred: true,
+    unread: true,
+    trashed: true,
+  });
+  // Failed review attempts must not silently turn a stored paper into a review project.
+  assert.equal(
+    (await request(`/api/projects/${item.id}/review`, 'POST', { versionId: v.id })).status,
+    409,
+  );
+  const endpoint = `/api/projects/${item.id}/review-workspace`;
+  assert.equal((await request(endpoint, 'POST', { versionId: v.id }, otherCookie)).status, 404);
+  assert.equal((await request(endpoint, 'POST', { versionId: 'missing' })).status, 404);
+  assert.deepEqual((await request(`/api/projects/${item.id}`)).data, saved);
+  assert.equal((await request('/api/workspace')).data.documents[v.id].trashed, true);
+  const beforeCount = (await request('/api/projects')).data.length;
+  const entered = await request(endpoint, 'POST', { versionId: v.id });
+  assert.equal(entered.status, 200);
+  assert.equal(entered.data.purpose, 'review');
+  assert.equal(entered.data.activeVersionId, v.id);
+  assert.equal(entered.data.versions[0].contentHash, v.contentHash);
+  assert.deepEqual(entered.data.versions[0].parse, v.parse);
+  assert.equal(entered.data.versions[0].reports.length, 1);
+  assert.equal(entered.data.versions[0].reports[0].template, 'structure-preview@1.0.0');
+  assert.ok(entered.data.versions[0].runs.every((run) => run.status !== 'running'));
+  assert.deepEqual((await request('/api/workspace')).data.documents[v.id], {
+    collections: [collectionId],
+    starred: true,
+    unread: true,
+    trashed: false,
+  });
+  assert.deepEqual((await request(endpoint, 'POST', { versionId: v.id })).data, entered.data);
+  assert.equal((await request('/api/projects')).data.length, beforeCount);
+  assert.ok((await request('/api/projects?purpose=review')).data.some((p) => p.id === item.id));
+});
+
+test('a direct scientific review also promotes and restores a library paper', async () => {
+  const item = (await request('/api/projects', 'POST', { title: '直接评审', purpose: 'library' }))
+    .data;
+  await upload(item.id, 'direct.docx', docxFixture());
+  const v = (await parsed(item.id)).versions[0];
+  await request('/api/workspace/documents', 'PATCH', { ids: [v.id], trashed: true });
+  const provider = createServer(async (req, res) => {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(
+      JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(reviewReply(JSON.parse(body).messages)) } }],
+      }),
+    );
+  });
+  await new Promise((resolve) => provider.listen(0, '127.0.0.1', resolve));
+  try {
+    await request('/api/model-config', 'PUT', {
+      baseUrl: `http://127.0.0.1:${provider.address().port}/v1`,
+      model: 'library-review-test',
+      apiKey: 'local-test',
+      enabled: true,
+    });
+    await request(`/api/projects/${item.id}`, 'PATCH', {
+      settings: { scheme: 'stxb-precheck@0.1.0-trial', articleType: 'empirical', confirmed: true },
+    });
+    const started = await request(`/api/projects/${item.id}/review`, 'POST', { versionId: v.id });
+    assert.equal(started.status, 202);
+    assert.equal(started.data.purpose, 'review');
+    assert.equal((await request('/api/workspace')).data.documents[v.id].trashed, false);
+    let latest;
+    for (let i = 0; i < 200; i++) {
+      latest = (await request(`/api/projects/${item.id}`)).data;
+      if (latest.versions[0].runs.at(-1).status !== 'running') break;
+      await delay(20);
+    }
+    assert.equal(latest.purpose, 'review');
+    assert.equal(latest.versions[0].runs.at(-1).status, 'completed');
+    assert.equal(latest.versions[0].reports.length, 1);
+  } finally {
+    await request(`/api/projects/${item.id}`, 'DELETE');
+    await request('/api/model-config', 'DELETE');
+    await new Promise((resolve) => provider.close(resolve));
+  }
+});
+
+test('account workspaces isolate project, file, report and mutation access', async () => {
   const created = await request('/api/projects', 'POST', { title: 'API test paper' });
   p = created.data;
   assert.equal(created.status, 201);

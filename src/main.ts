@@ -1,7 +1,22 @@
 import { createApp } from 'vue';
-import App from './App.vue';
+import App from './AuthShell.vue';
 import './style.css';
 import './management.css';
+import './catalog.css';
+import './catalog-compact.css';
+import './configuration-studio.css';
 import './report.css';
+import './design-system.css';
+import './sidebar-motion.css';
+import './configuration-reader.css';
+import './settings.css';
+import './select.css';
+import './model-settings.css';
+import './research.css';
+import './conversation.css';
+import './studio-integration.css';
+import './sidebar-design.css';
+import './sidebar-theme.css';
+import './chat-botanical.css';
 
 createApp(App).mount('#app');

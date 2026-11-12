@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { positionedPdfFixture } from '../pdf-fixtures.js';
 
 test('source search locates each repeated occurrence and an exact multiline quote on mobile and after reload', async ({
@@ -27,6 +27,8 @@ test('source search locates each repeated occurrence and an exact multiline quot
   const parsed = initial.versions[0].parse.pages[0];
   const repeated = parsed.items.filter((item) => item.text === 'Repeated sample 312');
   const search = async (query) => {
+    const closeNavigation = page.getByRole('button', { name: '收起导航栏', exact: true });
+    if (await closeNavigation.isVisible()) await closeNavigation.click();
     await page.getByRole('button', { name: '搜索论文', exact: true }).click();
     await page.getByRole('textbox', { name: '原文搜索关键词' }).fill(query);
   };

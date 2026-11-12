@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { Document, Paragraph, Packer } from 'docx';
 import { createServer } from 'node:http';
 import path from 'node:path';
@@ -154,7 +154,7 @@ test('legacy DOCX evidence shows ambiguity without a false first highlight and a
     sources: [{ id: 'R1', anchor }],
   });
   const persist = async () => {
-    const cookie = (await page.context().cookies()).find((c) => c.name === 'audit_workspace');
+    const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
     const store = createStore(path.resolve('test-results/e2e-data'));
     try {
       store.save(cookie.value, project);

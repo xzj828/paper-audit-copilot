@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import { createStore } from './store.js';
+import { createAuthService } from './auth.js';
 import { makeEmpty } from './project.js';
 import { registry, makeStructureReport, answerLocally } from './engine.js';
 import { createModelService } from './models.js';
@@ -23,13 +24,16 @@ import { mountDataAudit } from './data-audit.js';
 import { mountClaimAudit } from './claim-audit.js';
 import { makeReviewEvaluationPacket, compareReviewAnnotations } from './review-evaluation.js';
 import { pdfDiagnosticsSnapshot } from '../shared/pdf-diagnostics.js';
+import { mountStudio } from './studio.js';
+import { mountPersonalCenter } from './personal-center.js';
 
-export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {}) {
+export function createPaperAuditApplication({ dataDirectory, rootDirectory, publicOrigin } = {}) {
   const root = path.resolve(
     rootDirectory || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'),
   );
   const directory = path.resolve(dataDirectory || path.join(root, 'data'));
   const store = createStore(directory);
+  const auth = createAuthService(store, { publicOrigin });
   const models = createModelService(store.db, directory);
   const configuration = createConfigurationService(store.db);
   const workspaceState = createWorkspaceService(store.db, configuration, store);
@@ -64,33 +68,53 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     next();
   });
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
-  app.use('/api', (req, res, next) => {
-    res.setHeader('Cache-Control', 'no-store');
-    if (
-      !['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
-      req.headers.origin &&
-      new URL(req.headers.origin).host !== req.headers.host
-    )
-      return res.status(403).json({ error: '请求来源不匹配' });
-    const cookie = req.headers.cookie
-      ?.split(';')
-      .map((c) => c.trim())
-      .find((c) => c.startsWith('audit_workspace='))
-      ?.slice(16);
-    if (cookie && /^[\da-f-]{36}$/.test(cookie) && store.hasWorkspace(cookie))
-      req.workspace = cookie;
-    else {
-      req.workspace = randomUUID();
-      store.addWorkspace(req.workspace);
-      res.setHeader(
-        'Set-Cookie',
-        `audit_workspace=${req.workspace}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${req.secure ? '; Secure' : ''}`,
-      );
-    }
-    next();
-  });
+  app.use('/api', auth.sourceGuard);
   app.use('/api/projects/:id/reports/:reportId/evaluation/compare', express.json({ limit: '1mb' }));
+  app.use('/api/review-configuration', express.json({ limit: '2mb' }));
+  app.use('/api/studio/files', express.json({ limit: '2mb' }));
+  app.use('/api/account/profile', express.json({ limit: '400kb' }));
   app.use(express.json({ limit: '64kb' }));
+  auth.mount(app);
+  app.use('/api', auth.requireAccount);
+  mountPersonalCenter(app, store, workspaceState);
+  const studio = mountStudio(app, { store, models, configuration, reviews, directory });
+
+  app.get('/api/workspace/ui', (req, res) => {
+    res.json(
+      Object.fromEntries(
+        store.db
+          .prepare('SELECT key,value FROM account_ui WHERE workspace_id=?')
+          .all(req.workspace)
+          .map((r) => [r.key, r.value]),
+      ),
+    );
+  });
+  app.put('/api/workspace/ui', (req, res) => {
+    const { key, value } = req.body || {};
+    if (
+      typeof key !== 'string' ||
+      !/^audit-[a-zA-Z0-9:_-]{1,180}$/.test(key) ||
+      typeof value !== 'string' ||
+      value.length > (/^audit-(studio-draft-|paper-draft-)/.test(key) ? 20000 : 16000)
+    )
+      return res.status(400).json({ error: '偏好格式无效' });
+    const count = store.db
+      .prepare('SELECT COUNT(*) AS n FROM account_ui WHERE workspace_id=?')
+      .get(req.workspace).n;
+    if (
+      count >= 2000 &&
+      !store.db
+        .prepare('SELECT 1 FROM account_ui WHERE workspace_id=? AND key=?')
+        .get(req.workspace, key)
+    )
+      return res.status(400).json({ error: '保存的视图已达上限' });
+    store.db
+      .prepare(
+        'INSERT INTO account_ui VALUES (?,?,?) ON CONFLICT(workspace_id,key) DO UPDATE SET value=excluded.value',
+      )
+      .run(req.workspace, key, value);
+    res.status(204).end();
+  });
 
   app.get('/api/workspace', (req, res) => res.json(workspaceState.read(req.workspace)));
   app.put('/api/workspace/preferences', (req, res) =>
@@ -108,6 +132,9 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   app.patch('/api/workspace/configurations/:configId', (req, res) =>
     res.json(workspaceState.configuration(req.workspace, req.params.configId, req.body)),
   );
+  app.delete('/api/workspace/configurations/:configId', (req, res) =>
+    res.json(workspaceState.deleteConfiguration(req.workspace, req.params.configId)),
+  );
 
   app.get('/api/model-config', (req, res) => res.json(models.public(req.workspace)));
   app.get('/api/model-config/profiles', (req, res) => res.json(models.list(req.workspace)));
@@ -115,7 +142,9 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     res.json(models.select(req.workspace, req.body.id)),
   );
   app.put('/api/model-config', (req, res) => res.json(models.save(req.workspace, req.body)));
-  app.delete('/api/model-config', (req, res) => res.json(models.remove(req.workspace)));
+  app.delete('/api/model-config', (req, res) =>
+    res.json(models.remove(req.workspace, req.body?.profileId)),
+  );
   app.post('/api/model-config/test', async (req, res) =>
     res.json(await models.test(req.workspace, req.body)),
   );
@@ -171,10 +200,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
         current.progress = 100;
         current.parse = { ...payload.result, sourceHash: current.contentHash };
         current.pageCount = payload.result.pages.length;
-        const { run, report } = makeStructureReport(current, latest.settings);
-        report.projectTitle = latest.title;
-        current.runs.push(run);
-        current.reports.push(report);
+        if (latest.purpose !== 'library') addStructureReport(latest, current);
         current.messages.push(
           event(
             'success',
@@ -222,33 +248,52 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   app.post('/api/review-configuration/templates', (req, res) =>
     res.status(201).json(configuration.createTemplate(req.workspace, req.body)),
   );
+  app.put('/api/review-configuration/packs/:id', (req, res) =>
+    res.json(configuration.createPack(req.workspace, req.body, req.params.id)),
+  );
+  app.put('/api/review-configuration/templates/:id', (req, res) =>
+    res.json(configuration.createTemplate(req.workspace, req.body, req.params.id)),
+  );
   app.get('/api/projects', (req, res) =>
     res.json(
-      store.list(req.workspace).map(({ versions, ...p }) => ({
-        ...p,
-        versions: versions.map(
-          ({ id, number, status, filename, size, format, createdAt, messages }) => ({
-            id,
-            number,
-            status,
-            filename,
-            size,
-            format,
-            createdAt,
-            activityAt: messages?.at(-1)?.at || createdAt,
-            activityText: ['user', 'assistant'].includes(messages?.at(-1)?.kind)
-              ? '论文对话已更新'
-              : messages?.at(-1)?.title,
-          }),
-        ),
-      })),
+      store
+        .list(req.workspace)
+        .filter((p) => !req.query.purpose || (p.purpose || 'review') === req.query.purpose)
+        .map(({ versions, ...p }) => ({
+          ...p,
+          purpose: p.purpose || 'review',
+          versions: versions.map(
+            ({ id, number, status, filename, size, format, createdAt, messages }) => ({
+              id,
+              number,
+              status,
+              filename,
+              size,
+              format,
+              createdAt,
+              activityAt: messages?.at(-1)?.at || createdAt,
+              activityText: ['user', 'assistant'].includes(messages?.at(-1)?.kind)
+                ? '论文对话已更新'
+                : messages?.at(-1)?.title,
+            }),
+          ),
+        })),
     ),
   );
   app.post('/api/projects', (req, res) => {
-    if (store.list(req.workspace).length >= 100)
-      return res.status(400).json({ error: '项目数量已达上限（100）' });
+    const purpose = req.body.purpose ?? 'review';
+    if (!['library', 'review'].includes(purpose))
+      return res.status(400).json({ error: '不支持的论文用途' });
+    const limit = purpose === 'library' ? 1000 : 100;
+    if (
+      store.list(req.workspace).filter((p) => (p.purpose || 'review') === purpose).length >= limit
+    )
+      return res.status(400).json({
+        error: purpose === 'library' ? '仅入库论文数量已达上限（1000）' : '项目数量已达上限（100）',
+      });
     const title = typeof req.body.title === 'string' ? req.body.title.trim().slice(0, 120) : '';
     const p = makeEmpty(title || undefined);
+    p.purpose = purpose;
     const defaults = workspaceState.read(req.workspace).preferences;
     p.settings = {
       ...p.settings,
@@ -263,6 +308,38 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   app.get('/api/projects/:id', (req, res) => {
     const p = project(req, res);
     if (p) res.json(p);
+  });
+  function addStructureReport(p, v) {
+    const { run, report } = makeStructureReport(v, p.settings);
+    report.projectTitle = p.title;
+    v.runs.push(run);
+    v.reports.push(report);
+  }
+  function checkReviewCapacity(req, p) {
+    if (
+      p.purpose === 'library' &&
+      store.list(req.workspace).filter((item) => item.purpose !== 'library').length >= 100
+    )
+      throw Object.assign(new Error('项目数量已达上限（100）'), { status: 400 });
+  }
+  function includeInReview(req, p, v) {
+    // Reuse the same document and metadata; entering review restores library membership.
+    workspaceState.documents(req.workspace, { ids: [v.id], trashed: false });
+    p.purpose = 'review';
+    save(req, p);
+  }
+  app.post('/api/projects/:id/review-workspace', (req, res) => {
+    const p = project(req, res);
+    if (!p) return;
+    const v = p.versions.find((item) => item.id === req.body.versionId);
+    if (!v) return res.status(404).json({ error: '文献不存在或无权访问' });
+    checkReviewCapacity(req, p);
+    if (v.status === 'ready' && !v.reports.some((r) => r.template === 'structure-preview@1.0.0'))
+      addStructureReport(p, v);
+    p.activeVersionId = v.id;
+    p.archived = false;
+    includeInReview(req, p, v);
+    res.json(p);
   });
   const literatureRequests = new Map();
   app.post('/api/projects/:id/literature', async (req, res) => {
@@ -300,6 +377,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       if (
         s.scheme &&
         s.scheme !== 'stxb-precheck@0.1.0-draft' &&
+        s.scheme !== p.reviewCriteria?.id &&
         !configuration.pack(req.workspace, s.scheme)
       )
         return res.status(400).json({ error: '不支持的评判标准' });
@@ -309,7 +387,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
         return res.status(400).json({ error: '稿件确认状态必须为布尔值' });
       if (
         s.articleType !== undefined &&
-        !['', 'empirical', 'review', 'theory'].includes(s.articleType)
+        !['', 'empirical', 'review', 'theory', 'case', 'other'].includes(s.articleType)
       )
         return res.status(400).json({ error: '未知稿件类型' });
       p.settings = {
@@ -417,11 +495,16 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   app.post('/api/projects/:id/review', (req, res) => {
     const p = project(req, res);
     if (!p) return;
-    res
-      .status(202)
-      .json(
-        reviews.start(req.workspace, p.id, req.body.versionId, req.body.retryId, req.body.budget),
-      );
+    checkReviewCapacity(req, p);
+    const updated = reviews.start(
+      req.workspace,
+      p.id,
+      req.body.versionId,
+      req.body.retryId,
+      req.body.budget,
+    );
+    includeInReview(req, updated, getVersion(updated, req.body.versionId));
+    res.status(202).json(updated);
   });
   app.post('/api/projects/:id/review/cancel', (req, res) => {
     const p = project(req, res);
@@ -434,6 +517,8 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     if (!p) return;
     const v = getVersion(p, req.body.versionId);
     if (!v || v.status !== 'ready') return res.status(409).json({ error: '请先完成论文解析' });
+    checkReviewCapacity(req, p);
+    includeInReview(req, p, v);
     if (!p.demo) {
       const { run, report } = makeStructureReport(v, p.settings);
       report.projectTitle = p.title;
@@ -516,6 +601,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       if (!res.destroyed) res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
     let heartbeat;
+    let sessionCheck;
     if (streaming) {
       res.set({
         'Content-Type': 'text/event-stream',
@@ -527,6 +613,13 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
         if (!res.destroyed) res.write(': keep-alive\n\n');
       }, 15000);
       res.on('close', () => controller.abort());
+      sessionCheck = setInterval(() => {
+        const owner = auth.identify(req);
+        if (!owner || owner.id !== req.account.id || owner.workspace_id !== req.workspace) {
+          controller.abort();
+          res.destroy();
+        }
+      }, 1000);
     }
     try {
       const config = models.get(req.workspace);
@@ -579,6 +672,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
       res.end();
     } finally {
       clearInterval(heartbeat);
+      clearInterval(sessionCheck);
       pendingMessages.delete(lock);
     }
   });
@@ -588,8 +682,10 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     const v = getVersion(p, req.body.versionId);
     const finding = v?.findings.find((f) => f.id === req.params.findingId);
     if (!finding) return res.status(404).json({ error: '批注不存在' });
-    if (!['open', 'acknowledged', 'needs_recheck'].includes(req.body.status))
+    if (!['open', 'acknowledged', 'needs_recheck', 'resolved'].includes(req.body.status))
       return res.status(400).json({ error: '不支持的问题状态' });
+    if (req.body.status === 'resolved' && finding.status !== 'resolved') finding.resolvedAt = new Date().toISOString();
+    if (req.body.status !== 'resolved') delete finding.resolvedAt;
     finding.status = req.body.status;
     save(req, p);
     res.json(p);
@@ -599,11 +695,10 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
     if (!p) return;
     const v = getVersion(p, req.body.versionId);
     const original = v?.reports.find((r) => r.id === req.params.reportId);
-    const template = configuration.template(
-      req.workspace,
-      req.body.templateId || defaultTemplate.id,
-    );
-    if (!original || !template) return res.status(404).json({ error: '报告或模板不存在' });
+    const template = defaultTemplate;
+    if (!original) return res.status(404).json({ error: '报告不存在' });
+    if (req.body.templateId && req.body.templateId !== defaultTemplate.id)
+      return res.status(410).json({ error: '报告统一使用固定结构，不再支持自定义报告模板' });
     if (v.reports.length >= 100) return res.status(409).json({ error: '报告快照已达上限' });
     v.reports.push({
       ...structuredClone(original),
@@ -737,6 +832,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory } = {
   async function close() {
     if (closing) return closing;
     closing = (async () => {
+      await studio.shutdown();
       await referenceAudits.shutdown();
       await claimAudits.shutdown();
       await revisions.shutdown();

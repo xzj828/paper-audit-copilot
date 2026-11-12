@@ -1,0 +1,55 @@
+/* Silver-blue botanical details stay in the margins of the chat pane. */
+.chat-botanical {
+  position: absolute;
+  inset: 56px 0 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 600ms ease-out;
+}
+.chat-botanical-upper {
+  position: absolute;
+  top: 8px;
+  right: 24px;
+  width: clamp(0px, calc((100cqw - 736px) / 2 - 48px), 300px);
+  aspect-ratio: 1;
+  background: #929cdd;
+  mask: url('/brand/chat-cherry-orbit.png') center / contain no-repeat;
+  opacity: 0.8;
+}
+.chat-botanical-lower {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  width: 96px;
+  height: 144px;
+  opacity: 0.8;
+}
+.research-conversation > .studio-header {
+  position: relative;
+}
+.research-conversation > .studio-header::after {
+  content: '';
+  position: absolute;
+  inset: auto 24px 0;
+  border-bottom: 1px solid rgb(146 156 221 / 60%);
+  pointer-events: none;
+}
+.research-conversation .research-composer {
+  border-color: #b8c2f1;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.research-conversation .research-composer:focus-within {
+  border-color: #929fdd;
+  box-shadow: 0 2px 6px #17243a08, 0 8px 24px #8a97d71a;
+}
+:root[data-theme='dark'] .research-conversation .research-composer {
+  border-color: #515d86;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-botanical,
+  .research-conversation .research-composer {
+    transition: none;
+  }
+}

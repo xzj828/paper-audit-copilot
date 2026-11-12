@@ -6,7 +6,7 @@ export const defaultPreferences = {
   layout: 'single',
   zoom: 100,
   showOutline: true,
-  scheme: 'stxb-precheck@0.3.0-trial',
+  scheme: 'general-paper@1',
   articleType: 'empirical',
   outputMode: 'narrative',
 };
@@ -45,7 +45,7 @@ export function createWorkspaceService(db, configuration, store) {
         ![75, 100, 125, 150].includes(p.zoom) ||
         typeof p.showOutline !== 'boolean' ||
         !configuration.pack(ws, p.scheme) ||
-        !['empirical', 'review', 'theory'].includes(p.articleType) ||
+        !['empirical', 'review', 'theory', 'case', 'other'].includes(p.articleType) ||
         !['narrative', 'scored'].includes(p.outputMode)
       )
         throw bad('工作台设置格式无效');
@@ -104,6 +104,13 @@ export function createWorkspaceService(db, configuration, store) {
           item.collections = [...new Set([...item.collections, input.collectionId])];
         data.documents[id] = { ...item, ...patch };
       }
+      return save(ws, data);
+    },
+    deleteConfiguration(ws, id) {
+      const data = read(ws);
+      if (data.configurations[id]?.status !== 'archived') throw bad('请先归档再删除');
+      configuration.remove(ws, id);
+      delete data.configurations[id];
       return save(ws, data);
     },
     configuration(ws, id, input) {

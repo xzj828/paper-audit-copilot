@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SelectContent from './SelectContent';
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
 import { api } from '../api';
 import type { Anchor, Project, Version } from '../types';
@@ -236,6 +237,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
         <div class="fields-grid">
           <label
             >数值列（必选）<select v-model="valueColumn" :disabled="busy" required>
+              <SelectContent />
               <option value="" disabled>请选择数值列</option>
               <option v-for="column in columns" :key="column.index" :value="column.index">
                 {{ column.index + 1 }}. {{ column.name }}
@@ -244,6 +246,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
           >
           <label
             >分组列（可选，最多 100 组）<select v-model="groupColumn" :disabled="busy">
+              <SelectContent />
               <option value="">不分组</option>
               <option v-for="column in columns" :key="column.index" :value="column.index">
                 {{ column.index + 1 }}. {{ column.name }}
@@ -252,6 +255,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
           >
           <label
             >ID 列（可选，提示重复记录）<select v-model="idColumn" :disabled="busy">
+              <SelectContent />
               <option value="">不检查 ID</option>
               <option v-for="column in columns" :key="column.index" :value="column.index">
                 {{ column.index + 1 }}. {{ column.name }}
@@ -280,6 +284,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
           <p class="muted">如果同段中有相同引文，请增加连续上下文以唯一定位。</p>
           <label
             >当前版本原文段落<select v-model="elementId" :disabled="busy">
+              <SelectContent />
               <option value="">暂不附引用</option>
               <option v-for="item in version.parse?.sections || []" :key="item.id" :value="item.id">
                 {{ item.title
@@ -324,6 +329,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
       </div>
       <label v-if="snapshots.length > 1"
         >查看复算记录<select v-model="selectedId">
+          <SelectContent />
           <option value="">最新记录</option>
           <option
             v-for="snapshot in [...snapshots].reverse()"
@@ -499,7 +505,7 @@ function exportUrl(snapshot: DataAuditSnapshot) {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--paper);
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 h3 {
   margin: 0;
@@ -507,7 +513,7 @@ h3 {
 }
 h4 {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-small);
 }
 .audit-note {
   color: var(--muted);
@@ -650,8 +656,9 @@ summary {
 }
 button:focus-visible,
 .table-scroll:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 3px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
 }
 @media (max-width: 560px) {
   .fields-grid {

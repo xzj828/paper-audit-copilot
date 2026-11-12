@@ -1,3 +1,4 @@
+import { loginTestAccount } from './account-helper.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -92,9 +93,9 @@ test('real multipart and SQLite persistence export new quartiles without rewriti
   let store;
   try {
     const { origin } = await app.start({ port: 0 });
-    const first = await fetch(origin + '/api/projects');
+    const first = await loginTestAccount(origin, directory);
     const cookie = first.headers.get('set-cookie').split(';')[0];
-    const ws = cookie.split('=')[1];
+    const ws = (await first.json()).user.workspaceId;
     const p = await (
       await fetch(origin + '/api/projects', {
         method: 'POST',
@@ -135,7 +136,7 @@ test('real multipart and SQLite persistence export new quartiles without rewriti
       headers: { Cookie: cookie },
     });
     assert.deepEqual(await old.json(), legacy);
-    assert.equal((await fetch(origin + route + '/' + legacy.id + '/export')).status, 404);
+    assert.equal((await fetch(origin + route + '/' + legacy.id + '/export')).status, 401);
     assert.deepEqual(store.get(ws, p.id).versions[0].reports, [frozen]);
   } finally {
     store?.db.close();

@@ -1,0 +1,192 @@
+/* Reference-led star-paper navigation. Keep the sliding surface and drag physics. */
+.app-shell > .sidebar {
+  --navigation-hover: #ffffff0d;
+  --navigation-selected: #a4afe022;
+  background: #242933;
+  color: #e2e6f0;
+  isolation: isolate;
+}
+.sidebar > .sidebar-portrait {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  bottom: 32px;
+  width: 100%;
+  height: min(64%, 680px);
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.56;
+  mix-blend-mode: lighten;
+}
+.sidebar .brand {
+  padding-inline: 10px;
+  gap: 12px;
+}
+.sidebar .brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+.sidebar .brand strong {
+  letter-spacing: 0;
+  font-weight: 650;
+}
+.sidebar .brand small {
+  margin-top: 2px;
+  color: #c7cfe1;
+}
+.sidebar .primary-nav button {
+  flex-shrink: 0;
+  color: #edf0f7;
+  border-radius: 7px;
+}
+.sidebar .primary-nav button:first-child {
+  border-color: #929bc8;
+  background: #a4afe022;
+}
+.sidebar .primary-nav button:hover,
+.sidebar .primary-nav button.active {
+  background: #a4afe028;
+  color: #fff;
+}
+.sidebar .primary-nav button:first-child:hover {
+  background: #a4afe038;
+  border-color: #b6c1f3;
+}
+.sidebar .primary-nav button.active {
+  box-shadow: inset 2px 0 #bac7ff;
+}
+.sidebar .primary-nav button.active svg {
+  color: #cbd5ff;
+  fill: none;
+}
+.sidebar .recent-projects {
+  border-color: #c1c9eb26;
+  scrollbar-color: #75809b66 transparent;
+}
+.sidebar .sidebar-label {
+  color: #c1cbdf;
+}
+.sidebar .project-row {
+  background: transparent;
+}
+.sidebar .project-row:hover,
+.sidebar .project-row.selected {
+  background: #3b4258;
+}
+.sidebar .sidebar-bottom {
+  border-color: #c1c9eb26;
+}
+.sidebar .user-profile {
+  min-width: 0;
+  width: calc(100% + 16px);
+  margin: -8px;
+  padding: 8px;
+  border-radius: 10px;
+}
+.sidebar .user-profile .avatar {
+  overflow: hidden;
+}
+.sidebar .user-profile .avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.sidebar .user-profile > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar .drawer-toggle {
+  color: #c8d2ec;
+}
+.sidebar button:focus-visible {
+  outline: 2px solid #bac7ff;
+  outline-offset: -2px;
+}
+.sidebar-compact-shortcuts {
+  display: none;
+}
+@media (min-width: 901px) {
+  .app-shell {
+    background: #242933;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .brand {
+    width: 48px;
+    padding-inline: 6px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .primary-nav button {
+    padding-inline: 0;
+    justify-content: center;
+    gap: 0;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .primary-nav button span {
+    display: none;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar-compact-shortcuts {
+    width: 48px;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 16px;
+    border-top: 1px solid #c1c9eb26;
+  }
+  .sidebar-compact-shortcuts button {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 42px;
+    border-radius: 8px;
+    color: #c1cbdf;
+  }
+  .sidebar-compact-shortcuts button:hover {
+    background: #a4afe028;
+    color: #fff;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .sidebar-bottom {
+    width: 48px;
+    padding-inline: 8px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .user-profile {
+    width: 48px;
+    flex: 0 0 48px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .user-profile > span:last-child {
+    display: none;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .drawer-toggle {
+    justify-content: center;
+    padding-inline: 0;
+    gap: 0;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .drawer-toggle span {
+    display: none;
+  }
+}
+@media (min-width: 901px) and (max-height: 680px) {
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .brand {
+    min-height: 68px;
+    padding-bottom: 16px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .primary-nav {
+    gap: 4px;
+    padding-bottom: 16px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .primary-nav button {
+    min-height: 40px;
+    height: 40px;
+  }
+  .drawer-compact:not(.sidebar-dragging, .sidebar-settling) .sidebar .primary-nav button:first-child {
+    margin-bottom: 8px;
+  }
+}
+@media (max-width: 900px) {
+  .sidebar > .sidebar-portrait {
+    display: none;
+  }
+}

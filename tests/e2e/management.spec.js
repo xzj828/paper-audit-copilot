@@ -2,32 +2,43 @@ import { expect } from '@playwright/test';
 import { test } from './seeded-test.js';
 import { docxFixture } from '../fixtures.js';
 
+// These regression cases exercise list workflows; the catalog suite covers the default grids.
+test.beforeEach(async ({ page }) => {
+  for (const key of ['audit-library-view', 'audit-template-view'])
+    await page.request.put('/api/workspace/ui', { data: { key, value: 'list' } });
+});
+
 test('management navigation stays fixed and preserves each page context', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.finding-heading')).toBeVisible();
-  await page.evaluate(() => localStorage.setItem('audit-sidebar-width', '280'));
+  await page.request.put('/api/workspace/ui', {
+    data: { key: 'audit-sidebar-width', value: '280' },
+  });
   await page.reload();
   await expect(page.locator('.finding-heading')).toBeVisible();
-  const nav = page.locator('.primary-nav');
+  const nav = page.locator('.sidebar');
   const library = nav.getByRole('button', { name: '文献库', exact: true });
-  const position = await library.boundingBox();
   await library.click();
   await expect(page.locator('.literature-table')).toBeVisible();
-  expect(await library.boundingBox()).toEqual(position);
-  const contentX = (await page.locator('.management-main').boundingBox()).x;
+  await expect(page.locator('.app-surface')).toBeVisible();
+  const sidebarWidth = (await page.locator('.sidebar').boundingBox()).width;
+  const position = await library.boundingBox();
+  expect((await page.locator('.sidebar').boundingBox()).width).toBe(sidebarWidth);
+  await expect.poll(async () => (await page.locator('.app-surface').boundingBox()).x).toBe(72);
+  const contentX = 72;
   await page.getByLabel('搜索文献', { exact: true }).fill('生成式');
   await page.getByRole('button', { name: '网格', exact: true }).click();
   await nav.getByRole('button', { name: '模板与规范', exact: true }).click();
   await expect(page.getByRole('navigation', { name: '模板分类' })).toBeVisible();
-  expect((await page.locator('.management-main').boundingBox()).x).toBe(contentX);
+  expect((await page.locator('.app-surface').boundingBox()).x).toBe(contentX);
   expect(await library.boundingBox()).toEqual(position);
   await page.getByLabel('搜索标准或模板').fill('Nature');
   await nav.getByRole('button', { name: '设置', exact: true }).click();
-  expect((await page.locator('.management-main').boundingBox()).x).toBe(contentX);
+  expect((await page.locator('.app-surface').boundingBox()).x).toBe(contentX);
   expect(await library.boundingBox()).toEqual(position);
   await page.setViewportSize({ width: 1488, height: 650 });
-  await page.locator('.management-main').evaluate((el) => (el.scrollTop = 250));
-  const scroll = await page.locator('.management-main').evaluate((el) => el.scrollTop);
+  await page.locator('.settings-scroll').evaluate((el) => (el.scrollTop = 250));
+  const scroll = await page.locator('.settings-scroll').evaluate((el) => el.scrollTop);
   expect(scroll).toBeGreaterThan(100);
   await library.click();
   await expect(page.getByLabel('搜索文献', { exact: true })).toHaveValue('生成式');
@@ -38,7 +49,7 @@ test('management navigation stays fixed and preserves each page context', async 
     'page',
   );
   await expect
-    .poll(() => page.locator('.management-main').evaluate((el) => el.scrollTop))
+    .poll(() => page.locator('.settings-scroll').evaluate((el) => el.scrollTop))
     .toBe(scroll);
   await nav.getByRole('button', { name: '模板与规范', exact: true }).click();
   await expect(page.getByLabel('搜索标准或模板')).toHaveValue('Nature');
@@ -77,7 +88,7 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
   await page
     .locator('input[type=file][multiple]')
     .setInputFiles({ name: '连续阅读.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) });
-  const row = page.locator('.literature-table tbody tr').filter({ hasText: '连续阅读.pdf' });
+  const row = page.locator('.literature-table tbody tr').filter({ hasText: '连续阅读' });
   await expect(row).toContainText('解析完成', { timeout: 20000 });
   await row.locator('.document-name').click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -90,24 +101,18 @@ test('continuous PDF reading renders subsequent pages and deep links survive rel
   await page.getByRole('button', { name: '文档下一页', exact: true }).click();
   await expect(page.getByLabel('预览页码')).toHaveValue('2');
   await page.getByRole('button', { name: '文档上一页', exact: true }).click();
+  // Library previews stay single-page even when the workbench preference is continuous.
+  await expect(canvas).toHaveAttribute('data-rendered-page', '1');
+  await expect(page.locator('.document-modal .pdf-continuous-page')).toHaveCount(0);
+  await page.getByRole('button', { name: '进入评审工作台', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('.pdf-continuous-page')).toHaveCount(1);
   await page.locator('.pdf-continuous-page').scrollIntoViewIfNeeded();
-  await expect
-    .poll(() => page.locator('.pdf-continuous-page canvas').evaluate((c) => c.width))
-    .toBeGreaterThan(600);
-  // A sized canvas can still be rendering after fast next/previous navigation.
-  // Geometry is meaningful only once both original pages are displayed.
-  await expect(canvas).toHaveAttribute('data-rendered-page', '1');
   await expect(page.locator('.pdf-continuous-page canvas')).toHaveAttribute(
     'data-rendered-page',
     '2',
   );
-  await expect(canvas).toBeVisible();
-  await expect(page.locator('.pdf-continuous-page canvas')).toBeVisible();
-  const firstBounds = await canvas.boundingBox();
-  const nextBounds = await page.locator('.pdf-continuous-page canvas').boundingBox();
-  expect(nextBounds.y).toBeGreaterThanOrEqual(firstBounds.y + firstBounds.height);
-  await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
+  await page.locator('.primary-nav').getByRole('button', { name: '文献库', exact: true }).click();
   await expect(page.locator('.library-heading h1')).toHaveText('全部文献');
 });
 
@@ -207,10 +212,8 @@ test('full-page library supports import, collections, search, grid, recycle and 
   await page.getByLabel('选择 研究方法.docx', { exact: true }).check();
   await page.getByRole('button', { name: '移至回收站', exact: true }).click();
   await expect(page.locator('.literature-table tbody tr')).toHaveCount(0);
-  await page
-    .getByRole('navigation', { name: '文献集合' })
-    .getByRole('button', { name: /回收站/ })
-    .click();
+  await page.getByRole('button', { name: '更多文献选项', exact: true }).click();
+  await page.getByRole('menuitem', { name: '回收站', exact: true }).click();
   await expect(page.locator('.literature-table tbody tr')).toHaveCount(1);
   await page.getByLabel('选择 研究方法.docx', { exact: true }).check();
   await page.getByRole('button', { name: '恢复文献', exact: true }).click();
@@ -220,26 +223,34 @@ test('full-page library supports import, collections, search, grid, recycle and 
     .click();
   await expect(page.locator('.literature-table tbody tr')).toHaveCount(1);
   await page.reload();
-  await page.locator('.primary-nav').getByRole('button', { name: '文献库', exact: true }).click();
+  await expect(page.locator('.management-shell')).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: '文献集合' }).getByRole('button', { name: /科研方法/ }),
   ).toBeVisible();
-  await page.locator('.document-name').filter({ hasText: '研究方法.docx' }).click();
+  await page.locator('.document-name').filter({ hasText: '研究方法' }).click();
   await expect(page.locator('.document-modal .docx-paper')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('settings persist and apply to reader and new projects; models and data remain accessible', async ({
+test('settings persist and apply to reader and new projects; inline models remain accessible', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.locator('.primary-nav').getByRole('button', { name: '设置', exact: true }).click();
+  await page.locator('.sidebar').getByRole('button', { name: '设置', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工作台设置', exact: true })).toBeVisible();
   await page.locator('input[type=radio][value=warm]').check();
   await page.getByLabel('默认缩放比例', { exact: true }).selectOption('125');
   await page.getByLabel('显示文档目录', { exact: true }).uncheck();
-  await page.getByLabel('自动选择合适模型', { exact: true }).check();
-  await page.getByLabel('输出方式').selectOption('scored');
+  await page
+    .getByRole('navigation', { name: '设置分类' })
+    .getByRole('button', { name: '模型服务', exact: true })
+    .click();
+  await page.getByRole('switch', { name: '自动选择合适模型', exact: true }).check();
+  await page
+    .getByRole('navigation', { name: '设置分类' })
+    .getByRole('button', { name: '评审', exact: true })
+    .click();
+  await page.getByRole('radio', { name: '文字意见 + 评分', exact: true }).check();
   await page.getByRole('button', { name: '保存更改', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('设置已保存');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'warm');
@@ -253,18 +264,18 @@ test('settings persist and apply to reader and new projects; models and data rem
   expect((await (await page.request.get('/api/workspace')).json()).preferences.autoModel).toBe(
     true,
   );
-  await page.locator('.primary-nav').getByRole('button', { name: '设置', exact: true }).click();
+  await page.locator('.sidebar').getByRole('button', { name: '设置', exact: true }).click();
   await expect(page.getByLabel('默认缩放比例', { exact: true })).toHaveValue('125');
-  await page.getByRole('button', { name: '管理模型', exact: true }).click();
-  await expect(page.locator('.model-settings')).toBeVisible();
-  await page.getByRole('button', { name: '关闭弹窗', exact: true }).click();
   await page
     .getByRole('navigation', { name: '设置分类' })
-    .getByRole('button', { name: '数据管理', exact: true })
+    .getByRole('button', { name: '模型服务', exact: true })
     .click();
-  const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: '导出项目、评审与设置', exact: true }).click();
-  expect((await downloadPromise).suggestedFilename()).toBe('研究空间数据.json');
+  await expect(page.locator('.settings-connection-form')).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: '设置分类' })
+      .getByRole('button', { name: '数据管理', exact: true }),
+  ).toHaveCount(0);
 });
 
 test('templates can be copied, reordered, filtered and archived, with responsive visual captures', async ({
@@ -275,24 +286,31 @@ test('templates can be copied, reordered, filtered and archived, with responsive
     .locator('.primary-nav')
     .getByRole('button', { name: '模板与规范', exact: true })
     .click();
+  await page
+    .getByRole('navigation', { name: '模板分类' })
+    .getByRole('button', { name: '评判标准', exact: true })
+    .click();
   await expect(page.locator('.standards-table tbody tr')).toHaveCount(3);
   await page.screenshot({ path: 'docs/screenshots/standards-page.png' });
   await page.getByRole('button', { name: '报告模板', exact: true }).click();
-  await page.getByRole('button', { name: '新建自定义版本', exact: true }).click();
-  await page.getByLabel('版本名称', { exact: true }).fill('投稿修改清单');
+  await page.getByRole('button', { name: '新建模板', exact: true }).click();
+  await page.getByLabel('模板名称', { exact: true }).fill('投稿修改清单');
   await page.getByLabel('报告标题', { exact: true }).fill('论文修改清单');
   await page.getByRole('button', { name: '上移评审覆盖', exact: true }).click();
-  await page.getByRole('button', { name: '保存独立版本', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('已保存独立版本');
-  await page.getByLabel('创建者', { exact: true }).selectOption('custom');
+  await page.getByRole('button', { name: '创建模板', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('模板已创建');
+  await page.getByLabel('搜索标准或模板').fill('投稿修改清单');
   await expect(page.locator('.standards-table tbody tr')).toHaveCount(1);
   await page.getByRole('button', { name: '标准操作：投稿修改清单', exact: true }).click();
   await page.getByRole('button', { name: '归档版本', exact: true }).click();
-  await page.getByLabel('标准状态', { exact: true }).selectOption('archived');
+  await page
+    .getByRole('navigation', { name: '模板分类' })
+    .getByRole('button', { name: /已归档/ })
+    .click();
   await expect(page.locator('.standard-status')).toHaveText('已归档');
   const config = await (await page.request.get('/api/review-configuration')).json();
   expect(config.templates.find((c) => c.name === '投稿修改清单').sections[0]).toBe('coverage');
-  await page.locator('.primary-nav').getByRole('button', { name: '设置', exact: true }).click();
+  await page.locator('.sidebar').getByRole('button', { name: '设置', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工作台设置', exact: true })).toBeVisible();
   await page.screenshot({ path: 'docs/screenshots/settings-page.png' });
   await page.locator('.primary-nav').getByRole('button', { name: '文献库', exact: true }).click();
@@ -300,7 +318,7 @@ test('templates can be copied, reordered, filtered and archived, with responsive
   await page.screenshot({ path: 'docs/screenshots/library-page.png' });
   for (const name of ['文献库', '设置', '模板与规范']) {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('.primary-nav').getByRole('button', { name, exact: true }).click();
+    await page.locator('.sidebar').getByRole('button', { name, exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );

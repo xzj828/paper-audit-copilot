@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './authenticated-test.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createStore } from '../../server/store.js';
@@ -60,7 +60,7 @@ test('actual upload exports frozen human-review packets, imports paired controls
   const legacy = { ...structuredClone(report), id: 'controlled-legacy-report', trial: false };
   delete legacy.parseId;
   version.reports.push(legacy);
-  const cookie = (await page.context().cookies()).find((item) => item.name === 'audit_workspace');
+  const cookie = { value: (await (await page.request.get('/api/auth/me')).json()).user.workspaceId };
   const store = createStore(path.resolve('test-results/e2e-data'));
   try {
     store.save(cookie.value, project);

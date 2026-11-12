@@ -1,0 +1,290 @@
+/* Shared soft dropdowns; native selects retain labels, validation and keyboard behavior. */
+:root {
+  --select-radius: 999px;
+  --select-menu-radius: 16px;
+  --select-item-radius: 12px;
+  --select-duration: 160ms;
+  --select-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* Menus live outside normal flow; long lists scroll within the floating surface. */
+.floating-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  text-align: left;
+}
+.floating-dropdown-panel {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--select-menu-radius);
+  background: var(--paper);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  overflow-wrap: anywhere;
+}
+.document-outline > .floating-dropdown-trigger {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  font-weight: 600;
+}
+.document-outline .floating-dropdown-panel > button {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+.floating-dropdown-panel button:hover {
+  background: var(--hover);
+}
+.floating-dropdown-trigger:focus-visible,
+.floating-dropdown-panel button:focus-visible {
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
+}
+.dropdown,
+.slash-menu,
+.management-menu,
+.catalog-options-menu,
+.model-menu,
+.settings-model-options-panel {
+  max-width: calc(100vw - 24px);
+  max-height: min(360px, 50dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+:root select:not([multiple]):not([size]) {
+  min-height: 46px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--select-radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    background-color var(--select-duration) ease,
+    border-color var(--select-duration) ease;
+}
+:root select:not([multiple]):not([size]):hover:not(:disabled) {
+  background: var(--hover);
+}
+:root select:not([multiple]):not([size]):focus-visible {
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  box-shadow: var(--focus-glow);
+}
+:root select:not([multiple]):not([size]):disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+/* Unsupported browsers keep a functional system picker. */
+@supports (appearance: base-select) {
+  :root select:not([multiple]):not([size]),
+  :root select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+  :root select:not([multiple]):not([size]) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  :root select::picker-icon {
+    content: '';
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin-inline-start: auto;
+    background: var(--muted);
+    mask: url('/icons/select-chevron.svg') center / contain no-repeat;
+    transition: rotate var(--select-duration) var(--select-ease);
+  }
+  :root select:open::picker-icon {
+    rotate: 180deg;
+  }
+  :root select > .select-value {
+    flex: 1;
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    overflow: hidden;
+  }
+  :root select .select-value-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  :root select::picker(select) {
+    box-sizing: border-box;
+    width: anchor-size(self-inline);
+    min-width: 0;
+    max-width: calc(100vw - 24px);
+    max-height: min(320px, 50dvh);
+    margin-block: 6px;
+    padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    border-radius: var(--select-menu-radius);
+    background: var(--paper);
+    color: var(--text);
+    box-shadow:
+      0 6px 18px #19263a12,
+      0 2px 5px #19263a05;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--select-duration) var(--select-ease),
+      transform var(--select-duration) var(--select-ease),
+      display var(--select-duration) allow-discrete,
+      overlay var(--select-duration) allow-discrete;
+  }
+  :root select:open::picker(select) {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @starting-style {
+    :root select:open::picker(select) {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  :root select:not([multiple]):not([size]) option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: var(--select-item-radius);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    transition: background-color var(--select-duration) ease;
+  }
+  :root select:not([multiple]):not([size]) option:hover:not(:disabled),
+  :root select:not([multiple]):not([size]) option:focus-visible {
+    background: var(--hover);
+    outline: none;
+  }
+  :root select:not([multiple]):not([size]) option:checked {
+    background: var(--mg-selected);
+    color: var(--text);
+  }
+  :root select:not([multiple]):not([size]) option:checked:focus-visible {
+    outline: 1px solid transparent;
+    outline-offset: 0;
+    box-shadow: var(--focus-glow);
+}
+  :root select option::checkmark {
+    content: '';
+    order: 1;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin-inline-start: auto;
+    background: var(--blue);
+    mask: url('/icons/select-check.svg') center / contain no-repeat;
+  }
+  :root select:not([multiple]):not([size]) option:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+}
+.settings-rule-row select {
+  width: min(400px, 100%);
+  justify-self: start;
+}
+/* The conversation model picker uses the same surfaces and motion. */
+.model-picker .model-shortcut {
+  border-radius: var(--select-radius);
+  min-height: 40px;
+  padding: 8px 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+.model-picker .model-shortcut > svg {
+  transition: rotate var(--select-duration) var(--select-ease);
+}
+.model-picker .model-shortcut[aria-expanded='true'] > svg {
+  rotate: 180deg;
+}
+.model-picker .model-menu {
+  padding: 6px;
+  border-radius: var(--select-menu-radius);
+  border-color: color-mix(in srgb, var(--border) 65%, transparent);
+  box-shadow:
+    0 6px 18px #19263a12,
+    0 2px 5px #19263a05;
+}
+.model-picker .model-menu > button {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--select-item-radius);
+  transition: background-color var(--select-duration) ease;
+}
+.model-picker .model-menu > button[aria-checked='true'] {
+  background: var(--mg-selected);
+  color: var(--text);
+}
+.model-picker .model-menu > button > .model-check {
+  color: var(--blue);
+}
+.model-picker .model-menu button small {
+  color: var(--muted);
+}
+.soft-dropdown-enter-active,
+.soft-dropdown-leave-active {
+  transition:
+    opacity var(--select-duration) var(--select-ease),
+    transform var(--select-duration) var(--select-ease);
+}
+.soft-dropdown-enter-from,
+.soft-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root select:not([multiple]):not([size]),
+  :root select::picker(select),
+  :root select::picker-icon,
+  :root select option,
+  .model-picker .model-shortcut > svg,
+  .model-picker .model-menu > button,
+  .soft-dropdown-enter-active,
+  .soft-dropdown-leave-active {
+    transition: none;
+  }
+  :root select::picker(select),
+  :root select:open::picker(select),
+  .soft-dropdown-enter-from,
+  .soft-dropdown-leave-to {
+    transform: none;
+  }
+}

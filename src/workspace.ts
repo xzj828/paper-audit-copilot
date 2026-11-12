@@ -24,7 +24,7 @@ export const defaultPreferences: Preferences = {
   layout: 'single',
   zoom: 100,
   showOutline: true,
-  scheme: 'stxb-precheck@0.3.0-trial',
+  scheme: 'general-paper@1',
   articleType: 'empirical',
   outputMode: 'narrative',
 };

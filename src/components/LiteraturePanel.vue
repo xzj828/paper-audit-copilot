@@ -73,7 +73,7 @@ async function search() {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--paper);
-  font-size: 12px;
+  font-size: var(--font-small);
 }
 form {
   display: flex;
