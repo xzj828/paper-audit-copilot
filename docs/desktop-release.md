@@ -1,5 +1,7 @@
 # Windows 桌面版安装与发布
 
+2026-11-12 合回 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot) 后，`package.json` 的仓库地址及桌面版更新目标恢复为该主仓库。本次仅合并源码，未构建或发布新的安装包。下段保留分支开发时期的历史记录，其中“当前”指当时的分支状态。
+
 2026-10-07 参赛开发仓库复制到 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，之后按用户明确授权解除 Fork 关联并设为 Private。代码、完整提交和两个标签保留；[原项目 Releases](https://github.com/xzj828/paper-audit-copilot/releases) 中的安装包资产没有复制。当前未在新仓库发布或验证新的 Windows 安装包，参赛交付仍为可运行的 Web 源码。当前源码的更新目标读取 `package.json` 中的新仓库地址；私有仓库的匿名下载与自动更新链路尚未配置或验证，不能据此承诺已可自动更新。后续发布需另行确定获授权的安装资产访问与更新方案，不擅自公开仓库。已安装的原项目版本仍按自身内置配置检查原项目更新，不会因复制仓库自动切换。
 
 ## 用户安装

@@ -2,7 +2,7 @@
   "name": "paper-audit-copilot",
   "version": "0.2.0",
   "private": true,
-  "repository": "https://github.com/wilsonwuww/paper-audit-copilot",
+  "repository": "https://github.com/xzj828/paper-audit-copilot",
   "type": "module",
   "main": "desktop/main.js",
   "engines": {

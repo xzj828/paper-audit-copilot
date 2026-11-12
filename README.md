@@ -8,7 +8,7 @@
 
 本作品以浏览器 Web 应用参加 AI WEB 网页开发挑战赛；桌面安装包作为补充形式。核心能力是全文分块检索与证据定位、可复核的评审工作流、PDF 图文分析和版本问题追踪。参见 [评分与提交要求对照](docs/competition.md)、[技术文档](docs/technical-document.md)、[技术文档 PDF](docs/technical-document.pdf)、[6 分钟演示脚本](docs/demo-script.md) 和 [本轮 AI 开发记录](docs/ai-development-log.md)。
 
-参赛开发仓库：[wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，由 `wilsonwuww` 拥有，已按用户明确要求解除 Fork 关联并设为 Private。基础来源为 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)，本地保留为 `upstream`。原项目署名与完整提交历史保留，协作开发者以 GitHub 记录为准。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
+项目主仓库：[xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)。2026-11-12 合入 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot) 的开发成果，保留双方署名与完整提交历史，协作开发者以 GitHub 记录为准。文档中的分支开发与验证记录保留其历史语境，当前源码仓库及桌面版更新目标为本主仓库。参赛队伍学校、成员和指导教师的实名信息由队伍按报名登记补齐，不能从 GitHub 昵称推断。视频须由团队按脚本录制，仓库推送不等于完成赛事系统提交。
 
 问答支持“为什么”“再详细解释”等简短追问，沿用当前版本最近三条用户问题中的明确主题，并显示检索所沿用的问题。项目右上角“项目操作 → 导出对话与证据”可下载 Markdown 笔记或 JSON 记录，保存问题、回答、原文切片、文件指纹和引用警告。使用与字段说明见[对话研究笔记](docs/conversation-notes.md)。 JSON 导出已升级为 `paper-audit-chat@2`，明确重复引文歧义、保存时版本/解析身份不符及缺失身份；旧记录不补造来源，外部读取程序需支持新格式。
 
