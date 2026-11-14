@@ -106,7 +106,7 @@ test('standalone chat, project instructions and project chats require no paper a
 
 test('folder import, on-demand PDF preview, agent artifact editing and revision restore', async ({
   page,
-}) => {
+}, testInfo) => {
   let step = 0;
   const close = await provider(page, () =>
     ++step === 1
@@ -137,15 +137,37 @@ test('folder import, on-demand PDF preview, agent artifact editing and revision 
         .toBe(72);
     }
     await page.locator('input[webkitdirectory]').setInputFiles(directory);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByLabel('已添加文件')).toContainText('原文.pdf');
+    await expect(page.getByLabel('已添加文件')).toContainText('说明.txt');
+    await expect(page.getByRole('button', { name: '发送', exact: true })).toBeEnabled();
+    await expect(page.getByLabel('内容预览')).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath('upload-attachment-chip.png') });
+    await page.getByRole('button', { name: '文件', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByRole('button', { name: '原文.pdf', exact: true })).toBeVisible();
-    await expect(page.getByLabel('内容预览')).toHaveCount(0);
     await page.getByRole('button', { name: '原文.pdf', exact: true }).click();
     await expect(page.getByLabel('内容预览')).toBeVisible();
     await expect(page.locator('.research-preview canvas')).toBeVisible();
     await page.getByRole('button', { name: '关闭预览', exact: true }).click();
     await page.getByLabel('发送消息').fill('生成研究计划并保存');
     await page.getByRole('button', { name: '发送', exact: true }).click();
+    await expect
+      .poll(async () => {
+        const state = await (await page.request.get('/api/studio')).json();
+        const chat = state.chats[0];
+        if (!chat) return [];
+        return (await (await page.request.get(`/api/studio/chats/${chat.id}`)).json()).messages
+          .find((message) => message.role === 'user')
+          ?.attachments?.map((file) => file.path);
+      })
+      .toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(/\/原文\.pdf$/),
+          expect.stringMatching(/\/参考\/说明\.txt$/),
+        ]),
+      );
+    await page.getByRole('button', { name: '输出/研究计划.md', exact: true }).click();
     await expect(page.getByLabel('内容预览')).toContainText('先整理资料，再比较研究方法。');
     await page.getByLabel('内容预览').getByRole('button', { name: '编辑', exact: true }).click();
     await page.getByLabel('文件内容').fill('# 研究计划\n\n手动修改后的内容。');

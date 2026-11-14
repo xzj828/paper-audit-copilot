@@ -19,6 +19,11 @@ export interface ComposerConfiguration {
   pack?: { id: string; name: string };
   template?: { id: string; name: string };
 }
+export interface StudioAttachment {
+  id: string;
+  path: string;
+  revision: number;
+}
 export interface StudioMessage {
   id: string;
   role: 'user' | 'assistant' | 'tool';
@@ -29,6 +34,7 @@ export interface StudioMessage {
   summary?: string;
   progress?: { id: string; text: string }[];
   configuration?: ComposerConfiguration;
+  attachments?: StudioAttachment[];
   name?: string;
   status?: string;
   legacySource?: { projectId: string; versionId: string };

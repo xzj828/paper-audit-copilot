@@ -241,7 +241,7 @@ test('library page-only selection, all-results selection, and returning from pre
 }) => {
   await updateFixture(page, (project) => {
     const original = project.versions[0];
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < 21; i++) {
       const version = structuredClone(original);
       version.id = randomUUID();
       version.number = i + 3;
@@ -254,14 +254,14 @@ test('library page-only selection, all-results selection, and returning from pre
   await page.getByRole('button', { name: '更多文献选项', exact: true }).click();
   await page.getByRole('menuitemradio', { name: '文件名 A → Z' }).click();
   await page.getByRole('checkbox', { name: '选择本页全部文献', exact: true }).check();
-  await expect(page.locator('.bulk-bar')).toContainText('已选择 8 项（本页 8 项）');
-  await page.getByRole('button', { name: '选择全部筛选结果（11 项）', exact: true }).click();
-  await expect(page.locator('.bulk-bar')).toContainText('已选择 11 项（本页 8 项）');
+  await expect(page.locator('.bulk-bar')).toContainText('已选择 20 项（本页 20 项）');
+  await page.getByRole('button', { name: '选择全部筛选结果（21 项）', exact: true }).click();
+  await expect(page.locator('.bulk-bar')).toContainText('已选择 21 项（本页 20 项）');
   await page
     .getByRole('navigation', { name: '分页', exact: true })
     .getByRole('button', { name: '下一页', exact: true })
     .click();
-  await expect(page.locator('.bulk-bar')).toContainText('已选择 11 项（本页 3 项）');
+  await expect(page.locator('.bulk-bar')).toContainText('已选择 21 项（本页 1 项）');
   const first = await page.locator('.document-name strong').first().innerText();
   await page.locator('.document-name').first().click();
   await page.getByRole('dialog').getByRole('button', { name: '关闭弹窗', exact: true }).click();

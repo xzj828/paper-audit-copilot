@@ -388,9 +388,15 @@ const documentCollections = (d: (typeof docs.value)[number]) =>
 const rows = computed(() =>
   page.value === 'library' ? filteredDocs.value : filteredConfigs.value,
 );
-const totalPages = computed(() => Math.max(1, Math.ceil(rows.value.length / 8)));
+const libraryPageSize = 20;
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(rows.value.length / (page.value === 'library' ? libraryPageSize : 8))),
+);
 const visibleDocs = computed(() =>
-  filteredDocs.value.slice((pageNumber.value - 1) * 8, pageNumber.value * 8),
+  filteredDocs.value.slice(
+    (pageNumber.value - 1) * libraryPageSize,
+    pageNumber.value * libraryPageSize,
+  ),
 );
 const visibleConfigs = computed(() =>
   filteredConfigs.value.slice((pageNumber.value - 1) * 8, pageNumber.value * 8),

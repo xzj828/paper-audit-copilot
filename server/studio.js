@@ -719,6 +719,9 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
             m.role === 'assistant'
               ? JSON.stringify({ type: 'answer', text: m.text.slice(0, 16000) })
               : m.text.slice(0, 16000) +
+                (m.attachments?.length
+                  ? `\n本条消息附带的文件：${m.attachments.map((file) => `${file.path}（ID: ${file.id}，版本 ${file.revision}）`).join('；')}。请优先读取这些文件，再回答用户。`
+                  : '') +
                 (m.configuration && Object.keys(m.configuration).length
                   ? `\n用户在本条消息中选择的评审规则：${JSON.stringify({ pack: m.configuration.pack })}。需要评审时使用所选ID，先用list_templates读取对应内容；仅选择模板不代表要求立即开始评审。`
                   : ''),
@@ -982,12 +985,25 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
       const c = data.chat(req.workspace, req.params.id);
       if (c.run?.status === 'running' || active.has(c.id))
         throw studioError('当前对话正在执行任务', 409);
-      if (
-        typeof req.body.text !== 'string' ||
-        !req.body.text.trim() ||
-        req.body.text.length > 20000
-      )
+      if (typeof req.body.text !== 'string' || req.body.text.length > 20000)
         throw studioError('请输入1至20000字的消息');
+      const attachments = [];
+      if (req.body.attachments !== undefined) {
+        if (!Array.isArray(req.body.attachments) || req.body.attachments.length > 100)
+          throw studioError('所选文件无效，请重新添加');
+        const attached = new Set();
+        for (const item of req.body.attachments) {
+          if (!item || typeof item.id !== 'string' || attached.has(item.id))
+            throw studioError('所选文件无效，请重新添加');
+          const file = data.file(req.workspace, item.id);
+          if (file.scope !== scopeOf(c) || file.kind !== 'file')
+            throw studioError('所选文件不属于当前对话，请重新添加');
+          attached.add(file.id);
+          attachments.push({ id: file.id, path: file.path, revision: file.revision });
+        }
+      }
+      if (!req.body.text.trim() && !attachments.length)
+        throw studioError('请输入消息或添加文件');
       if (c.messages.length > 1200) throw studioError('此对话已达上限，请新建对话');
       const config = models.get(req.workspace);
       if (!config?.enabled || !config.secret) throw studioError('请先在设置中连接并启用模型', 409);
@@ -1009,11 +1025,13 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
         role: 'user',
         text: req.body.text.trim(),
         at: iso(),
+        ...(attachments.length ? { attachments } : {}),
         ...(Object.keys(selectedConfiguration).length
           ? { configuration: selectedConfiguration }
           : {}),
       });
-      if (c.title === '新对话') c.title = req.body.text.trim().slice(0, 32);
+      if (c.title === '新对话')
+        c.title = (req.body.text.trim() || attachments[0]?.path.split('/').at(-1) || '新对话').slice(0, 32);
       c.run = { id: randomUUID(), status: 'running', stage: '正在准备…', createdAt: iso() };
       c.messages.at(-1).runId = c.run.id;
       data.saveChat(req.workspace, c);

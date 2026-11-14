@@ -28,6 +28,7 @@ import type {
   StudioFile,
   WebStatus,
   ComposerConfiguration,
+  StudioAttachment,
   StudioMessage,
   StudioRun,
 } from './studio-types';
@@ -57,6 +58,7 @@ let routeSequence = 0;
 const draft = ref(''),
   messageBox = ref<HTMLTextAreaElement>(),
   messagesBox = ref<HTMLElement>();
+const attachedFiles = ref<StudioAttachment[]>([]);
 const composerConfiguration = ref<ComposerConfiguration>({});
 watch(
   composerConfiguration,
@@ -329,14 +331,34 @@ const showWelcome = computed(
 const draftKey = computed(
   () => `audit-studio-draft-${current.value?.id || projectId.value || 'new'}`,
 );
+const attachmentDraftKey = computed(() => `${draftKey.value}-attachments`);
 let poll: ReturnType<typeof setTimeout> | undefined,
   sequence = 0,
   previewSequence = 0,
   disposed = false;
 const seenArtifacts = new Set<string>();
 watch(draft, (value) => accountStorage.setItem(draftKey.value, value), { flush: 'sync' });
+watch(
+  attachedFiles,
+  (value) => accountStorage.setItem(attachmentDraftKey.value, JSON.stringify(value)),
+  { deep: true, flush: 'sync' },
+);
 function restoreDraft() {
   draft.value = accountStorage.getItem(draftKey.value) || '';
+  attachedFiles.value = [];
+  try {
+    const saved = JSON.parse(accountStorage.getItem(attachmentDraftKey.value) || '[]');
+    if (Array.isArray(saved))
+      attachedFiles.value = saved.filter(
+        (file): file is StudioAttachment =>
+          file &&
+          typeof file.id === 'string' &&
+          typeof file.path === 'string' &&
+          Number.isInteger(file.revision),
+      );
+  } catch {
+    /* Ignore stale attachment drafts. */
+  }
   try {
     const saved = JSON.parse(accountStorage.getItem(`${draftKey.value}-configuration`) || '{}');
     composerConfiguration.value = Object.fromEntries(
@@ -526,8 +548,10 @@ async function selectChat(id: string, updateRoute = true) {
 async function ensureChat() {
   if (current.value) return current.value;
   const c = await api<StudioChat>('/studio/chats', json('POST', { projectId: projectId.value }));
-  const previous = draft.value;
+  const previous = draft.value,
+    attachments = [...attachedFiles.value];
   accountStorage.setItem(draftKey.value, '');
+  accountStorage.setItem(attachmentDraftKey.value, '');
   accountStorage.setItem(`${draftKey.value}-configuration`, '{}');
   chatMotion.adopt(`chat:${c.id}`);
   current.value = c;
@@ -537,6 +561,8 @@ async function ensureChat() {
     `${draftKey.value}-configuration`,
     JSON.stringify(composerConfiguration.value),
   );
+  attachedFiles.value = attachments;
+  accountStorage.setItem(attachmentDraftKey.value, JSON.stringify(attachments));
   historyReplace(`chat/${c.id}`);
   await refreshIndex();
   return c;
@@ -549,22 +575,30 @@ function scrollEnd(behavior: ScrollBehavior = 'smooth') {
   messagesBox.value?.scrollTo({ top: messagesBox.value.scrollHeight, behavior });
 }
 async function send() {
-  if (!draft.value.trim() || busy.value || running.value || route.value.startsWith('paper/'))
+  if (
+    (!draft.value.trim() && !attachedFiles.value.length) ||
+    busy.value ||
+    running.value ||
+    route.value.startsWith('paper/')
+  )
     return;
   busy.value = true;
-  const text = draft.value;
+  const text = draft.value,
+    attachments = [...attachedFiles.value];
   const configuration = { ...composerConfiguration.value };
   await safe(async () => {
     const c = await ensureChat();
     const result = await api<StudioChat>(
       `/studio/chats/${c.id}/messages`,
-      json('POST', { text, configuration }),
+      json('POST', { text, configuration, attachments }),
     );
     accountStorage.setItem(`audit-studio-draft-${c.id}`, '');
+    accountStorage.setItem(`audit-studio-draft-${c.id}-attachments`, '[]');
     accountStorage.setItem(`audit-studio-draft-${c.id}-configuration`, '{}');
     if (current.value?.id === c.id) {
       current.value = result;
       draft.value = '';
+      attachedFiles.value = [];
       composerConfiguration.value = {};
       await nextTick();
       scrollEnd();
@@ -697,9 +731,16 @@ async function upload(event: Event) {
     await refreshFiles();
     if (navigation !== sequence || target !== scope.value) return;
     notice.value = `已上传 ${items.length} 个文件`;
-    const paper = uploaded.find((f) => /\.(pdf|docx)$/i.test(f.path));
-    if (paper) void openFile(paper);
-    else modal.value = 'files';
+    const next = new Map(attachedFiles.value.map((file) => [file.id, file]));
+    uploaded
+      .filter((file) => file.kind === 'file')
+      .forEach((file) =>
+        next.set(file.id, { id: file.id, path: file.path, revision: file.revision }),
+      );
+    attachedFiles.value = [...next.values()];
+    modal.value = '';
+    await nextTick();
+    messageBox.value?.focus();
   });
   busy.value = false;
   input.value = '';
@@ -1063,6 +1104,23 @@ defineExpose({ newChat, openModal, refreshNavigation, configureProject });
             <p v-if="notice" class="research-status" role="status">{{ notice }}</p>
             <form class="research-composer" @submit.prevent="send">
               <div class="research-composer-input">
+                <div v-if="attachedFiles.length" class="composer-attachments" aria-label="已添加文件">
+                  <article v-for="file in attachedFiles" :key="file.id" class="composer-attachment">
+                    <div class="composer-attachment-preview"><Icon name="file" :size="28" /></div>
+                    <div class="composer-attachment-name" :title="file.path">{{
+                      file.path.split('/').at(-1)
+                    }}</div>
+                    <button
+                      type="button"
+                      class="composer-attachment-remove"
+                      :disabled="busy || running"
+                      :aria-label="`移除文件 ${file.path.split('/').at(-1)}`"
+                      @click="attachedFiles = attachedFiles.filter((item) => item.id !== file.id)"
+                    >
+                      <Icon name="close" :size="14" />
+                    </button>
+                  </article>
+                </div>
                 <div
                   v-if="composerConfiguration.pack"
                   class="composer-configurations"
@@ -1175,7 +1233,12 @@ defineExpose({ newChat, openModal, refreshNavigation, configureProject });
                   type="submit"
                   class="research-send"
                   aria-label="发送"
-                  :disabled="!draft.trim() || busy || loading || route.startsWith('paper/')"
+                  :disabled="
+                    (!draft.trim() && !attachedFiles.length) ||
+                    busy ||
+                    loading ||
+                    route.startsWith('paper/')
+                  "
                 >
                   <Icon name="up" :size="20" />
                 </button>
