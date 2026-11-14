@@ -152,6 +152,13 @@ test('folder import, on-demand PDF preview, agent artifact editing and revision 
     await page.getByRole('button', { name: '关闭预览', exact: true }).click();
     await page.getByLabel('发送消息').fill('生成研究计划并保存');
     await page.getByRole('button', { name: '发送', exact: true }).click();
+    await expect(page.getByLabel('已添加文件')).toHaveCount(0);
+    const sent = page.getByLabel('用户消息').last();
+    await expect(sent.getByLabel('已发送文件')).toContainText('原文.pdf');
+    await expect(sent.getByLabel('已发送文件')).toContainText('PDF');
+    await expect(sent.getByLabel('已发送文件')).toContainText('说明.txt');
+    await expect(sent).toContainText('生成研究计划并保存');
+    await page.screenshot({ path: testInfo.outputPath('sent-attachments.png') });
     await expect
       .poll(async () => {
         const state = await (await page.request.get('/api/studio')).json();
@@ -295,9 +302,7 @@ test('Codex reference: centered 736px transcript, aligned composer, compact typo
     }
     await page
       .getByLabel('发送消息')
-      .fill(
-        '可以，我觉得你可以直接开始改了。"docs/前端设计规范.md"涉及到改前端的要遵循这个规范',
-      );
+      .fill('可以，我觉得你可以直接开始改了。"docs/前端设计规范.md"涉及到改前端的要遵循这个规范');
     await page.getByRole('button', { name: '发送', exact: true }).click();
     await expect(page.getByLabel('助手消息')).toContainText('我会先按');
     const geometry = await page.evaluate(() => {

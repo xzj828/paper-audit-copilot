@@ -94,6 +94,11 @@ const sourceLinks = (m: StudioMessage) => {
     }
   });
 };
+const attachmentName = (path: string) => path.split('/').at(-1) || path;
+const attachmentType = (path: string) => {
+  const name = attachmentName(path);
+  return name.includes('.') ? name.split('.').at(-1)?.toUpperCase() : '文件';
+};
 </script>
 
 <template>
@@ -105,19 +110,29 @@ const sourceLinks = (m: StudioMessage) => {
       tabindex="-1"
       aria-label="用户消息"
     >
-      <span
-        v-if="user.configuration?.pack"
-        class="message-configurations"
-      >
-        <span v-if="user.configuration.pack" class="message-configuration">
-          <Icon name="review-rules" :size="15" />
-          <span
-            ><span class="configuration-kind">评审规则</span
-            >{{ user.configuration.pack.name }}</span
-          >
+      <div v-if="user.attachments?.length" class="message-attachments" aria-label="已发送文件">
+        <div v-for="file in user.attachments" :key="file.id" class="message-attachment">
+          <span class="message-attachment-icon"><Icon name="file" :size="20" /></span>
+          <span class="message-attachment-details">
+            <span class="message-attachment-name" :title="file.path">{{
+              attachmentName(file.path)
+            }}</span>
+            <span class="message-attachment-type">{{ attachmentType(file.path) }}</span>
+          </span>
+        </div>
+      </div>
+      <div v-if="user.text || user.configuration?.pack" class="research-message-body">
+        <span v-if="user.configuration?.pack" class="message-configurations">
+          <span v-if="user.configuration.pack" class="message-configuration">
+            <Icon name="review-rules" :size="15" />
+            <span
+              ><span class="configuration-kind">评审规则</span
+              >{{ user.configuration.pack.name }}</span
+            >
+          </span>
         </span>
-      </span>
-      <MessageContent :text="user.text" />
+        <MessageContent v-if="user.text" :text="user.text" />
+      </div>
     </article>
     <section v-if="run || tools.length" class="turn-execution" aria-label="处理进展">
       <button
@@ -202,14 +217,7 @@ const sourceLinks = (m: StudioMessage) => {
         <button
           v-if="m.result?.reviewProjectId && m.result.status === 'completed'"
           class="research-artifact research-report-link"
-          @click="
-            emit(
-              'review',
-              m.result.reviewProjectId,
-              m.result.reviewVersionId,
-              'report',
-            )
-          "
+          @click="emit('review', m.result.reviewProjectId, m.result.reviewVersionId, 'report')"
         >
           <Icon name="file" :size="17" />查看评审报告<Icon name="arrow" :size="14" />
         </button>

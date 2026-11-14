@@ -1114,12 +1114,68 @@
   width: fit-content;
   max-width: 70%;
   margin: 24px 0 44px auto;
-  background: var(--user-bubble);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
   color: var(--user-text);
+  background: transparent;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.research-message.user .research-message-body {
+  max-width: 100%;
+  background: var(--user-bubble);
   padding: 10px 16px;
   border-radius: 18px;
   border: 0;
   box-shadow: none;
+}
+.message-attachments {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  max-width: 100%;
+}
+.message-attachment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 200px;
+  max-width: 100%;
+  min-height: 54px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--chat-text);
+}
+.message-attachment-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: #f05e68;
+}
+.message-attachment-details {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+.message-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 19px;
+}
+.message-attachment-type {
+  color: var(--chat-muted);
+  font-size: 12px;
+  line-height: 16px;
 }
 .research-message.user .markdown-content p {
   margin: 0;
@@ -1175,10 +1231,14 @@
   border-radius: 22px;
   border-color: var(--border);
   padding: 12px;
-  box-shadow: 0 2px 6px #17243a08, 0 8px 24px #17243a0d;
+  box-shadow:
+    0 2px 6px #17243a08,
+    0 8px 24px #17243a0d;
 }
 :root[data-theme='dark'] .research-composer {
-  box-shadow: 0 2px 6px #00000014, 0 8px 24px #00000024;
+  box-shadow:
+    0 2px 6px #00000014,
+    0 8px 24px #00000024;
 }
 .research-composer textarea {
   font: 400 14px/24px var(--font-ui);
@@ -1244,7 +1304,9 @@
   color: var(--muted);
   background: var(--paper);
   opacity: 0;
-  transition: opacity 160ms ease, color 160ms ease;
+  transition:
+    opacity 160ms ease,
+    color 160ms ease;
 }
 .composer-attachment:hover .composer-attachment-remove,
 .composer-attachment:focus-within .composer-attachment-remove {
