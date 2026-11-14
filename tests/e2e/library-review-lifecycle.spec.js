@@ -2,6 +2,7 @@ import { test, expect } from './authenticated-test.js';
 import { docxFixture } from '../fixtures.js';
 import path from 'node:path';
 import { createStore } from '../../server/store.js';
+import { createServer } from 'node:http';
 
 test('a retained library paper opens a reusable review conversation after its original chat is deleted', async ({
   page,
@@ -43,14 +44,21 @@ test('a retained library paper opens a reusable review conversation after its or
   await page.getByRole('button', { name: '文献库', exact: true }).click();
   await row.locator('.document-name').click();
   await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
-  await expect(page).toHaveURL(recoveredURL);
-  expect((await (await page.request.get('/api/studio')).json()).chats).toHaveLength(1);
+  await expect(page).not.toHaveURL(recoveredURL);
+  expect((await (await page.request.get('/api/studio')).json()).chats).toHaveLength(2);
   expect(await (await page.request.get('/api/projects')).json()).toHaveLength(1);
 });
 
 test('entering review creates a conversation project with the library paper attached', async ({
   page,
 }) => {
+  const model = createServer((_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ type: 'answer', text: '已阅读' }) }, finish_reason: 'stop' }] }));
+  });
+  await new Promise((resolve) => model.listen(0, '127.0.0.1', resolve));
+  try {
+  await page.request.put('/api/model-config', { data: { baseUrl: `http://127.0.0.1:${model.address().port}`, model: 'test', apiKey: 'test', enabled: true } });
   await page.goto('/#library');
   await page.locator('.management-library input[type=file][multiple]').setInputFiles({
     name: '只想收藏.docx',
@@ -84,6 +92,13 @@ test('entering review creates a conversation project with the library paper atta
   expect(studio.projects[0].title).toBe('只想收藏');
   expect(studio.chats).toHaveLength(1);
   expect(studio.chats[0].projectId).toBe(studio.projects[0].id);
+  await page.getByLabel('发送消息').fill('请阅读论文');
+  await page.getByRole('button', { name: '发送', exact: true }).click();
+  await expect(page.getByLabel('已添加文件')).toHaveCount(0);
+  await page.getByRole('button', { name: '文献库', exact: true }).click();
+  await page.goto(`/#chat/${studio.chats[0].id}`);
+  await expect(page.getByLabel('用户消息')).toContainText('请阅读论文');
+  await expect(page.getByLabel('已添加文件')).toHaveCount(0);
   const files = await (
     await page.request.get(`/api/studio/files?scope=project:${studio.projects[0].id}`)
   ).json();
@@ -106,9 +121,20 @@ test('entering review creates a conversation project with the library paper atta
   await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
   await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await expect(page).toHaveURL(/#chat\//);
-  expect((await (await page.request.get('/api/studio')).json()).projects).toHaveLength(1);
-  expect((await (await page.request.get('/api/studio')).json()).chats).toHaveLength(1);
+  const again = await (await page.request.get('/api/studio')).json();
+  expect(again.projects.map((p) => p.title)).toEqual(expect.arrayContaining(['只想收藏', '只想收藏（1）']));
+  expect(again.chats).toHaveLength(2);
+  await page.getByRole('button', { name: '文献库', exact: true }).click();
+  await row.locator('.document-name').click();
+  await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
+  await expect(page).toHaveURL(/#chat\//);
+  const third = await (await page.request.get('/api/studio')).json();
+  expect(third.projects.map((p) => p.title)).toEqual(expect.arrayContaining(['只想收藏', '只想收藏（1）', '只想收藏（2）']));
   expect(await (await page.request.get('/api/projects')).json()).toHaveLength(1);
+  } finally {
+    model.closeAllConnections();
+    await new Promise((resolve) => model.close(resolve));
+  }
 });
 
 test('a paper uploaded from a review project automatically appears in the library', async ({

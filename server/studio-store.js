@@ -282,7 +282,7 @@ export function createStudioStore(db) {
       return save('studio_chats', ws, c);
     },
     // One transaction makes repeated opens (including two tabs) share one conversation.
-    attachPaper(ws, old, version, content, sourceAvailable) {
+    attachPaper(ws, old, version, content, sourceAvailable, newProject = false) {
       return transaction(() => {
         const entries = this.list(ws);
         let c = entries.chats.find((item) =>
@@ -290,12 +290,19 @@ export function createStudioStore(db) {
             ? item.paper?.projectId === old.id && item.paper.versionId === version.id
             : item.legacyId === old.id && !item.paper && !item.legacyVersionId,
         );
-        if (c) return chat(ws, c.id);
-        let p = entries.projects.find((item) => item.legacyId === old.id);
+        if (c && !newProject) return chat(ws, c.id);
+        let p = newProject ? null : entries.projects.find((item) => item.legacyId === old.id);
         // Each imported paper belongs to a workspace project. Reopening an
         // existing attachment exits above; otherwise create its dedicated project.
         if (!p && version) {
-          p = this.createProject(ws, { title: old.title.slice(0, 160) });
+          const base = old.title.slice(0, 160);
+          const titles = new Set(entries.projects.map((item) => item.title));
+          let projectTitle = base;
+          for (let n = 1; titles.has(projectTitle); n++) {
+            const suffix = `（${n}）`;
+            projectTitle = `${base.slice(0, 160 - suffix.length)}${suffix}`;
+          }
+          p = this.createProject(ws, { title: projectTitle });
           p.legacyId = old.id;
           save('studio_projects', ws, p);
         }
@@ -304,7 +311,7 @@ export function createStudioStore(db) {
           c.legacyId = old.id;
           return this.saveChat(ws, c);
         }
-        c = entries.chats.find(
+        c = !newProject && entries.chats.find(
           (item) =>
             item.projectId === p?.id &&
             item.legacyId === old.id &&

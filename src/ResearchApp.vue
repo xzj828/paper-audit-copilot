@@ -346,10 +346,11 @@ watch(
   { deep: true, flush: 'sync' },
 );
 function restoreDraft() {
+  const savedAttachments = accountStorage.getItem(attachmentDraftKey.value) || '[]';
   draft.value = accountStorage.getItem(draftKey.value) || '';
   attachedFiles.value = [];
   try {
-    const saved = JSON.parse(accountStorage.getItem(attachmentDraftKey.value) || '[]');
+    const saved = JSON.parse(savedAttachments);
     if (Array.isArray(saved))
       attachedFiles.value = saved.filter(
         (file): file is StudioAttachment =>
@@ -400,10 +401,10 @@ async function syncRoute(event?: HashChangeEvent) {
   retrying.value = !!loadFailure.value;
   try {
     if (/^(paper|review)\//.test(route.value)) {
-      const [, id, versionId] = route.value.split('/');
+      const [, id, versionId, mode] = route.value.split('/');
       const showPreview = route.value.startsWith('review/');
       if (id) {
-        await openPaper(id, versionId);
+        await openPaper(id, versionId, mode === 'new');
         if (showPreview && token === routeSequence) openLegacy(id, versionId);
       }
     } else if (route.value.startsWith('chat/')) {
@@ -439,14 +440,14 @@ async function syncRoute(event?: HashChangeEvent) {
     }
   }
 }
-async function openPaper(id: string, versionId?: string) {
+async function openPaper(id: string, versionId?: string, newProject = false) {
   const token = ++sequence;
   const navigationToken = routeSequence;
   loading.value = true;
   try {
     const c = await api<StudioChat>(
       `/studio/papers/${id}/conversation`,
-      json('POST', { versionId }),
+      json('POST', { versionId, newProject }),
     );
     if (token !== sequence || navigationToken !== routeSequence || disposed || !/^(paper|review)\//.test(route.value)) return;
     const pendingKey = `audit-paper-draft-${id}-${versionId || ''}`;
@@ -488,10 +489,12 @@ async function refreshFiles() {
 async function stageAttachedPaper(chat: StudioChat) {
   const source = files.value.find((file) => file.id === chat.paper?.fileId);
   if (!source) return;
-  attachedFiles.value = [
-    ...attachedFiles.value.filter((file) => file.id !== source.id),
-    { id: source.id, path: source.path, revision: source.revision },
-  ];
+  if (!chat.messages.some((message) => message.role === 'user')) {
+    attachedFiles.value = [
+      ...attachedFiles.value.filter((file) => file.id !== source.id),
+      { id: source.id, path: source.path, revision: source.revision },
+    ];
+  }
   await openFile(source);
 }
 function resetView() {

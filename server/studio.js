@@ -142,11 +142,11 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
       // A paper that is already inside a workspace project returns to that project.
       // A standalone (or unavailable) old conversation is not a project, so it
       // follows the normal import path below and gets a dedicated project.
-      if (origin?.projectId) return res.json(data.chat(ws, origin.id));
+      if (!req.body.newProject && origin?.projectId) return res.json(data.chat(ws, origin.id));
       const existing = chats.find(
         (c) => c.paper?.projectId === old.id && c.paper.versionId === v.id,
       );
-      if (existing) return res.json(data.chat(ws, existing.id));
+      if (!req.body.newProject && existing) return res.json(data.chat(ws, existing.id));
       let content,
         sourceAvailable = true;
       try {
@@ -163,7 +163,7 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
       const latest = store.get(ws, old.id);
       const version = latest?.versions.find((item) => item.id === v.id);
       if (!version) throw studioError('论文版本已删除，请刷新后重试', 409);
-      res.json(data.attachPaper(ws, latest, version, content, sourceAvailable));
+      res.json(data.attachPaper(ws, latest, version, content, sourceAvailable, !!req.body.newProject));
     }),
   );
   app.put(

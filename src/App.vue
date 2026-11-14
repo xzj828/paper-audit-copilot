@@ -180,7 +180,7 @@ function applyPreferences(value: Preferences) {
   zoom.value = value.zoom;
 }
 async function openLibraryDocument(projectId: string, versionId: string) {
-  navigateStudio(`paper/${projectId}/${versionId}`);
+  navigateStudio(`paper/${projectId}/${versionId}/new`);
 }
 const projects = ref<Project[]>([]),
   project = ref<Project | null>(null);
