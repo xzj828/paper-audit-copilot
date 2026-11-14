@@ -263,13 +263,14 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory, publ
           ...p,
           purpose: p.purpose || 'review',
           versions: versions.map(
-            ({ id, number, status, filename, size, format, createdAt, messages }) => ({
+            ({ id, number, status, filename, size, format, contentHash, createdAt, messages }) => ({
               id,
               number,
               status,
               filename,
               size,
               format,
+              contentHash,
               createdAt,
               activityAt: messages?.at(-1)?.at || createdAt,
               activityText: ['user', 'assistant'].includes(messages?.at(-1)?.kind)
@@ -442,6 +443,13 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory, publ
     const contentHash = createHash('sha256').update(file.buffer).digest('hex');
     if (p.versions.some((v) => v.contentHash === contentHash))
       return res.status(409).json({ error: '该文件已上传，请在版本列表中查看' });
+    const existing = store
+      .list(req.workspace)
+      .find((item) => item.id !== p.id && item.versions.some((v) => v.contentHash === contentHash));
+    if (existing)
+      return res.status(409).json({
+        error: `该文件已存在于「${existing.title}」，请在文献库或原项目中继续使用`,
+      });
     const v = {
       id: randomUUID(),
       number: p.versions.length + 1,

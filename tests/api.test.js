@@ -353,6 +353,15 @@ test('upload rejects fake extensions and parses real PDF with exact coordinates'
     404,
   );
 });
+test('upload rejects a document that already exists in another project', async () => {
+  const first = (await request('/api/projects', 'POST', { title: '原始文献' })).data;
+  const second = (await request('/api/projects', 'POST', { title: '重复上传目标' })).data;
+  const bytes = docxFixture('The same document must have one library record.');
+  assert.equal((await upload(first.id, 'original.docx', bytes)).status, 202);
+  const duplicate = await upload(second.id, 'copied.docx', bytes);
+  assert.equal(duplicate.status, 409);
+  assert.match(duplicate.data.error, /原始文献/);
+});
 test('scientific review requires confirmed type and model while structure reports persist', async () => {
   assert.equal((await request(`/api/projects/${p.id}/review`, 'POST', {})).status, 409);
   const response = await request(`/api/projects/${p.id}/report`, 'POST', {

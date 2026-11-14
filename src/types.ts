@@ -296,6 +296,7 @@ export interface Version {
   claimAudits?: ClaimAuditSnapshot[];
   dataAudits?: DataAuditSnapshot[];
   referenceAudits?: ReferenceAuditSnapshot[];
+  contentHash?: string;
   createdAt?: string;
   activityAt?: string;
   activityText?: string;

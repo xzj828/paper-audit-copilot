@@ -246,6 +246,7 @@ test('library page-only selection, all-results selection, and returning from pre
       version.id = randomUUID();
       version.number = i + 3;
       version.filename = `受控文献-${String(i + 1).padStart(2, '0')}.docx`;
+      version.contentHash = `controlled-library-hash-${i}`;
       project.versions.push(version);
     }
   });
@@ -268,4 +269,18 @@ test('library page-only selection, all-results selection, and returning from pre
   await expect(page.locator('.document-name strong').first()).toHaveText(first);
   await expect(page.getByRole('navigation', { name: '分页', exact: true })).toContainText('2 / 2');
   await expect(page.getByLabel('搜索文献', { exact: true })).toHaveValue('受控文献');
+});
+
+test('library keeps one entry for byte-identical documents', async ({ page }) => {
+  await updateFixture(page, (project) => {
+    project.purpose = 'library';
+    project.versions[0].contentHash = 'same-document-hash';
+    const duplicate = structuredClone(project.versions[0]);
+    duplicate.id = randomUUID();
+    duplicate.number = 2;
+    duplicate.filename = '同一论文的重复副本.docx';
+    project.versions.push(duplicate);
+  });
+  await page.goto('/#library');
+  await expect(page.locator('.document-name strong')).toHaveCount(1);
 });
