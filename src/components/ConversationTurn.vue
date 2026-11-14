@@ -48,7 +48,10 @@ const tools = computed(() => props.messages.filter((m) => m.role === 'tool'));
 const answers = computed(() => props.messages.filter((m) => m.role === 'assistant'));
 const outputs = computed(() =>
   tools.value.filter(
-    (m) => m.result?.artifact || m.result?.reviewProjectId || m.result?.openTemplates,
+    (m) =>
+      m.result?.artifact ||
+      (m.result?.reviewProjectId && m.result.status === 'completed') ||
+      m.result?.openTemplates,
   ),
 );
 const activityVisible = computed(() => running.value || expanded.value);
@@ -197,20 +200,18 @@ const sourceLinks = (m: StudioMessage) => {
     <div v-if="outputs.length" class="turn-outputs">
       <template v-for="m in outputs" :key="m.id">
         <button
-          v-if="m.result?.reviewProjectId"
-          class="research-artifact"
-          :class="{ 'research-report-link': m.status !== 'running' }"
+          v-if="m.result?.reviewProjectId && m.result.status === 'completed'"
+          class="research-artifact research-report-link"
           @click="
             emit(
               'review',
               m.result.reviewProjectId,
               m.result.reviewVersionId,
-              m.status === 'running' ? 'annotations' : 'report',
+              'report',
             )
           "
         >
-          <Icon name="file" :size="17" />{{ m.status === 'running' ? '查看论文' : '查看评审报告'
-          }}<Icon name="arrow" :size="14" />
+          <Icon name="file" :size="17" />查看评审报告<Icon name="arrow" :size="14" />
         </button>
         <button
           v-else-if="m.result?.artifact"

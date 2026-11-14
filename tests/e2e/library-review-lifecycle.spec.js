@@ -32,11 +32,14 @@ test('a retained library paper opens a reusable review conversation after its or
   await expect(page).toHaveURL(/#chat\//);
   const recoveredURL = page.url();
   expect(recoveredURL).not.toContain(origin.id);
-  await expect(page.locator('.research-paper-context')).toContainText('保留的论文');
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await expect(page.getByLabel('发送消息')).toBeEnabled();
   await expect(page.locator('.load-failure')).toHaveCount(0);
+  const imported = await (await page.request.get('/api/studio')).json();
+  expect(imported.projects).toHaveLength(1);
+  expect(imported.chats[0].projectId).toBe(imported.projects[0].id);
   await page.reload();
-  await expect(page.locator('.research-paper-context')).toContainText('保留的论文');
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await page.getByRole('button', { name: '文献库', exact: true }).click();
   await row.locator('.document-name').click();
   await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
@@ -45,7 +48,7 @@ test('a retained library paper opens a reusable review conversation after its or
   expect(await (await page.request.get('/api/projects')).json()).toHaveLength(1);
 });
 
-test('import and preview stay library-only; entering review reuses the same paper after reload', async ({
+test('entering review creates a conversation project with the library paper attached', async ({
   page,
 }) => {
   await page.goto('/#library');
@@ -69,40 +72,42 @@ test('import and preview stay library-only; entering review reuses the same pape
   await expect(row).toContainText('仅入库');
   await expect(page.locator('.recent-projects .project-row')).toHaveCount(0);
   await row.locator('.document-name').click();
-  // A failed promotion remains actionable in the preview, without losing the selection.
-  await page.route(
-    `**/api/projects/${stored.id}/review-workspace`,
-    (route) =>
-      route.fulfill({
-        status: 503,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: '暂时无法进入评审，请重试' }),
-      }),
-    { times: 1 },
-  );
   await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('暂时无法进入评审');
-  await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.locator('.research-paper-context')).toContainText('只想收藏');
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await expect(page).toHaveURL(/#chat\//);
   await expect(page.locator('#studio-project-list .studio-project-group')).toHaveCount(1);
-  expect((await (await page.request.get('/api/studio')).json()).chats).toHaveLength(1);
-  const promoted = await (await page.request.get(`/api/projects/${stored.id}`)).json();
-  expect(promoted.purpose).toBe('review');
-  expect(promoted.activeVersionId).toBe(stored.versions[0].id);
-  expect(promoted.versions).toHaveLength(1);
-  expect(promoted.versions[0].runs.every((run) => run.status !== 'running')).toBe(true);
+  await expect(page.getByLabel('已添加文件')).toContainText('只想收藏.docx');
+  await expect(page.getByLabel('内容预览')).toBeVisible();
+  await expect(page.locator('.research-review-preview')).toHaveCount(0);
+  const studio = await (await page.request.get('/api/studio')).json();
+  expect(studio.projects).toHaveLength(1);
+  expect(studio.projects[0].title).toBe('只想收藏');
+  expect(studio.chats).toHaveLength(1);
+  expect(studio.chats[0].projectId).toBe(studio.projects[0].id);
+  const files = await (
+    await page.request.get(`/api/studio/files?scope=project:${studio.projects[0].id}`)
+  ).json();
+  expect(files).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ path: expect.stringMatching(/只想收藏\.docx$/) }),
+    ]),
+  );
+  const storedAfterOpening = await (await page.request.get(`/api/projects/${stored.id}`)).json();
+  expect(storedAfterOpening.purpose).toBe('library');
+  expect(storedAfterOpening.versions[0].reports).toEqual([]);
+  expect(storedAfterOpening.versions[0].runs).toEqual([]);
   await page.reload();
-  await expect(page.locator('.research-paper-context')).toContainText('只想收藏');
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await expect(page).toHaveURL(/#chat\//);
   await page.getByRole('button', { name: '文献库', exact: true }).click();
-  await expect(row).toContainText('已加入评审');
+  await expect(row).toContainText('仅入库');
   await expect(page.locator('.literature-table tbody tr')).toHaveCount(1);
   await row.locator('.document-name').click();
   await page.getByRole('button', { name: '在对话中评审', exact: true }).click();
-  await expect(page.locator('.research-paper-context')).toContainText('只想收藏');
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
   await expect(page).toHaveURL(/#chat\//);
+  expect((await (await page.request.get('/api/studio')).json()).projects).toHaveLength(1);
+  expect((await (await page.request.get('/api/studio')).json()).chats).toHaveLength(1);
   expect(await (await page.request.get('/api/projects')).json()).toHaveLength(1);
 });
 

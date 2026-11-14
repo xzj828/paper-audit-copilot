@@ -139,7 +139,10 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
       // Only reuse an origin still owned by this workspace; otherwise attach the saved paper.
       const chats = data.list(ws).chats;
       const origin = chats.find((c) => c.id === old.studioOrigin?.chatId);
-      if (origin) return res.json(data.chat(ws, origin.id));
+      // A paper that is already inside a workspace project returns to that project.
+      // A standalone (or unavailable) old conversation is not a project, so it
+      // follows the normal import path below and gets a dedicated project.
+      if (origin?.projectId) return res.json(data.chat(ws, origin.id));
       const existing = chats.find(
         (c) => c.paper?.projectId === old.id && c.paper.versionId === v.id,
       );
@@ -551,10 +554,45 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
           if (pack.transient && args.outputMode === 'scored')
             throw studioError('本次评审标准没有评分权重，请使用文字评审');
           if (!/\.(pdf|docx)$/i.test(f.path)) throw studioError('科学评审需要PDF或DOCX文件');
-          const parsed = await parseFile(ws, f.id, signal, f.revision),
-            content = data.content(ws, f.id, f.revision);
-          p = makeEmpty(f.path.split('/').at(-1));
+          p = store
+            .list(ws)
+            .find(
+              (candidate) =>
+                candidate.studioOrigin?.chatId === chatId &&
+                candidate.studioOrigin.fileId === f.id &&
+                candidate.studioOrigin.revision === f.revision &&
+                candidate.versions?.length === 1,
+            );
+          if (p) {
+            v = p.versions[0];
+            if (v.status !== 'ready') throw studioError('已有评审文件尚未准备完成，请稍后重试', 409);
+          } else {
+            const parsed = await parseFile(ws, f.id, signal, f.revision),
+              content = data.content(ws, f.id, f.revision);
+            p = makeEmpty(f.path.split('/').at(-1));
+            v = {
+              id: randomUUID(),
+              number: 1,
+              filename: f.path.split('/').at(-1),
+              format: f.path.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx',
+              size: content.length,
+              contentHash: createHash('sha256').update(content).digest('hex'),
+              status: 'ready',
+              progress: 100,
+              parse: parsed,
+              findings: [],
+              runs: [],
+              reports: [],
+              messages: [],
+              createdAt: iso(),
+            };
+            p.versions = [v];
+            p.activeVersionId = v.id;
+            await mkdir(path.join(directory, 'files'), { recursive: true });
+            await writeFile(path.join(directory, 'files', v.id), content);
+          }
           if (pack.transient) p.reviewCriteria = structuredClone(pack);
+          else delete p.reviewCriteria;
           p.settings = {
             scheme: pack.id,
             articleType: args.articleType,
@@ -569,26 +607,6 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
             revision: f.revision,
             outputPath: args.outputPath,
           };
-          v = {
-            id: randomUUID(),
-            number: 1,
-            filename: f.path.split('/').at(-1),
-            format: f.path.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx',
-            size: content.length,
-            contentHash: createHash('sha256').update(content).digest('hex'),
-            status: 'ready',
-            progress: 100,
-            parse: parsed,
-            findings: [],
-            runs: [],
-            reports: [],
-            messages: [],
-            createdAt: iso(),
-          };
-          p.versions = [v];
-          p.activeVersionId = v.id;
-          await mkdir(path.join(directory, 'files'), { recursive: true });
-          await writeFile(path.join(directory, 'files', v.id), content);
           signal.throwIfAborted();
           store.save(ws, p);
         }
@@ -596,7 +614,7 @@ export function mountStudio(app, { store, models, configuration, reviews, direct
         const rid = run.versions.find((item) => item.id === v.id)?.runs.at(-1)?.id;
         const outputPath =
           args.outputPath ||
-          p.studioOrigin.outputPath ||
+          (name === 'resume_review' ? p.studioOrigin.outputPath : '') ||
           `评审结果/${p.title}-${rid.slice(0, 8)}.md`;
         const outputRevision = data.files(ws, sid).find((f) => f.path === outputPath)?.revision;
         const latest = data.chat(ws, chatId);

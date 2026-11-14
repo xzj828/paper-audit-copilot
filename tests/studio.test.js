@@ -376,7 +376,7 @@ test('existing papers share an idempotent agent conversation with isolated versi
   assert.deepEqual(unchanged.settings, p.settings);
 });
 
-test('library papers reopen after the origin chat or project is deleted without crossing workspaces', async (t) => {
+test('papers reopen their existing project or create one when no project contains the paper', async (t) => {
   const s = await setup(t, () => ({ type: 'answer', text: 'ok' }));
   const ws = (await s.request('/auth/me')).data.user.workspaceId;
   for (const kind of ['chat', 'project', 'foreign']) {
@@ -404,13 +404,10 @@ test('library papers reopen after the origin chat or project is deleted without 
       store.db.close();
     }
     const endpoint = `/studio/papers/${paper.id}/conversation`;
-    if (kind !== 'foreign') {
+    if (kind === 'project') {
       assert.equal((await s.request(endpoint, 'POST', {})).data.id, origin.id);
       if (project) {
         assert.equal((await s.request(`/studio/projects/${project.id}`, 'DELETE')).status, 200);
-      } else {
-        await s.request(`/studio/chats/${origin.id}`, 'PATCH', { archived: true });
-        assert.equal((await s.request(`/studio/chats/${origin.id}`, 'DELETE')).status, 200);
       }
     }
     const [first, repeated] = await Promise.all([
@@ -963,6 +960,24 @@ test('agent reviews a theory paper with selected template through verified revie
   assert.equal(after.versions[0].runs.length, 1);
   assert.equal(after.versions[0].runs[0].modules[0].attempts, 1);
   assert.equal(after.versions[0].reports.at(-1).template, 'scientific-review-trial@1.0.0');
+  resumeId = undefined;
+  step = 0;
+  await s.request(`/studio/chats/${c.id}/messages`, 'POST', {
+    text: '用相同标准重新评审',
+    configuration: { pack: { id: templateId } },
+  });
+  const repeated = await s.wait(c.id);
+  const repeatedTool = repeated.messages.findLast((m) => m.name === 'review_document');
+  assert.equal(repeatedTool.status, 'completed', JSON.stringify(repeatedTool));
+  assert.equal(repeatedTool.result.reviewProjectId, p.id);
+  const reused = (await s.request('/projects/' + p.id)).data;
+  assert.equal(reused.versions[0].runs.length, 2);
+  assert.equal(
+    (await s.request('/projects')).data.filter(
+      (item) => item.studioOrigin?.chatId === c.id && item.studioOrigin.fileId === fileId,
+    ).length,
+    1,
+  );
   const stranger = (await s.request('/studio/chats', 'POST', {})).data;
   step = 0;
   await s.request(`/studio/chats/${stranger.id}/messages`, 'POST', { text: '恢复其他对话评审' });

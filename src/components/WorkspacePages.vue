@@ -231,18 +231,39 @@ watch([query, collection, configTab, documentSort, configSort], () => {
   selection.value = [];
   rowMenu.value = '';
 });
-const docs = computed(() =>
+const rawDocs = computed(() =>
   projects.value.flatMap((p) =>
     p.versions.map((v) => ({
       ...v,
       projectId: p.id,
       projectTitle: p.title,
       reviewEnabled: p.purpose !== 'library',
+      librarySource: p.purpose === 'library',
+      studioSource: !!p.studioOrigin,
       createdAt: v.createdAt || p.createdAt,
       meta: state.value.documents[v.id] || { collections: [] },
     })),
   ),
 );
+function prefersLibraryDocument(
+  candidate: (typeof rawDocs.value)[number],
+  current: (typeof rawDocs.value)[number],
+) {
+  if (candidate.librarySource !== current.librarySource) return candidate.librarySource;
+  if (candidate.studioSource !== current.studioSource) return !candidate.studioSource;
+  return (candidate.createdAt || '').localeCompare(current.createdAt || '') < 0;
+}
+const docs = computed(() => {
+  const unique = new Map<string, (typeof rawDocs.value)[number]>();
+  for (const document of rawDocs.value) {
+    // A version's SHA-256 is its exact file identity. Keep the original library
+    // item when available, otherwise retain the earliest non-studio project.
+    const key = document.contentHash ? `hash:${document.contentHash}` : `version:${document.id}`;
+    const current = unique.get(key);
+    if (!current || prefersLibraryDocument(document, current)) unique.set(key, document);
+  }
+  return [...unique.values()];
+});
 const inCollection = (d: (typeof docs.value)[number], id: string) =>
   id === 'trash'
     ? !!d.meta.trashed
@@ -509,12 +530,9 @@ async function openInWorkspace() {
   if (!previewDocument.value) return;
   const target = previewDocument.value;
   await action(async () => {
-    await api<Project>(
-      `/projects/${target.projectId}/review-workspace`,
-      json('POST', { versionId: target.id }),
-    );
     previewDocument.value = null;
-    emit('refresh');
+    // Keep the library record read-only. The conversation endpoint creates a
+    // workspace project and attaches this exact paper when the route opens.
     emit('open', target.projectId, target.id);
   });
 }

@@ -118,7 +118,9 @@ watch(
       const project = await api<Project>(`/projects/${paper.projectId}`);
       if (!cancelled)
         paperHasReport.value = Boolean(
-          project.versions.find((v) => v.id === paper.versionId)?.reports.length,
+          project
+            .versions.find((v) => v.id === paper.versionId)
+            ?.reports.some((report) => report.template !== 'structure-preview@1.0.0'),
         );
     } catch {
       /* The original paper entry remains available for retry. */
@@ -483,6 +485,15 @@ async function refreshFiles() {
   const result = await api<StudioFile[]>(`/studio/files?scope=${encodeURIComponent(target)}`);
   if (scope.value === target) files.value = result;
 }
+async function stageAttachedPaper(chat: StudioChat) {
+  const source = files.value.find((file) => file.id === chat.paper?.fileId);
+  if (!source) return;
+  attachedFiles.value = [
+    ...attachedFiles.value.filter((file) => file.id !== source.id),
+    { id: source.id, path: source.path, revision: source.revision },
+  ];
+  await openFile(source);
+}
 function resetView() {
   sequence++;
   previewSequence++;
@@ -539,6 +550,8 @@ async function selectChat(id: string, updateRoute = true) {
   for (const m of result.messages) if (m.result?.artifact) seenArtifacts.add(m.id);
   if (updateRoute) navigate(`chat/${id}`);
   await refreshFiles();
+  if (token !== sequence || navigationToken !== routeSequence || disposed) return;
+  await stageAttachedPaper(result);
   if (token !== sequence || navigationToken !== routeSequence || disposed) return;
   await nextTick();
   if (token !== sequence || navigationToken !== routeSequence || disposed) return;
@@ -780,6 +793,20 @@ async function openFile(file: StudioFile) {
   } finally {
     if (token === previewSequence) previewLoading.value = false;
   }
+}
+function openAttachedPaper() {
+  const paper = current.value?.paper;
+  if (!paper) return;
+  const file = files.value.find((item) => item.id === paper.fileId);
+  // Imported papers belong to this project/chat, so open that attached source
+  // rather than sending the user back to the legacy report workspace.
+  if (file) {
+    void safe(() => openFile(file));
+    return;
+  }
+  // Retained legacy entries without a stored source remain readable through
+  // their original workspace.
+  openLegacy(paper.projectId, paper.versionId);
 }
 function closePreview() {
   void leavePreview(() => {
@@ -1057,10 +1084,10 @@ defineExpose({ newChat, openModal, refreshNavigation, configureProject });
             aria-live="polite"
           >
             <div class="research-transcript">
-              <div v-if="current?.paper" class="research-paper-context">
+              <div v-if="current?.paper && paperHasReport" class="research-paper-context">
                 <button
                   class="subtle-button"
-                  @click="openLegacy(current.paper.projectId, current.paper.versionId)"
+                  @click="openAttachedPaper"
                 >
                   <Icon name="file" :size="16" />{{ current.paper.filename }} · v{{
                     current.paper.number

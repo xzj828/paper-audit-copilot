@@ -118,8 +118,9 @@ test('preview keeps portrait and rotated pages wholly visible across resizing, z
   await modal.getByRole('button', { name: '在对话中评审', exact: true }).click();
   await expect(modal).toHaveCount(0);
   await expect(page.locator('.research-workspace')).toBeVisible();
-  await expect(page.locator('.research-paper-context')).toContainText('整页与旋转控制');
-  await expect(page.getByRole('button', { name: /查看论文$/ })).toBeVisible();
+  await expect(page.locator('.research-paper-context')).toHaveCount(0);
+  await expect(page.getByLabel('已添加文件')).toContainText('整页与旋转控制');
+  await expect(page.getByLabel('内容预览')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

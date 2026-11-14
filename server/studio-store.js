@@ -292,9 +292,9 @@ export function createStudioStore(db) {
         );
         if (c) return chat(ws, c.id);
         let p = entries.projects.find((item) => item.legacyId === old.id);
-        // Reopening a retained review must not recreate its deleted workspace project.
-        // An origin-backed paper gets a standalone conversation when its origin is gone.
-        if (!p && !old.studioOrigin) {
+        // Each imported paper belongs to a workspace project. Reopening an
+        // existing attachment exits above; otherwise create its dedicated project.
+        if (!p && version) {
           p = this.createProject(ws, { title: old.title.slice(0, 160) });
           p.legacyId = old.id;
           save('studio_projects', ws, p);
