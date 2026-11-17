@@ -9,7 +9,7 @@ export default defineConfig({
     // Runtime files and Office temporary files are not frontend source. Watching
     // them can crash Windows fs.watch when Word locks a file during rendering.
     watch: {
-      ignored: ['**/data/**', '**/test-results/**', '**/playwright-report/**'],
+      ignored: ['**/data/**', '**/test-results/**', '**/playwright-report/**', '**/out/**', '**/tmp/**'],
       // Editors/formatters can truncate a file before writing its replacement.
       // Wait for the final contents so HMR cannot cache an empty stylesheet.
       awaitWriteFinish: { stabilityThreshold: 500, pollInterval: 50 },

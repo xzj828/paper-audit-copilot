@@ -1,34 +1,15 @@
 import packageJson from './package.json' with { type: 'json' };
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 
-const excludedRoots = new Set([
-  '.env',
-  '.git',
-  '.github',
-  '.npm-cache',
-  '.playwright',
-  '.superpowers',
-  '.worktrees',
-  'data',
-  'docs',
-  'playwright-report',
-  'test-results',
-  'tests',
-  'tmp',
-  '验证论文',
-]);
+const runtimeRoots = new Set(['desktop', 'dist', 'server', 'shared', 'public', 'node_modules']);
 
 function shouldIgnore(filePath) {
   const normalized = filePath.replaceAll('\\', '/').replace(/^\/+/, '');
   if (!normalized) return false;
   const root = normalized.split('/')[0];
-  if (excludedRoots.has(root)) return true;
-  return (
-    normalized === '.env.example' ||
-    normalized.endsWith('.log') ||
-    normalized === 'design-qa.md' ||
-    normalized === 'paper-audit-copilot-visual.png'
-  );
+  if (normalized === 'package.json' || normalized === 'LICENSE') return false;
+  if (normalized === 'scripts' || normalized === 'scripts/account.js') return false;
+  return !runtimeRoots.has(root) || normalized.endsWith('.log');
 }
 
 export default {
@@ -37,6 +18,7 @@ export default {
     executableName: 'PaperAuditCopilot',
     arch: 'x64',
     asar: true,
+    ...(process.env.ELECTRON_ZIP_DIR ? { electronZipDir: process.env.ELECTRON_ZIP_DIR } : {}),
     ignore: shouldIgnore,
   },
   rebuildConfig: {},

@@ -420,11 +420,11 @@ test('papers reopen their existing project or create one when no project contain
     assert.equal(first.data.id, repeated.data.id);
     assert.equal(first.data.paper.projectId, paper.id);
     assert.equal(first.data.paper.versionId, paper.activeVersionId);
-    assert.equal(first.data.projectId, null);
-    assert.equal((await s.request('/studio')).data.projects.length, 0);
+    assert.ok(first.data.projectId);
+    assert.ok((await s.request('/studio')).data.projects.some((p) => p.id === first.data.projectId));
     assert.equal((await s.request(`/studio/chats/${first.data.id}`)).status, 200);
     assert.equal(
-      (await s.request(`/studio/files?scope=chat:${first.data.id}`)).status,
+      (await s.request(`/studio/files?scope=project:${first.data.projectId}`)).status,
       200,
     );
     assert.deepEqual((await s.request(`/projects/${paper.id}`)).data.versions, paper.versions);
@@ -454,7 +454,8 @@ test('an empty legacy project opens a reusable general conversation without requ
   assert.ok(c.id);
   assert.equal(c.paper, undefined);
   assert.equal((await s.request(endpoint, 'POST', {})).data.id, c.id);
-  assert.deepEqual((await s.request(`/studio/files?scope=project:${c.projectId}`)).data, []);
+  assert.equal(c.projectId, null);
+  assert.deepEqual((await s.request(`/studio/files?scope=chat:${c.id}`)).data, []);
   await s.request(`/studio/chats/${c.id}/messages`, 'POST', { text: '还没有论文，先讨论研究目标' });
   assert.equal((await s.wait(c.id)).messages.at(-1).text, '可以先讨论目标。');
 });
@@ -925,11 +926,10 @@ test('agent reviews a theory paper with selected template through verified revie
   assert.ok(tool.progress.some((entry) => entry.text.includes('已核对')));
   assert.ok(done.messages.find((m) => m.role === 'user').execution.finishedAt);
   assert.ok(tool.result.reviewProjectId);
-  assert.equal(
-    (await s.request(`/studio/papers/${tool.result.reviewProjectId}/conversation`, 'POST', {})).data
-      .id,
-    c.id,
-  );
+  const reopened = (await s.request(`/studio/papers/${tool.result.reviewProjectId}/conversation`, 'POST', {})).data;
+  assert.ok(reopened.projectId);
+  assert.equal(reopened.paper.projectId, tool.result.reviewProjectId);
+  assert.equal((await s.request(`/studio/chats/${c.id}`)).data.messages.length, done.messages.length);
   assert.equal(tool.result.artifact.path, '报告/理论评审.md');
   const p = (await s.request('/projects/' + tool.result.reviewProjectId)).data;
   assert.equal(p.versions[0].runs[0].pack.id, templateId);
@@ -979,6 +979,7 @@ test('agent reviews a theory paper with selected template through verified revie
     1,
   );
   const stranger = (await s.request('/studio/chats', 'POST', {})).data;
+  resumeId = p.id;
   step = 0;
   await s.request(`/studio/chats/${stranger.id}/messages`, 'POST', { text: '恢复其他对话评审' });
   const denied = await s.wait(stranger.id);

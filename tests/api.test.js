@@ -122,7 +122,7 @@ test('library-only imports parse without review work and promote in place with m
   assert.equal((await request('/api/projects', 'POST', { purpose: 'unknown' })).status, 400);
   const item = (await request('/api/projects', 'POST', { title: '仅收藏论文', purpose: 'library' }))
     .data;
-  await upload(item.id, '收藏.docx', docxFixture());
+  await upload(item.id, '收藏.docx', docxFixture('Library-only import control.'));
   const saved = await parsed(item.id);
   const v = saved.versions[0];
   assert.equal(v.status, 'ready');
@@ -178,7 +178,7 @@ test('library-only imports parse without review work and promote in place with m
 test('a direct scientific review also promotes and restores a library paper', async () => {
   const item = (await request('/api/projects', 'POST', { title: '直接评审', purpose: 'library' }))
     .data;
-  await upload(item.id, 'direct.docx', docxFixture());
+  await upload(item.id, 'direct.docx', docxFixture('Direct review control: sample size 312.'));
   const v = (await parsed(item.id)).versions[0];
   await request('/api/workspace/documents', 'PATCH', { ids: [v.id], trashed: true });
   const provider = createServer(async (req, res) => {
@@ -314,7 +314,7 @@ test('model configuration encrypts keys, isolates workspaces, tests real HTTP an
     await upload(
       paperId,
       'sample.pdf',
-      pdfFixture('Research methods: sample size 312. Results and limitations.'),
+      pdfFixture('Model chat control: sample size 312. Results and limitations.'),
     );
     const paper = await parsed(paperId);
     const answer = await request(`/api/projects/${paperId}/messages`, 'POST', {
@@ -399,7 +399,7 @@ test('PDF diagnostic downloads require exact workspace and version and only expo
   const docxProject = (
     await request('/api/projects', 'POST', { title: 'DOCX has no PDF diagnostics' })
   ).data;
-  await upload(docxProject.id, 'control.docx', docxFixture());
+  await upload(docxProject.id, 'control.docx', docxFixture('DOCX diagnostics control.'));
   const docx = (await parsed(docxProject.id)).versions[0];
   assert.equal(
     (await request(`/api/projects/${docxProject.id}/versions/${docx.id}/pdf-diagnostics/export`))

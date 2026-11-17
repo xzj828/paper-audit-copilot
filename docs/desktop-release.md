@@ -1,5 +1,15 @@
 # Windows 桌面版安装与发布
 
+## 当前版本：v0.3.0
+
+[下载星笺 v0.3.0](https://github.com/xzj828/paper-audit-copilot/releases/tag/v0.3.0)。首次启动在应用内创建本机账号，无需另装 Node.js 或运行账号命令；账号创建成功后自动登录。检测到旧版匿名工作空间时，可选择将其中一个空间绑定到新账号，其他空间保留。已有账号时显示正常工作台或登录页，不重建账号。Web 部署的账号管理方式不变。
+
+本次安装包、更新包、校验值、验证范围与未完成的安装/升级测试见 [v0.3.0 发布记录](releases/v0.3.0.md)。安装器尚未签名。
+
+开发者可使用 `node scripts/smoke-desktop.mjs` 检查开发态桌面程序，或传入打包后 `.exe` 的路径检查发布程序；追加 `--legacy` 检查旧工作空间迁入。这些检查使用临时独立数据目录，不读取现有用户论文或模型配置。显式传入 `--user-data-dir=<目录>` 可以启动独立桌面档案。
+
+### 早期仓库迁移记录
+
 2026-11-12 合回 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot) 后，`package.json` 的仓库地址及桌面版更新目标恢复为该主仓库。本次仅合并源码，未构建或发布新的安装包。下段保留分支开发时期的历史记录，其中“当前”指当时的分支状态。
 
 2026-10-07 参赛开发仓库复制到 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot)，之后按用户明确授权解除 Fork 关联并设为 Private。代码、完整提交和两个标签保留；[原项目 Releases](https://github.com/xzj828/paper-audit-copilot/releases) 中的安装包资产没有复制。当前未在新仓库发布或验证新的 Windows 安装包，参赛交付仍为可运行的 Web 源码。当前源码的更新目标读取 `package.json` 中的新仓库地址；私有仓库的匿名下载与自动更新链路尚未配置或验证，不能据此承诺已可自动更新。后续发布需另行确定获授权的安装资产访问与更新方案，不擅自公开仓库。已安装的原项目版本仍按自身内置配置检查原项目更新，不会因复制仓库自动切换。

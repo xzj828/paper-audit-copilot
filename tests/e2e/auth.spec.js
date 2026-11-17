@@ -88,7 +88,7 @@ test('separate browser devices share preferences and data; a tab cannot retain a
   await signIn(page, a);
   const secondTab = await page.context().newPage();
   await secondTab.goto('/');
-  await expect(secondTab.getByRole('button', { name: '账号菜单' })).toBeVisible();
+  await expect(secondTab.getByRole('button', { name: '个人中心', exact: true })).toContainText(a.username);
   await page.request.put('/api/workspace/ui', {
     data: { key: 'audit-library-view', value: 'grid' },
   });
@@ -104,14 +104,12 @@ test('separate browser devices share preferences and data; a tab cannot retain a
     expect((await (await other.request.get('/api/workspace')).json()).collections[0].name).toBe(
       'Shared collection',
     );
+    await page.getByRole('button', { name: '个人中心', exact: true }).click();
     await page.getByRole('button', { name: '账号菜单' }).click();
     await page.getByRole('button', { name: '退出登录', exact: true }).click();
     await expect(secondTab.getByRole('heading', { name: '账号登录' })).toBeVisible();
     await signIn(page, b);
-    await expect(secondTab.getByRole('button', { name: '账号菜单' })).toHaveAttribute(
-      'title',
-      b.username,
-    );
+    await expect(secondTab.getByRole('button', { name: '个人中心', exact: true })).toContainText(b.username);
     expect((await (await other.request.get('/api/auth/me')).json()).user.id).toBe(a.id);
   } finally {
     await device.close();

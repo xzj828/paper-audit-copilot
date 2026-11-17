@@ -383,10 +383,23 @@ test('offline cache rejects tampered bytes, provenance DOI, oversize files and p
   await assert.rejects(loadCachedPaper(paper, directory), /来源或DOI/);
   await writeFile(path.join(directory, `${paper.id}.xml`), Buffer.alloc(limits.maxBytes + 1));
   await assert.rejects(loadCachedPaper(paper, directory), /超过8MB/);
+});
+
+test('offline cache rejects symbolic links outside the supplied materials', async (t) => {
+  const directory = await temp(t);
+  await cache(directory);
   const external = await temp(t);
   await writeFile(path.join(external, 'outside.xml'), xml);
   await rm(path.join(directory, `${paper.id}.xml`));
-  await symlink(path.join(external, 'outside.xml'), path.join(directory, `${paper.id}.xml`));
+  try {
+    await symlink(path.join(external, 'outside.xml'), path.join(directory, `${paper.id}.xml`));
+  } catch (error) {
+    if (process.platform === 'win32' && error.code === 'EPERM') {
+      t.skip('Windows does not grant this process permission to create symbolic links');
+      return;
+    }
+    throw error;
+  }
   await assert.rejects(loadCachedPaper(paper, directory), /指定素材目录/);
 });
 

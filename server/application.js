@@ -498,7 +498,7 @@ export function createPaperAuditApplication({ dataDirectory, rootDirectory, publ
       'Content-Disposition',
       `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(v.filename)}`,
     );
-    res.sendFile(path.join(directory, 'files', v.id));
+    res.sendFile(v.id, { root: path.join(directory, 'files') });
   });
   app.post('/api/projects/:id/review', (req, res) => {
     const p = project(req, res);

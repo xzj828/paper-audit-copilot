@@ -74,7 +74,7 @@ npm start
 
 论文、报告、数据库和加密后的模型设置保存在运行机器上，按账号隔离。模型评审或对话会将任务所需的文本发送到所选模型服务，图表评审还可能发送 PDF 页面或裁剪区域。使用未公开稿件前，请确认稿件授权及服务商的数据政策。备份需覆盖数据目录、原始文件和模型加密主密钥，具体方法见[账号与部署](docs/accounts.md)。
 
-Windows x64 可通过 `npm run desktop:start` 启动 Electron 桌面版，或用 `npm run desktop:make` 构建安装包。桌面版使用自己的用户数据目录，构建与备份方式见[桌面版说明](docs/desktop-release.md)。
+Windows x64 用户可以直接下载 [v0.3.0 安装包](https://github.com/xzj828/paper-audit-copilot/releases/tag/v0.3.0)，首次启动在应用内创建本机账号；升级用户可选择接续旧工作空间。也可通过 `npm run desktop:start` 启动 Electron 桌面版，或用 `npm run desktop:make` 自行构建。桌面版使用自己的用户数据目录，构建、校验与备份方式见[桌面版说明](docs/desktop-release.md)。
 
 ## 使用边界
 
