@@ -11,7 +11,9 @@ npm run account -- create sample-reviewer
 npm run account -- reset sample-reviewer
 ```
 
-命令生成随机密码并仅在本次输出中展示。用户名不区分大小写；同名创建不会覆盖现有账号。重置会撤销该账号的所有会话。可通过进程环境变量 `ACCOUNT_PASSWORD` 指定10–128字符的密码，勿将真实密码写进仓库、脚本或命令参数。`DATA_DIR` 必须与应用运行的数据目录相同；程序不会自动加载 `.env`。
+命令生成随机密码并仅在本次输出中展示。用户名不区分大小写；同名创建不会覆盖现有账号。重置会撤销该账号的所有会话。可通过环境变量 `ACCOUNT_PASSWORD` 指定10–128字符的密码，勿将真实密码写进仓库、脚本或命令参数。`DATA_DIR` 必须与应用运行的数据目录相同；`npm run account` 会加载根目录 `.env`，已有进程环境变量优先。直接执行 `node scripts/account.js` 时需自行传入 `--env-file` 或注入环境变量。
+
+创建后可运行 `npm run model:configure -- sample-reviewer`，从 `MODEL_BASE_URL`、`MODEL_ID`、`MODEL_API_KEY` 环境变量为该账号导入并启用模型。不会影响其他账号，说明见 [环境变量与部署](environment.md)。
 
 Web 部署的账号管理只有本机命令，没有远程注册或管理接口，也没有内置默认密码。全新 Web 数据库需运行上述创建命令。Windows 桌面版自 v0.3.0 起提供首次启动的本机账号创建界面，并可选取旧匿名工作空间；创建流程只通过 Electron 主进程执行，不增加公开 HTTP 注册接口。
 
