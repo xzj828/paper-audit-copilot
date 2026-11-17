@@ -194,5 +194,3 @@ Windows 默认使用本机 Chrome，可用 `CHROME_PATH` 指定路径。其他�
 北京林业大学网络工程专业。负责项目技术文档撰写与整理、功能演示视频录制，以及 Git 版本控制与代码仓库管理。
 
 - **竞赛获奖**：全国大学生数学建模竞赛省级二等奖。
-
-项目维护在 [xzj828/paper-audit-copilot](https://github.com/xzj828/paper-audit-copilot)，包含来自 [wilsonwuww/paper-audit-copilot](https://github.com/wilsonwuww/paper-audit-copilot) 的开发贡献，作者署名见提交历史。
